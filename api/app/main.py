@@ -12,15 +12,16 @@ import os
 
 app = FastAPI(title="Statis API")
 
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3001")
+# CORS: FRONTEND_URL can be a single URL or comma-separated list (e.g. Console + Landing on Vercel)
+_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3001")
+_origins = [u.strip() for u in _frontend_url.split(",") if u.strip()]
+# Always allow localhost for local dev
+_defaults = ["http://localhost:3000", "http://localhost:3001"]
+allow_origins = list(dict.fromkeys(_origins + _defaults))
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        frontend_url,
-        "http://localhost:3000",
-        "http://localhost:3001",
-    ],
+    allow_origins=allow_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

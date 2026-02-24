@@ -1,0 +1,3 @@
+# Worker (and any root-level Python) uses API deps.
+# Nixpacks needs a root requirements.txt to select a Python build image.
+-r api/requirements.txt
