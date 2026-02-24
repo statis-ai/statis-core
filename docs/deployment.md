@@ -45,7 +45,7 @@ Use one Railway project with three services.
 - **Build:** Install API dependencies so the worker can import `app`:
   - Build command: `pip install -r api/requirements.txt`
 - **Start Command:** `PYTHONPATH=api python worker/main.py` (run from **repo root**). Do not run from `worker/` only; the worker imports from `api/app`.
-- **Why root `requirements.txt` and `nixpacks.toml`:** The repo has `console/` and `landing/` with `package.json`, so Nixpacks can pick a Node image and then `pip` is missing. The root [`requirements.txt`](../requirements.txt) and [`nixpacks.toml`](../nixpacks.toml) force a Python build image for this service. You can ignore the “Script start.sh not found” warning (start is the custom command above).
+- **Why root `requirements.txt` and `nixpacks.toml`:** The repo has `console/` and `landing/` with `package.json`, so Nixpacks can pick a Node image and then `pip` is missing. The root [`requirements.txt`](../requirements.txt) and [`nixpacks.toml`](../nixpacks.toml) force a Python build image. The root `requirements.txt` lists the same packages as `api/requirements.txt` (keep in sync) so the default install step works before `api/` is available. You can ignore the “Script start.sh not found” warning (start is the custom command above).
 - **Variables:**
   - `DATABASE_URL` — same as API (reference Postgres).
   - `POLL_INTERVAL` — optional (default `1` second).

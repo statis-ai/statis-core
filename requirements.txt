@@ -1,3 +1,11 @@
-# Worker (and any root-level Python) uses API deps.
-# Nixpacks needs a root requirements.txt to select a Python build image.
--r api/requirements.txt
+# Worker: same deps as api/ so Nixpacks install works (api/ may not be present during install).
+# Keep in sync with api/requirements.txt.
+fastapi
+uvicorn
+sqlalchemy
+alembic
+psycopg[binary]
+pydantic
+pytest
+httpx
+testcontainers[postgres]
