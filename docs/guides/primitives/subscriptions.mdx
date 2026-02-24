@@ -1,0 +1,33 @@
+---
+title: "Subscriptions"
+description: "Pushing state changes to agents in real-time."
+---
+
+Autonomous agents shouldn't have to aggressively poll a database to find out if something changed. Statis employs **Subscriptions** to push updates instantly.
+
+### Webhook Delivery
+
+When the Materialized State of an entity changes, Statis fires a webhook to any subscribed system or agent.
+
+You can configure subscriptions to only trigger when specific fields change or specific conditions are met.
+
+#### Example Payload
+
+```json
+{
+  "type": "state.updated",
+  "entity_id": "loan_app_444",
+  "old_state": {
+    "status": "pending"
+  },
+  "new_state": {
+    "status": "high_risk_flag",
+    "blockers": ["credit_freeze"]
+  },
+  "triggering_event": "equifax_webhook"
+}
+```
+
+### Intercepting Execution
+
+Because webhooks are delivered in `<300ms`, agents can intercept these signals to abort scheduled tasks, pivot their conversation strategy, or execute immediate counter-measures.

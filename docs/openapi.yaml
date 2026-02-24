@@ -1,0 +1,551 @@
+openapi: "3.0.3"
+info:
+  title: Statis API
+  description: |
+    Statis is a semantic event bus that:
+    - ingests append-only semantic events,
+    - deterministically materializes entity state,
+    - pushes state changes via subscriptions,
+    - supports replay/time-travel,
+    - and derives analytics snapshots from the same event log.
+  version: "v0"
+servers:
+  - url: http://localhost:8000
+    description: Local development server
+  - url: https://api.statis.dev
+    description: Production server
+security:
+  - ApiKeyAuth: []
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+  schemas:
+    EventCreate:
+      type: object
+      required:
+        - event_id
+        - entity_type
+        - entity_id
+        - event_type
+        - payload
+        - occurred_at
+        - producer
+        - schema_version
+      properties:
+        event_id:
+          type: string
+          example: "evt_001"
+        entity_type:
+          type: string
+          example: "account"
+        entity_id:
+          type: string
+          example: "acct_123"
+        event_type:
+          type: string
+          example: "ticket.updated"
+        payload:
+          type: object
+          example:
+            ticket_id: "t_9"
+            status: "open"
+            severity: "high"
+        occurred_at:
+          type: string
+          format: date-time
+          example: "2026-02-22T18:15:00Z"
+        producer:
+          type: string
+          example: "support-agent"
+        schema_version:
+          type: string
+          example: "1"
+    Event:
+      type: object
+      properties:
+        event_id:
+          type: string
+          example: "evt_001"
+        entity_type:
+          type: string
+          example: "account"
+        entity_id:
+          type: string
+          example: "acct_123"
+        event_type:
+          type: string
+          example: "ticket.updated"
+        payload:
+          type: object
+          example:
+            ticket_id: "t_9"
+            status: "open"
+        occurred_at:
+          type: string
+          format: date-time
+          example: "2026-02-22T18:15:00Z"
+        ingested_at:
+          type: string
+          format: date-time
+          example: "2026-02-22T18:15:01Z"
+        producer:
+          type: string
+          example: "support-agent"
+        schema_version:
+          type: string
+          example: "1"
+        trace_id:
+          type: string
+          nullable: true
+          example: null
+    StateSnapshot:
+      type: object
+      properties:
+        entity_type:
+          type: string
+          example: "account"
+        entity_id:
+          type: string
+          example: "acct_123"
+        state:
+          type: object
+          example:
+            plan: "pro"
+            open_incidents:
+              - ticket_id: "t_9"
+                status: "open"
+            churn_risk: true
+        state_version:
+          type: integer
+          example: 12
+        state_hash:
+          type: string
+          example: "sha256:..."
+        last_event_id:
+          type: string
+          example: "evt_001"
+        provenance:
+          type: object
+          properties:
+            event_ids:
+              type: array
+              items:
+                type: string
+          example:
+            event_ids: ["evt_001", "evt_0009"]
+    SubscriptionCreate:
+      type: object
+      required:
+        - entity_type
+        - destination
+      properties:
+        entity_type:
+          type: string
+          example: "account"
+        event_types:
+          type: array
+          items:
+            type: string
+          example: ["ticket.updated", "plan.changed"]
+        destination:
+          type: object
+          required:
+            - type
+            - url
+          properties:
+            type:
+              type: string
+              example: "webhook"
+            url:
+              type: string
+              format: uri
+              example: "http://localhost:9000/webhook/statis"
+    DeliveryTrace:
+      type: object
+      properties:
+        delivery_id:
+          type: string
+          example: "del_001"
+        subscription_id:
+          type: string
+          example: "sub_123"
+        event_id:
+          type: string
+          example: "evt_001"
+        status:
+          type: string
+          example: "sent"
+        attempt_count:
+          type: integer
+          example: 1
+        response_code:
+          type: integer
+          example: 200
+        sent_at:
+          type: string
+          format: date-time
+          example: "2026-02-22T18:15:04Z"
+        last_error:
+          type: string
+          nullable: true
+          example: null
+    ReplayRequest:
+      type: object
+      properties:
+        entity_type:
+          type: string
+          example: "account"
+        entity_id:
+          type: string
+          example: "acct_123"
+        since:
+          type: string
+          format: date-time
+          example: "2026-02-01T00:00:00Z"
+        until:
+          type: string
+          format: date-time
+          example: "2026-02-22T23:59:59Z"
+        subscription_id:
+          type: string
+          example: "sub_123"
+    DailyAnalytics:
+      type: object
+      properties:
+        entity_type:
+          type: string
+          example: "account"
+        entity_id:
+          type: string
+          example: "acct_123"
+        day:
+          type: string
+          format: date
+          example: "2026-02-19"
+        plan:
+          type: string
+          example: "pro"
+        open_tickets:
+          type: integer
+          example: 2
+        churn_risk:
+          type: boolean
+          example: true
+        state_hash:
+          type: string
+          example: "sha256:..."
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: Returns whether the API is alive.
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+  /events:
+    post:
+      summary: Ingest Event
+      tags:
+        - Events
+      description: |
+        Ingest an append-only semantic event. Statis will materialize state synchronously on write.
+        **Idempotency:**
+        Statis uses `event_id` as an idempotency key.
+        - First submit (new event_id): 201 Created
+        - Duplicate submit (same event_id, same body): 200 OK with `"deduped": true`
+        - Duplicate submit (same event_id, different body): 409 Conflict
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventCreate'
+      responses:
+        '201':
+          description: Created (new event)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: boolean
+                    example: true
+                  event_id:
+                    type: string
+                    example: "evt_001"
+                  deduped:
+                    type: boolean
+                    example: false
+        '200':
+          description: OK (duplicate event_id, deduped)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accepted:
+                    type: boolean
+                    example: true
+                  event_id:
+                    type: string
+                    example: "evt_001"
+                  deduped:
+                    type: boolean
+                    example: true
+        '409':
+          description: Conflict (duplicate event_id with different body)
+    get:
+      summary: Query Events
+      tags:
+        - Events
+      description: Query events for audit, debug, or replay.
+      parameters:
+        - name: entity_type
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: entity_id
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: since
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: until
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+  /state/{entity_type}/{entity_id}:
+    get:
+      summary: Fetch Materialized State
+      tags:
+        - State
+      description: Fetch the current materialized state snapshot.
+      parameters:
+        - name: entity_type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateSnapshot'
+  /state/{entity_type}/{entity_id}/at:
+    get:
+      summary: Fetch Historical State (Time-Travel)
+      tags:
+        - State
+      description: Time-machine view of state at a point in time.
+      parameters:
+        - name: entity_type
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: entity_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: ts
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StateSnapshot'
+  /subscriptions:
+    post:
+      summary: Create Subscription
+      tags:
+        - Subscriptions
+      description: Create a subscription for push notifications.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionCreate'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  subscription_id:
+                    type: string
+                    example: "sub_123"
+                  status:
+                    type: string
+                    example: "active"
+  /subscriptions/{subscription_id}:
+    get:
+      summary: Fetch Subscription Details
+      tags:
+        - Subscriptions
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /subscriptions/{subscription_id}/pause:
+    post:
+      summary: Pause Subscription
+      tags:
+        - Subscriptions
+      description: Pause deliveries for a subscription.
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /subscriptions/{subscription_id}/resume:
+    post:
+      summary: Resume Subscription
+      tags:
+        - Subscriptions
+      description: Resume deliveries for a subscription.
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+  /delivery-trace/{subscription_id}:
+    get:
+      summary: Inspect Delivery Trace
+      tags:
+        - Subscriptions
+      description: Inspect deliveries (attempts, retries, failures) for a subscription.
+      parameters:
+        - name: subscription_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeliveryTrace'
+  /replay:
+    post:
+      summary: Replay Events
+      tags:
+        - Admin / Replay
+      description: Re-drive historical events through delivery for a subscription and/or rebuild materializations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReplayRequest'
+      responses:
+        '200':
+          description: OK
+  /analytics/account-daily:
+    get:
+      summary: Fetch Daily Analytics
+      tags:
+        - Analytics
+      description: Read deterministic daily snapshots derived from the same event log.
+      parameters:
+        - name: entity_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: since
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2026-02-01"
+        - name: until
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2026-02-22"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DailyAnalytics'

@@ -1,0 +1,31 @@
+---
+title: "Node.js SDK"
+description: "Integrate Statis in TypeScript environments with full typing."
+---
+
+The Node.js SDK is our official TypeScript library, providing complete typing for the Statis engine. Installation is via `npm`.
+
+```bash
+npm install @statis/sdk
+```
+
+### Connecting in TypeScript
+
+```typescript
+import { Statis } from '@statis/sdk';
+
+const statis = new Statis({
+  apiKey: process.env.STATIS_KEY
+});
+
+async function publishFact() {
+  await statis.events.publish({
+    entity_id: "order_123",
+    agent_id: "node_worker",
+    type: "fraud_check.completed",
+    fact: "Fraud score is low."
+  });
+}
+
+publishFact();
+```

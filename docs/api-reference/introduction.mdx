@@ -1,0 +1,29 @@
+---
+title: "API Introduction"
+description: "Interact directly with the Statis REST API."
+---
+
+The Statis REST API allows you to publish events, retrieve materialized states, and reconstruct historical timelines.
+
+## Authentication
+
+All API endpoints require authentication using a Bearer token.
+
+```bash
+Authorization: Bearer <YOUR_API_KEY>
+```
+
+You can generate an API key from the Statis Dashboard. 
+
+## Base URL
+
+The base URL for the API is dependent on your deployment environment. For local development, it defaults to:
+
+`http://localhost:8000`
+
+## Endpoints
+
+The API is divided into the following primary resources:
+- **Events**: Ingesting new semantic facts.
+- **Entities**: Retrieving current and historical state.
+- **Webhooks**: Configuring and receiving real-time push events.

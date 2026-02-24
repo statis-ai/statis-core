@@ -1,0 +1,6 @@
+{
+  "entity_type": "account",
+  "event_types": ["plan.changed", "billing.plan_changed"],
+  "destination": "https://hooks.example.com/sales/pause-check",
+  "_description": "Fires when an account changes plan — use to pause outreach on downgraded accounts."
+}

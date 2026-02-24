@@ -1,0 +1,39 @@
+---
+title: "Preventing Tone-Deaf AI"
+description: "How to stop agents from executing workflows when entity context changes."
+---
+
+One of the most common failures in multi-agent systems is an agent executing a scheduled task (like an upsell) while unaware of a critical, real-time event (like a platform outage).
+
+Here is how Statis solves this using **Materialized State** and **Subscriptions**.
+
+### 1. The Support Agent Publishes a Fact
+When a customer reports an outage, the Support Agent publishes a fact to the Event Log.
+
+```python
+await statis.events.publish(
+    entity_id="acme_corp",
+    agent_id="support_bot",
+    type="ticket.created",
+    fact="Severity 1: Prod DB down. Customer threatening to cancel."
+)
+```
+
+### 2. Statis Materializes the State
+
+Instantly, the Statis engine evaluates this new fact against your materializer rules. It bumps the entity revision and computes derived fields.
+
+```json
+{
+  "entity_id": "acme_corp",
+  "rev": 105,
+  "state_json": {
+    "churn_risk": true,
+    "blockers": ["sev1_outage"]
+  }
+}
+```
+
+### 3. The Sales Agent Receives a Push
+
+Because the Sales Agent subscribed to `churn_risk` transitions, Statis fires a webhook in `< 300ms`. The Sales Agent intercepts this webhook, updates its local context, and aborts the scheduled upsell email.

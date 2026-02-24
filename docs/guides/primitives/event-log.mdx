@@ -1,0 +1,26 @@
+---
+title: "The Event Log"
+description: "The append-only source of truth for your multi-agent workflows."
+---
+
+In traditional architectures, agents interact directly with databases or vector stores to read and update state. This leads to race conditions, lost updates, and untraceable AI hallucinations.
+
+Statis replaces this pattern with an **Event Log**.
+
+### Publishing Facts
+
+Your agents do not use `UPDATE` or `DELETE` statements. They only use `APPEND` (via the `/events` endpoint) to publish discrete facts.
+
+```json
+{
+  "entity_id": "order_99X",
+  "type": "item.scanned",
+  "fact": "Warehouse bot scanned item barcode."
+}
+```
+
+### Cryptographic Sequencing
+
+Statis strictly orders every event. Even if a hundred agents attempt to interact with the same entity simultaneously, Statis acts as a deterministic referee, assigning a sequential `rev` (revision number) to each event.
+
+This strict ordering guarantees that agents cannot accidentally overwrite each other, and it provides an immutable audit trail of what happened, when, and by which agent.

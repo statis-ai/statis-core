@@ -1,0 +1,36 @@
+---
+title: "Materialized State"
+description: "Instantly deriving a golden record from the Event Log."
+---
+
+The Event Log is the source of truth, but agents need a fast way to know the current state of the world without reading thousands of past events.
+
+Statis solves this by automatically generating **Materialized State**.
+
+### Real-Time Projection
+
+Every time a new fact is appended to the Event Log, the Statis engine runs your custom projection rules to compute the current state. This happens in single-digit milliseconds.
+
+For example, if an agent publishes:
+`"fact": "Order shipped via FedEx"`
+
+Statis materializes the state JSON:
+```json
+{
+  "entity_id": "order_99X",
+  "rev": 42,
+  "state_json": {
+    "status": "shipped",
+    "carrier": "FedEx"
+  }
+}
+```
+
+### Retrieving State
+
+Agents can fetch the current Materialized State instantly before they take any action, ensuring they never act on stale context.
+
+```typescript
+const state = await statis.entities.get('order', 'order_99X');
+console.log(state.status); // "shipped"
+```

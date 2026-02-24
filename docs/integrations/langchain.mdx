@@ -1,0 +1,27 @@
+---
+title: "LangChain"
+description: "Drop-in integration with LangChain's conversational memory."
+---
+
+Statis replaces fragile vector stores and raw chat histories by acting as the definitive `BaseMemory` class in your LangChain stack.
+
+### Setup Statis Memory
+
+```python
+from statis.integrations.langchain import StatisMemory
+from langchain.chains import LLMChain
+
+# Automatically syncs chat history with the Event Log
+memory = StatisMemory(
+    entity_id="session_889",
+    agent_id="langchain_assistant"
+)
+
+chain = LLMChain(
+    llm=openai,
+    prompt=prompt,
+    memory=memory
+)
+
+response = chain.run("What is my current account limits?")
+```

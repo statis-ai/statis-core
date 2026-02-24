@@ -1,0 +1,6 @@
+{
+  "entity_type": "account",
+  "event_types": ["escalation.requested", "incident.reported"],
+  "destination": "https://hooks.example.com/csm/escalation-alert",
+  "_description": "Fires on escalation or incident — use to alert the CSM team in real time."
+}

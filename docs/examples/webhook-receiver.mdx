@@ -1,0 +1,38 @@
+---
+title: "Webhook Receiver"
+description: "A Python snippet to receive Statis state diffs"
+---
+
+Use this minimal setup to verify Statis is correctly pushing incremental state updates.
+
+```python
+"""Minimal webhook receiver for Statis delivery demos."""
+import argparse
+from http.server import HTTPServer, BaseHTTPRequestHandler
+
+class WebhookHandler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        content_length = int(self.headers.get('Content-Length', 0))
+        body = self.rfile.read(content_length)
+        print(f"\\n--- Webhook via port {self.server.server_port} ---")
+        print(body.decode('utf-8'))
+        print("---------------------------\\n")
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"OK")
+
+def run(port=8001):
+    server_address = ('', port)
+    httpd = HTTPServer(server_address, WebhookHandler)
+    print(f"Webhook receiver listening on port {port}...")
+    httpd.serve_forever()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Statis webhook receiver")
+    parser.add_argument("--port", type=int, default=8001)
+    args = parser.parse_args()
+    try:
+        run(port=args.port)
+    except KeyboardInterrupt:
+        print("\\nShutting down webhook receiver.")
+```

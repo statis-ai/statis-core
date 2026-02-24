@@ -1,0 +1,29 @@
+---
+title: "Python SDK"
+description: "Integrate Statis in latency-sensitive Python microservices."
+---
+
+The Python SDK is designed to be fully asynchronous and type-safe. Installation is via `pip`.
+
+```bash
+pip install statis-sdk
+```
+
+### Connecting to Statis
+
+```python
+import asyncio
+from statis import Statis
+
+async def main():
+    statis = Statis(api_key="your_api_key")
+    
+    await statis.events.publish(
+        entity_id="order_123",
+        agent_id="python_worker",
+        type="fraud_check.completed",
+        fact="Fraud score is low."
+    )
+
+asyncio.run(main())
+```

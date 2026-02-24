@@ -1,0 +1,20 @@
+---
+title: "State Packs"
+description: "Opinionated schemas for your domain"
+---
+
+A **State Pack** is an opinionated wedge built on top of Statis’s primitives. It provides a ready-to-use materialized state schema for specific domains.
+
+## The Account State Pack
+
+Provides a ready-to-use materialized state schema for customer-ops teams coordinating across Support, Billing, and CSM agents.
+
+### Entities Tracked
+- `account`
+- `ticket`
+- `billing_invoice`
+- `csm_health`
+
+### Reducers
+
+The pack inherently knows how to consume `ticket.resolved` and update the `account.open_tickets_count` across domains. This prevents your AI agents from needing to know the complex side-effects of their actions.

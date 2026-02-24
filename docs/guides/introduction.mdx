@@ -1,0 +1,21 @@
+---
+title: "Introduction"
+description: "Deterministic State for AI Agents."
+---
+
+Welcome to the Statis documentation. Statis (Semantic Bus) is an event-driven state broker designed specifically for multi-agent workflows.
+
+### The Problem: Agent Synchronization is Broken
+When multiple autonomous agents operate on the same customer or entity, polling fragmented vector databases or local memory leads to race conditions. If a Support agent learns a customer is furious, but your Sales agent is operating on stale state, the Sales agent will make tone-deaf mistakes.
+
+### The Solution: Publish Facts, Push Truth
+Statis replaces chaotic polling with a deterministic pipeline. Agents do not mutate state; they publish **semantic facts**. Statis sequences these facts, materializes a golden state record, and instantly pushes state-change webhooks to subscribed agents.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/guides/quickstart">
+    Get up and running with the Statis SDK in 5 minutes.
+  </Card>
+  <Card title="Core Primitives" icon="cube" href="/guides/primitives/event-log">
+    Understand the Event Log, Materialization, and Push mechanics.
+  </Card>
+</CardGroup>

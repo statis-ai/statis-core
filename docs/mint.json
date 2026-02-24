@@ -1,0 +1,90 @@
+{
+    "name": "Statis",
+    "logo": {
+        "dark": "/logo/dark.svg",
+        "light": "/logo/light.svg"
+    },
+    "favicon": "/favicon.svg",
+    "colors": {
+        "primary": "#10B981",
+        "light": "#34D399",
+        "dark": "#059669"
+    },
+    "tabs": [
+        {
+            "name": "Guides",
+            "url": "guides"
+        },
+        {
+            "name": "Use Cases",
+            "url": "use-cases"
+        },
+        {
+            "name": "Integrations",
+            "url": "integrations"
+        },
+        {
+            "name": "API Reference",
+            "url": "api-reference"
+        }
+    ],
+    "openapi": "/openapi.yaml",
+    "api": {
+        "baseUrl": "http://localhost:8000",
+        "auth": {
+            "method": "bearer"
+        }
+    },
+    "navigation": [
+        {
+            "group": "Getting Started",
+            "pages": [
+                "guides/introduction",
+                "guides/quickstart"
+            ]
+        },
+        {
+            "group": "Core Primitives",
+            "pages": [
+                "guides/primitives/event-log",
+                "guides/primitives/materialized-state",
+                "guides/primitives/subscriptions",
+                "guides/primitives/time-travel"
+            ]
+        },
+        {
+            "group": "Playbooks",
+            "pages": [
+                "use-cases/tone-deaf-ai",
+                "use-cases/double-spend-swarm",
+                "use-cases/black-box-autopsy"
+            ]
+        },
+        {
+            "group": "SDKs & Frameworks",
+            "pages": [
+                "integrations/python-sdk",
+                "integrations/node-sdk",
+                "integrations/langchain"
+            ]
+        },
+        {
+            "group": "API Reference",
+            "pages": [
+                "api-reference/introduction",
+                "api-reference/endpoints/get-health",
+                "api-reference/endpoints/post-events",
+                "api-reference/endpoints/get-events",
+                "api-reference/endpoints/get-state",
+                "api-reference/endpoints/get-state-at",
+                "api-reference/endpoints/post-subscriptions",
+                "api-reference/endpoints/get-subscription",
+                "api-reference/endpoints/pause-subscription",
+                "api-reference/endpoints/resume-subscription",
+                "api-reference/endpoints/get-delivery-trace",
+                "api-reference/endpoints/post-replay",
+                "api-reference/endpoints/get-analytics"
+            ]
+        }
+    ]
+}

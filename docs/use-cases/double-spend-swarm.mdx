@@ -1,0 +1,24 @@
+---
+title: "Resolving Race Conditions"
+description: "Using deterministic log sequencing to prevent AI double-spends."
+---
+
+When two agents attempt to resolve the same issue simultaneously, you risk expensive race conditions (e.g., refunding an order *and* shipping a replacement).
+
+### The Statis Referee
+
+Statis acts as a deterministic sequencer. Agents do not hold locks; they simply attempt to append facts.
+
+If Agent A (Support) and Agent B (Returns) attempt to publish a resolution simultaneously:
+
+<Steps>
+<Step title="Agent A writes 'Refund Initiated'">
+Statis accepts the event, assigning it `rev: 12`. The materialized state transitions to `status: resolved`.
+</Step>
+<Step title="Agent B writes 'Replacement Shipped'">
+Statis processes the event at `rev: 13`. However, strict validation rules check the current state. Because the state is already `resolved`, Statis rejects Agent B's event.
+</Step>
+<Step title="Conflict Pushed to Agent B">
+Agent B's request receives a `409 Conflict`. A webhook is pushed: `Action Rejected: Entity already has terminal resolution.` Agent B instantly halts the physical shipment.
+</Step>
+</Steps>

@@ -1,0 +1,46 @@
+---
+title: "CSM Demo"
+description: "See Statis in action with a mock Customer Success workflow"
+---
+
+This guide runs the full Statis CSM scenario: **event ingestion**, **deterministic state**, and **push to receivers** (webhooks).
+
+<Steps>
+  <Step title="Run Postgres">
+    If you haven't already:
+    ```bash
+    docker run -d --name statis-pg -e POSTGRES_USER=statis -e POSTGRES_PASSWORD=statis -e POSTGRES_DB=statis -p 5433:5432 postgres:16-alpine
+    ```
+  </Step>
+  <Step title="Start the Webhook Receiver">
+    Run a terminal listening for notifications on port 8001:
+    ```bash
+    python examples/webhook_receiver.py
+    ```
+  </Step>
+  <Step title="Start the API">
+    In another terminal, start the core server:
+    ```bash
+    export DATABASE_URL="postgresql+psycopg://statis:statis@localhost:5433/statis"
+    cd api && PYTHONPATH=. uvicorn app.main:app
+    ```
+  </Step>
+  <Step title="Start the Worker">
+    The worker picks up changes and pushes to the webhook:
+    ```bash
+    export DATABASE_URL="postgresql+psycopg://statis:statis@localhost:5433/statis"
+    python worker/main.py
+    ```
+  </Step>
+  <Step title="Run the Scenario Script">
+    Run the Python demo script which mimics user interactions:
+    ```bash
+    python examples/csm_demo.py
+    ```
+  </Step>
+</Steps>
+
+## Expected Output
+
+You'll see the script sending random events: `invoice.paid`, `ticket.created`, etc.
+The API processes them instantly. The worker picks up the difference, and the Webhook receiver prints the exact state mutations.

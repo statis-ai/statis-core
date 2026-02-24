@@ -1,0 +1,35 @@
+---
+title: "Black-Box Autopsy (Time Travel)"
+description: "Auditing LLM decisions by reconstructing exact historical state."
+---
+
+Debugging LLMs is incredibly difficult if you don't know exactly what data the model was looking at when it made a decision. Statis provides a mathematical audit trail.
+
+### Reconstructing Historical State
+
+If an AI Underwriter denied a loan yesterday at 2:15 PM, you can query the `/state/at` endpoint to retrieve the exact JSON payload the agent had at that millisecond.
+
+```bash
+curl -X GET "https://api.statis.dev/v1/state/at?entity_id=loan_444&timestamp=2026-02-21T14:15:00Z"
+```
+
+### The Provenance Trace
+
+Statis returns not just the historical state, but the exact delivery trace and triggering events.
+
+```json
+{
+  "entity_id": "loan_444",
+  "historical_rev": 88,
+  "state_json": {
+    "credit_score": 580,
+    "status": "high_risk_flag"
+  },
+  "provenance": {
+    "triggering_event": "webhook_experian_update",
+    "received_at": "2026-02-21T14:14:02Z"
+  }
+}
+```
+
+You can now definitively prove to compliance teams *why* the AI made the decision.

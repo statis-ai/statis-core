@@ -1,0 +1,28 @@
+---
+title: "Architecture"
+description: "How Statis works under the hood"
+---
+
+Statis materializes entity state **synchronously on write**. When `POST /events` ingests a new event, the entity's materialized state is updated within the same request and database transaction before returning a response to the caller.
+
+## The Triad
+
+Statis relies on three core concepts:
+
+1. **Events Log (The Source of Truth):**
+   An append-only log of what happened. Every action is immutable.
+2. **Materialized State (The Fast Read):**
+   A JSONB projection of the event log. You don't have to replay events to know the current state.
+3. **Outbox Deliveries (The Push):**
+   Reliable webhook delivery. Every write transaction simultaneously appends a webhook task.
+
+## Synchronous Materialization
+
+<Note>
+Statis avoids eventual consistency issues by guaranteeing that state is updated exactly when the event is accepted. Read-after-write is perfectly safe.
+</Note>
+
+When you submit an event:
+- Look up existing state.
+- Apply the State Pack rules.
+- Save the Event + State + Outbox Task in *one atomic commit*.

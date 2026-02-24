@@ -1,0 +1,6 @@
+{
+  "entity_type": "account",
+  "event_types": ["plan.changed", "billing.plan_changed"],
+  "destination": "https://hooks.example.com/billing/dunning-pause",
+  "_description": "Fires on plan changes — use to pause dunning workflows when a customer upgrades."
+}

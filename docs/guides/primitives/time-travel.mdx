@@ -1,0 +1,21 @@
+---
+title: "Time Travel"
+description: "Auditing exact historical state and reconstructing past decisions."
+---
+
+One of the most powerful features of an append-only event log is the ability to perfectly reconstruct historical state. Statis calls this **Time Travel**.
+
+### Retrieving Past State
+
+Instead of relying on fragile database snapshots, Statis evaluates the Event Log up to a specific timestamp, ignoring any events that happened afterward.
+
+You can query the exact state an entity had at any millisecond in the past:
+
+```bash
+curl -X GET "https://api.statis.dev/v1/entities/loan_app/444/timeline?timestamp=2026-02-21T14:15:00Z" \
+  -H "Authorization: Bearer <API_KEY>"
+```
+
+### Unlocking Compliance
+
+If your LLM makes an underwriting decision, a medical diagnosis, or a financial trade, you must be able to prove precisely what data the model "saw" at the time of the decision. Time Travel allows you to instantly produce an exact mathematical audit.

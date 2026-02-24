@@ -1,0 +1,57 @@
+---
+title: "Quickstart"
+description: "Get Statis running locally in under 2 minutes"
+---
+
+Follow this guide to spin up the Statis core locally using Docker and Postgres.
+
+## Prerequisites
+
+- Docker Desktop installed
+- Python 3.9+ installed
+
+## 1. Start the Database
+
+Statis requires Postgres. Run this quick Docker container:
+
+```bash
+docker run -d --name statis-pg -e POSTGRES_USER=statis -e POSTGRES_PASSWORD=statis \
+  -e POSTGRES_DB=statis -p 5433:5432 postgres:16-alpine
+```
+
+## 2. Start the API Server
+
+Clone the Statis core repository, install the dependencies, and start the API:
+
+```bash
+export DATABASE_URL="postgresql+psycopg://statis:statis@localhost:5433/statis"
+cd api && PYTHONPATH=. uvicorn app.main:app --reload
+```
+
+<Note>The API should now be running at `http://localhost:8000`.</Note>
+
+## 3. Post your first Event
+
+Send your first semantic event using cURL:
+
+```bash
+curl -X POST http://localhost:8000/events \
+  -H "Content-Type: application/json" \
+  -d '{
+    "source": "quickstart",
+    "type": "account.created",
+    "entity_type": "account",
+    "entity_id": "acct_first",
+    "payload": {
+      "name": "Acme Corp",
+      "plan": "Pro"
+    }
+  }'
+```
+
+🎉 **Success!** You just ingested an event and generated materialized state.
+
+## Next Steps
+
+- Understand the [Architecture](/overview/architecture)
+- Check the [CSM Demo](/examples/csm-demo) to see realistic workflows.

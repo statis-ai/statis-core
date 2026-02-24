@@ -1,0 +1,55 @@
+---
+title: "Quickstart"
+description: "Get up and running with Statis in 5 minutes."
+---
+
+## 1. Install the SDK
+
+Install the Statis SDK for your preferred language.
+
+<CodeGroup>
+  ```bash npm
+  npm install @statis/sdk
+  ```
+  ```bash pip
+  pip install statis-sdk
+  ```
+</CodeGroup>
+
+## 2. Initialize the Client
+
+Initialize the Statis client with your Project ID and API Key.
+
+<CodeGroup>
+  ```typescript TypeScript
+  import { Statis } from '@statis/sdk';
+
+  const statis = new Statis({
+    projectId: 'proj_123',
+    apiKey: process.env.STATIS_API_KEY
+  });
+  ```
+  ```python Python
+  from statis import Statis
+
+  statis = Statis(
+      project_id='proj_123',
+      api_key='your_api_key'
+  )
+  ```
+</CodeGroup>
+
+## 3. Publish Your First Fact
+
+Instead of mutating state directly in a database, your agents publish semantic facts to the Statis Event Log.
+
+```typescript
+await statis.events.publish({
+  entity_id: "cus_8891",
+  agent_id: "support_bot",
+  type: "ticket.created",
+  fact: "Customer reported login outage; highly frustrated"
+});
+```
+
+Statis will instantly append this event, materialize a golden state record, and push webhook updates to any subscribed agents or systems.
