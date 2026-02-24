@@ -53,17 +53,30 @@ Use one Railway project with three services.
 
 ### 1.4 Migrations
 
-Run Alembic once after the API is deployed (and whenever you add new migrations):
+Run Alembic once after the API is deployed (and whenever you add new migrations). Migrations must run **inside Railway** (or with a public DB URL), because `DATABASE_URL` uses the internal host `postgres.railway.internal`, which only resolves from Railway’s network.
 
-- **Option A — Railway CLI:** From the API service context (root `api`):
-  ```bash
-  railway run -s <api-service-name> -- alembic upgrade head
-  ```
-  (Run this from a shell where `railway` is linked to your project and you have selected the API service.)
+**Option A — Shell / one-off (recommended):**
 
-- **Option B — One-off job:** In Railway, add a one-off job or run from the API service shell with working directory `api`: `alembic upgrade head`.
+1. In Railway, open the **API** service (the one with Root Directory `api`).
+2. Open **Shell** (or **Run command** / one-off) for that service.
+3. Run (no `cd` needed if root is `api`):
+   ```bash
+   alembic upgrade head
+   ```
+   If the shell starts at repo root, run: `cd api && alembic upgrade head`.
 
-- **Option C — Build step:** In the API service build settings, add a step after `pip install`: `alembic upgrade head`. Some teams prefer running migrations manually or from CI instead.
+**Option B — Pre-deploy step:**
+
+1. In the API service → **Settings** → **Deploy** → **Add pre-deploy step**.
+2. Set the command to: `alembic upgrade head`.
+3. Save. The next deploy will run migrations before starting the app. Remove the step later if you prefer to run migrations manually.
+
+**Option C — Railway CLI (only with public DB URL):**
+
+`railway run` runs the command **on your machine**; the injected `DATABASE_URL` uses `postgres.railway.internal`, which does not resolve locally, so migrations will fail unless you use a **public** database URL.
+
+- To use the CLI: In Railway, open the **Postgres** service and copy the **public** connection URL (e.g. from Variables or Connect). In a terminal: `cd api`, then `export DATABASE_URL='<public-url>'`, then `alembic upgrade head`. Do not commit the public URL.
+- Optional script (still needs a resolvable `DATABASE_URL`): `./api/scripts/run_migrations_railway.sh <api-service-name>`.
 
 ---
 
@@ -98,6 +111,7 @@ Use **two Vercel projects**, both connected to the same GitHub repo, with differ
 2. **Console → API:** Set Vercel (Console) `NEXT_PUBLIC_API_URL` to the Railway API public URL. Redeploy the Console after changing env vars.
 3. **Health:** Open `https://<api-url>/health` in a browser; then open the Console app and confirm it can reach the API (e.g. Inspect or health check).
 4. **Worker:** In Railway logs for the Worker service, confirm “Delivery worker starting” and no database connection errors.
+5. **Signup failed:** (a) **CORS:** Set Railway API `FRONTEND_URL` to the **exact** Console origin (from the browser address bar, e.g. `https://statis-console.vercel.app` — no trailing slash). (b) Set Vercel Console `NEXT_PUBLIC_API_URL` to the Railway API URL (no trailing slash). Redeploy the API after changing `FRONTEND_URL`; redeploy the Console after changing env vars. If the error message shows an origin, use that value in `FRONTEND_URL`. Check DevTools → Network for the failed request (status 0 or CORS = origin not allowed).
 
 ---
 
@@ -118,3 +132,15 @@ Use **two Vercel projects**, both connected to the same GitHub repo, with differ
 - **API start:** [api/Procfile](api/Procfile) and [api/start.sh](api/start.sh) — both use `$PORT` (or `PORT` env) for Railway.
 - **Worker start:** Always from **repo root**: `PYTHONPATH=api python worker/main.py`.
 - **CORS:** [api/app/main.py](api/app/main.py) reads `FRONTEND_URL`; supports a single URL or comma-separated list.
+
+---
+
+## 6. Docs (Mintlify)
+
+Docs are already hosted on **Mintlify** (repo **`docs/`** with `mint.json`, MDX, OpenAPI). The live site is at your Mintlify URL (e.g. `https://<subdomain>.mintlify.app`).
+
+**Optional — serve docs at `/docs` on your Landing (e.g. yoursite.com/docs):**
+
+1. **Vercel (Landing):** The repo has [landing/vercel.json](landing/vercel.json) with rewrites to Mintlify. It uses `statis.mintlify.app` — if your Mintlify subdomain is different, edit `landing/vercel.json` and replace `statis` with your subdomain in both `destination` URLs. Deploy the Landing app (or push and let Vercel redeploy).
+2. **Mintlify dashboard:** Go to [dashboard.mintlify.com](https://dashboard.mintlify.com) → your docs project → **Settings** → **Custom domain**. Add your Landing domain (e.g. `your-app.vercel.app` or your custom domain). Turn **Host at `/docs`** on (so Mintlify serves at `/docs` when requested via your domain).
+3. **Redeploy Landing** if you changed `vercel.json`. Docs will be at `https://<landing-domain>/docs`.

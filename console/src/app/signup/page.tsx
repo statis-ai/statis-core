@@ -18,7 +18,8 @@ export default function SignupPage() {
         setError(null);
 
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/signup`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const res = await fetch(`${apiUrl}/admin/signup`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, project_name: projectName }),
@@ -26,7 +27,17 @@ export default function SignupPage() {
 
             if (!res.ok) {
                 const text = await res.text();
-                throw new Error(`Signup failed: ${text}`);
+                let message = text;
+                try {
+                    const json = JSON.parse(text);
+                    message = json.detail ?? (typeof json.detail === "object" ? JSON.stringify(json.detail) : text);
+                } catch {
+                    if (!text || res.status === 0)
+                        message = "Cannot reach API (network or CORS). Set Railway API FRONTEND_URL to this site’s origin (e.g. " + (typeof window !== "undefined" ? window.location.origin : "https://your-console.vercel.app") + ") and redeploy the API.";
+                    else if (!text)
+                        message = `HTTP ${res.status}`;
+                }
+                throw new Error(`Signup failed (${res.status}): ${message}`);
             }
 
             const data = await res.json();

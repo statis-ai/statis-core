@@ -69,20 +69,24 @@ def _generate_api_key(tenant_id: str, label: str | None, db: Session) -> tuple[s
 @router.post("/signup", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
 def signup(request: SignupRequest, db: Session = Depends(get_db)):
     """
-    Onboard a new user and project. 
+    Onboard a new user and project.
     Creates a new tenant_id and its first master API key.
     """
-    # Create a unique tenant_id for this project
-    tenant_id = f"tenant_{uuid.uuid4().hex[:12]}"
-    
-    label = f"Master Key ({request.email})"
-    raw_key, _ = _generate_api_key(tenant_id, label, db)
-    
-    return SignupResponse(
-        tenant_id=tenant_id,
-        api_key=raw_key,
-        label=label
-    )
+    try:
+        tenant_id = f"tenant_{uuid.uuid4().hex[:12]}"
+        label = f"Master Key ({request.email})"
+        raw_key, _ = _generate_api_key(tenant_id, label, db)
+        return SignupResponse(
+            tenant_id=tenant_id,
+            api_key=raw_key,
+            label=label,
+        )
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Signup failed: {str(e)}",
+        )
 
 
 @router.post("/api-keys", response_model=CreateApiKeyResponse, status_code=status.HTTP_201_CREATED)

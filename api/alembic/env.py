@@ -1,5 +1,11 @@
 import os
+import sys
 from logging.config import fileConfig
+
+# Allow "app" to be imported when running alembic from api/ (e.g. alembic upgrade head)
+_api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if _api_dir not in sys.path:
+    sys.path.insert(0, _api_dir)
 
 from alembic import context
 from sqlalchemy import engine_from_config, pool
@@ -14,9 +20,18 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+def _normalize_db_url(url: str) -> str:
+    """Use psycopg (v3) driver so SQLAlchemy does not load psycopg2."""
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://") :]
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://") :]
+    return url
+
+
 db_url = os.getenv("DATABASE_URL")
 if db_url:
-    config.set_main_option("sqlalchemy.url", db_url)
+    config.set_main_option("sqlalchemy.url", _normalize_db_url(db_url))
 elif not config.get_main_option("sqlalchemy.url"):
     from app.config import settings
     config.set_main_option("sqlalchemy.url", settings.database_url)

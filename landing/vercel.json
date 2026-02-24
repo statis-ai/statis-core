@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/docs", "destination": "https://statis.mintlify.app/docs" },
+    { "source": "/docs/:match*", "destination": "https://statis.mintlify.app/docs/:match*" }
+  ]
+}
