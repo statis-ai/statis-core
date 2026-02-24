@@ -24,8 +24,8 @@ logger = logging.getLogger("worker")
 
 
 def make_session_factory() -> sessionmaker:
-    db_url = os.getenv("DATABASE_URL", settings.database_url)
-    engine = create_engine(db_url, future=True)
+    # Use settings.database_url so we get psycopg (v3) driver, not raw postgresql://
+    engine = create_engine(settings.database_url, future=True)
     return sessionmaker(bind=engine, autoflush=False, autocommit=False, class_=Session)
 
 
