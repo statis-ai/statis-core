@@ -40,7 +40,10 @@ export interface DeliveryRecord {
 }
 
 async function json<T>(url: string): Promise<T> {
-  const apiKey = process.env.NEXT_PUBLIC_API_KEY || "test_key_123";
+  const apiKey =
+    (typeof window !== "undefined" && localStorage.getItem("statis_api_key")) ||
+    process.env.NEXT_PUBLIC_API_KEY ||
+    "";
   const res = await fetch(url, {
     headers: {
       "X-API-Key": apiKey,
