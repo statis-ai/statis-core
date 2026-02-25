@@ -8,6 +8,7 @@ __pycache__/
 *$py.class
 *.so
 .env
+.env.*
 .venv
 env/
 venv/
@@ -16,7 +17,7 @@ pip-delete-this-directory.txt
 
 # Node / Next.js
 node_modules/
-.next/
+**/.next/
 out/
 build/
 .pnp.*
@@ -26,6 +27,7 @@ build/
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+*.tsbuildinfo
 
 # Logs
 logs
@@ -39,9 +41,10 @@ yarn-error.log*
 *.db
 api/statis.db
 
-# IDEs
+# IDEs / Editors
 .idea/
 .vscode/
+.cursor/
 *.swp
 *.swo
 
@@ -50,3 +53,7 @@ api/statis.db
 coverage/
 .tox/
 htmlcov/
+
+# Cache
+.cache/
+**/.cache/
