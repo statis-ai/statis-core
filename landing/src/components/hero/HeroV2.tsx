@@ -39,7 +39,7 @@ export function HeroV2() {
                             Get Early Access
                         </a>
                         <a
-                            href="http://localhost:3001"
+                            href="https://docs.statis.dev"
                             target="_blank" rel="noopener noreferrer"
                             className="rounded-full border border-white/20 bg-white/5 px-8 py-3.5 text-sm font-medium text-white transition-all hover:bg-white/10"
                         >

@@ -1,10 +1,10 @@
-import json
+import concurrent.futures
 import logging
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 import httpx
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.delivery import Delivery
@@ -47,6 +47,21 @@ def _build_payload(
         "state_hash": state_hash,
         "delivered_at": datetime.now(timezone.utc).isoformat(),
     }
+
+
+def _send_webhook(
+    http_client: httpx.Client,
+    destination: str,
+    payload: dict,
+) -> tuple[Optional[int], Optional[str]]:
+    """Fire the HTTP request. Returns (status_code, error_string)."""
+    try:
+        resp = http_client.post(destination, json=payload)
+        if 200 <= resp.status_code < 300:
+            return resp.status_code, None
+        return resp.status_code, f"HTTP {resp.status_code}"
+    except Exception as exc:
+        return None, str(exc)
 
 
 def process_delivery(
@@ -99,6 +114,82 @@ def process_delivery(
             _handle_failure(delivery, f"HTTP {resp.status_code}")
     except Exception as exc:
         _handle_failure(delivery, str(exc))
+    finally:
+        if should_close:
+            client.close()
+
+
+def process_batch(
+    db: Session,
+    deliveries: list[Delivery],
+    http_client: Optional[httpx.Client] = None,
+) -> None:
+    """Process a batch of deliveries with concurrent webhook delivery.
+
+    Phase 1: prepare payloads single-threaded (reads from DB session).
+    Phase 2: fire webhooks concurrently via ThreadPoolExecutor.
+    Phase 3: apply results back to delivery rows single-threaded.
+    """
+    prepared: list[tuple[Delivery, Subscription, dict]] = []
+    for delivery in deliveries:
+        sub = db.get(Subscription, delivery.subscription_id)
+        if sub is None or sub.status != "active":
+            delivery.status = "dead"
+            delivery.last_error = "subscription missing or paused"
+            continue
+
+        entity_state = db.execute(
+            select(EntityState).where(
+                EntityState.tenant_id == delivery.tenant_id,
+                EntityState.entity_type == delivery.entity_type,
+                EntityState.entity_id == delivery.entity_id,
+            )
+        ).scalar_one_or_none()
+
+        if entity_state is None:
+            delivery.status = "dead"
+            delivery.last_error = "entity state not found"
+            continue
+
+        payload = _build_payload(
+            delivery, entity_state.state, entity_state.state_hash
+        )
+        prepared.append((delivery, sub, payload))
+
+    if not prepared:
+        return
+
+    client = http_client or httpx.Client(timeout=10)
+    should_close = http_client is None
+
+    try:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+            future_map: dict[concurrent.futures.Future, tuple[Delivery, Subscription]] = {}
+            for delivery, sub, payload in prepared:
+                future = executor.submit(
+                    _send_webhook, client, sub.destination, payload
+                )
+                future_map[future] = (delivery, sub)
+
+            for future in concurrent.futures.as_completed(future_map):
+                delivery, sub = future_map[future]
+                status_code, error = future.result()
+
+                if error is None:
+                    delivery.response_code = status_code
+                    delivery.status = "sent"
+                    delivery.sent_at = datetime.now(timezone.utc)
+                    logger.info(
+                        "Delivered %s (tenant %s) -> %s (HTTP %d)",
+                        delivery.delivery_id,
+                        delivery.tenant_id,
+                        sub.destination,
+                        status_code,
+                    )
+                else:
+                    if status_code is not None:
+                        delivery.response_code = status_code
+                    _handle_failure(delivery, error)
     finally:
         if should_close:
             client.close()

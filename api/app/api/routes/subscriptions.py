@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_tenant_id
+from app.api.deps import AuthContext, get_auth_context
 from app.db.session import get_db
 from app.models.subscription import Subscription
 from app.schemas.subscriptions import SubscriptionCreate, SubscriptionOut
@@ -17,11 +17,11 @@ router = APIRouter(tags=["subscriptions"])
 def create_subscription(
     body: SubscriptionCreate,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> SubscriptionOut:
     sub = Subscription(
         subscription_id=str(uuid.uuid4()),
-        tenant_id=tenant_id,
+        tenant_id=auth.tenant_id,
         entity_type=body.entity_type,
         event_types=body.event_types,
         destination=body.destination,
@@ -35,9 +35,16 @@ def create_subscription(
 
 @router.get("/subscriptions", response_model=List[SubscriptionOut])
 def list_subscriptions(
-    db: Session = Depends(get_db), tenant_id: str = Depends(get_tenant_id)
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> List[SubscriptionOut]:
-    rows = db.execute(select(Subscription).where(Subscription.tenant_id == tenant_id)).scalars().all()
+    rows = (
+        db.execute(
+            select(Subscription).where(Subscription.tenant_id == auth.tenant_id)
+        )
+        .scalars()
+        .all()
+    )
     return [SubscriptionOut.model_validate(r) for r in rows]
 
 
@@ -45,10 +52,10 @@ def list_subscriptions(
 def get_subscription(
     subscription_id: str,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> SubscriptionOut:
     sub = db.get(Subscription, subscription_id)
-    if sub is None or sub.tenant_id != tenant_id:
+    if sub is None or sub.tenant_id != auth.tenant_id:
         raise HTTPException(status_code=404, detail="Subscription not found")
     return SubscriptionOut.model_validate(sub)
 
@@ -59,10 +66,10 @@ def get_subscription(
 def pause_subscription(
     subscription_id: str,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> SubscriptionOut:
     sub = db.get(Subscription, subscription_id)
-    if sub is None or sub.tenant_id != tenant_id:
+    if sub is None or sub.tenant_id != auth.tenant_id:
         raise HTTPException(status_code=404, detail="Subscription not found")
     sub.status = "paused"
     db.commit()
@@ -76,10 +83,10 @@ def pause_subscription(
 def resume_subscription(
     subscription_id: str,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> SubscriptionOut:
     sub = db.get(Subscription, subscription_id)
-    if sub is None or sub.tenant_id != tenant_id:
+    if sub is None or sub.tenant_id != auth.tenant_id:
         raise HTTPException(status_code=404, detail="Subscription not found")
     sub.status = "active"
     db.commit()

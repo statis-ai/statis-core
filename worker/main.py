@@ -8,13 +8,15 @@ import time
 # Allow importing from the api/ package
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "api"))
 
+import httpx
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import settings
-from deliver import fetch_pending, process_delivery
+from deliver import fetch_pending, process_batch
 
 POLL_INTERVAL = float(os.getenv("POLL_INTERVAL", "1"))
+BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10"))
 
 logging.basicConfig(
     level=logging.INFO,
@@ -24,7 +26,6 @@ logger = logging.getLogger("worker")
 
 
 def make_session_factory() -> sessionmaker:
-    # Use settings.database_url so we get psycopg (v3) driver, not raw postgresql://
     engine = create_engine(settings.database_url, future=True)
     return sessionmaker(bind=engine, autoflush=False, autocommit=False, class_=Session)
 
@@ -33,12 +34,12 @@ def run_once(session_factory: sessionmaker) -> int:
     """Run a single poll cycle. Returns number of deliveries processed."""
     db = session_factory()
     try:
-        deliveries = fetch_pending(db)
+        deliveries = fetch_pending(db, batch_size=BATCH_SIZE)
         if not deliveries:
             return 0
 
-        for delivery in deliveries:
-            process_delivery(db, delivery)
+        with httpx.Client(timeout=10) as http_client:
+            process_batch(db, deliveries, http_client)
 
         db.commit()
         return len(deliveries)
@@ -51,7 +52,11 @@ def run_once(session_factory: sessionmaker) -> int:
 
 
 def main() -> None:
-    logger.info("Delivery worker starting (poll every %.1fs)", POLL_INTERVAL)
+    logger.info(
+        "Delivery worker starting (poll every %.1fs, batch size %d)",
+        POLL_INTERVAL,
+        BATCH_SIZE,
+    )
     sf = make_session_factory()
 
     while True:

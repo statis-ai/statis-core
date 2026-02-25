@@ -23,13 +23,16 @@ export function NavbarV2() {
                 </Link>
 
                 <div className="flex items-center gap-8">
-                    <Link href="http://localhost:3001" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-brand-muted hover:text-white sm:inline transition-colors">
+                    <a href="https://docs.statis.dev" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-brand-muted hover:text-white sm:inline transition-colors">
                         Docs
-                    </Link>
+                    </a>
                     <Link href="/#architecture" className="hidden text-sm text-brand-muted hover:text-white sm:inline transition-colors">
                         Architecture
                     </Link>
-                    <a href="#" className="hidden text-sm text-brand-muted hover:text-white sm:inline transition-colors">
+                    <Link href="/blog" className="hidden text-sm text-brand-muted hover:text-white sm:inline transition-colors">
+                        Blog
+                    </Link>
+                    <a href="https://github.com/statis-ai/statis-core" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-brand-muted hover:text-white sm:inline transition-colors">
                         GitHub
                     </a>
                     <a

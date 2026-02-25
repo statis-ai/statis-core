@@ -13,11 +13,21 @@ from sqlalchemy.orm import sessionmaker
 from app.models.api_key import ApiKey
 from app.db.base import Base
 
+def _normalize_database_url(url: str) -> str:
+    """Use psycopg (v3) driver so SQLAlchemy does not load psycopg2."""
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg://" + url[len("postgresql://"):]
+    if url.startswith("postgres://"):
+        return "postgresql+psycopg://" + url[len("postgres://"):]
+    return url
+
+
 def get_database_url():
-    # Priority: explicitly set DATABASE_URL, else standard Postgres URL
-    return os.getenv(
-        "DATABASE_URL",
-        "postgresql+psycopg://postgres:postgres@localhost:5432/statis"
+    return _normalize_database_url(
+        os.getenv(
+            "DATABASE_URL",
+            "postgresql+psycopg://postgres:postgres@localhost:5432/statis",
+        )
     )
 
 def main():
@@ -28,8 +38,7 @@ def main():
     engine = create_engine(database_url)
     
     # Ensure tables exist (specifically useful if Alembic hasn't run, but usually Alembic runs first)
-    # Railway's cold start might benefit from ensuring schema before seating.
-    # However, it's safer to rely on Alembic. Assuming Alembic has run.
+    # Safer to rely on Alembic for schema. Assuming Alembic has run.
     
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()

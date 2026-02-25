@@ -105,7 +105,7 @@ export function Quickstart() {
               pattern works from any language or tool.
             </p>
             <div className="mt-8 flex items-center gap-4">
-              <a href="http://localhost:3001" target="_blank" rel="noopener noreferrer">
+              <a href="https://docs.statis.dev" target="_blank" rel="noopener noreferrer">
                 <Button variant="primary" size="lg">
                   View Docs
                 </Button>

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_tenant_id
+from app.api.deps import AuthContext, get_auth_context
 from app.db.session import get_db
 from app.models.entity_state import EntityState
 from app.models.event import Event
@@ -17,15 +17,20 @@ def get_entity_state(
     entity_type: str,
     entity_id: str,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> EntityStateOut:
-    row = db.get(EntityState, (tenant_id, entity_type, entity_id))
+    from app.rbac import redact_state_for_role
+
+    row = db.get(EntityState, (auth.tenant_id, entity_type, entity_id))
     if row is None:
         raise HTTPException(status_code=404, detail="Entity state not found")
+
+    state = redact_state_for_role(row.state, auth.role)
+
     return EntityStateOut(
         entity_type=row.entity_type,
         entity_id=row.entity_id,
-        state=row.state,
+        state=state,
         state_version=row.state_version,
         state_hash=row.state_hash,
         last_event_id=row.last_event_id,
@@ -39,9 +44,11 @@ def get_entity_state_at_rev(
     entity_id: str,
     rev: int = Query(..., ge=1),
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> EntityStateOut:
-    row = db.get(EntityState, (tenant_id, entity_type, entity_id))
+    from app.rbac import redact_state_for_role
+
+    row = db.get(EntityState, (auth.tenant_id, entity_type, entity_id))
     if row is None:
         raise HTTPException(status_code=404, detail="Entity state not found")
 
@@ -63,6 +70,7 @@ def get_entity_state_at_rev(
     )
 
     state, state_hash, provenance = compute_state_at_rev(events, rev)
+    state = redact_state_for_role(state, auth.role)
 
     return EntityStateOut(
         entity_type=entity_type,

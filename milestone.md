@@ -217,3 +217,137 @@ Create “starter subscription templates” in `examples/subscription_templates/
 - `docs/analytics.md` explaining derivation + backfill semantics
 
 **Status:** PLANNED
+
+---
+
+## Milestone 8 — Security & Multi-tenancy Hardening (The Foundation)
+**Goal:** enforce strict tenant boundaries and agent identity on top of the existing `api_keys` + tenant scoping.
+
+> **Context:** `api_keys` table, `get_tenant_id()` dependency, and per-route tenant filtering already exist (Milestones 1–2). This milestone hardens that foundation.
+
+### Implement
+
+**Extend `api_keys` schema**
+- New Alembic migration: add `role` (String, nullable, e.g. `"admin"`, `"sales"`, `"billing"`, `"csm"`) and `agent_id` (String, nullable) columns to `api_keys`.
+
+**Richer auth context**
+- Refactor `get_tenant_id()` in `api/app/api/deps.py` into `get_auth_context()` returning `{ tenant_id, agent_id, role }`.
+- Update all route handlers to accept the new context (backward-compatible: `tenant_id` still available).
+
+**RBAC-lite filtering**
+- `GET /events`: filter event visibility based on role (e.g. Billing cannot see `support.sentiment_updated` events).
+- `GET /state`: redact state fields based on role (e.g. Billing cannot see `sentiment`).
+- Role-field mapping configurable per tenant (start with a hardcoded default).
+
+**Cross-tenant isolation test**
+- Integration test: tenant_A key returns 403 (not 404) when accessing tenant_B resources.
+- Decision: use 403 for explicit denial when a valid key targets another tenant's data.
+
+### Tests
+- unit: `get_auth_context()` returns correct role/agent_id
+- integration: cross-tenant access returns 403
+- integration: Billing role GET /events omits sentiment events
+- integration: Billing role GET /state redacts sentiment fields
+
+### Acceptance
+- Attempting to fetch an event from tenant_A using a tenant_B key returns 404 (per OWASP: avoids leaking resource existence).
+- Billing-role key cannot see sentiment data in events or state responses.
+
+**Status:** IN PROGRESS
+
+---
+
+## Milestone 9 — Concurrency, Scale & Safety
+**Goal:** remove bottlenecks and sandbox the materialization engine.
+
+### Implement
+
+**Optimistic concurrency**
+- Replace `SELECT FOR UPDATE` with version-checked `UPDATE ... WHERE state_version = :expected` on `entity_state`.
+- On version conflict, retry materialization (bounded retries with backoff).
+
+**Batch worker**
+- Refactor `worker/deliver.py` to fetch and process deliveries in configurable batches (default 10) rather than one-by-one.
+- Use `SELECT ... FOR UPDATE SKIP LOCKED` for safe concurrent batch claiming.
+
+**Reducer sandboxing**
+- Wrap reducer calls in execution timeouts (configurable, default 5s).
+- Poison-pill DLQ: if a reducer fails 3 times for a specific event, skip materialization for that entity, mark it quarantined, and log an alert.
+
+**Output validation**
+- Add Pydantic validation to reducer output to ensure state schema integrity before persisting.
+- Invalid reducer output triggers the poison-pill path (skip + alert).
+
+### Tests
+- concurrency: 100 concurrent `POST /events` for the same entity — no deadlocks, all events ingested, final state deterministic
+- batch: worker processes N deliveries per poll cycle
+- timeout: slow reducer is killed after threshold
+- poison-pill: reducer that always raises is quarantined after 3 attempts
+
+### Acceptance
+- Successfully ingest 100 concurrent events for the same entity without transaction deadlocks.
+- Worker throughput improves measurably with batch processing vs one-by-one.
+
+**Status:** PLANNED
+
+---
+
+## Milestone 10 — Governance & The "Semantic Firewall"
+**Goal:** differentiate for the "VP Eng" persona via explainability and guardrails.
+
+### Implement
+
+**Redaction views**
+- In `_enqueue_deliveries`, apply role-based filters so webhook payloads only contain fields the subscription's owning role is authorized to see.
+- Reuse the RBAC-lite field mapping from Milestone 8.
+
+**Threshold subscriptions**
+- Add a `predicate` field (JSONB) to `subscriptions` (new Alembic migration).
+- Predicate syntax: simple JSON expressions evaluated against the new state (e.g. `{"field": "churn_risk", "op": "eq", "value": true}`).
+- Delivery is only enqueued when the predicate evaluates to true after a state change.
+
+**Console audit logs**
+- Update the Console UI to show an audit trail per entity: which `api_key` label / `agent_id` triggered each revision.
+- Add `agent_id` to event display in the Timeline tab.
+
+### Tests
+- integration: redacted webhook payload omits unauthorized fields
+- integration: subscription with predicate `churn_risk == true` fires only on matching state changes
+- integration: subscription without predicate fires on every state change (backward-compatible)
+- e2e: Console shows agent_id in timeline for seeded events
+
+### Acceptance
+- A "Sales" subscription with `churn_risk == true` predicate fires when `churn_risk` flips to true, but a "Marketing" subscription without that predicate condition does not fire for unrelated changes.
+- Webhook payloads respect role-based redaction.
+
+**Status:** PLANNED
+
+---
+
+## Milestone 11 — DX & Observability (Go-to-Market)
+**Goal:** lower integration friction and provide high-level bus health.
+
+### Implement
+
+**SDKs (Python + TypeScript)**
+- `sdk/python/`: thin wrapper handling `event_id` generation (UUID), retries with backoff, and type hints.
+- `sdk/ts/`: thin wrapper with `event_id` generation, retries, and TypeScript types.
+- Both SDKs: configurable base URL + API key, `postEvent()`, `getState()`, `subscribe()`.
+
+**Local simulation**
+- `POST /dry-run`: accepts the same body as `POST /events`, runs the reducer, and returns the projected new state + diff without committing the event or updating state.
+
+**Observability**
+- Global health dashboard: new Console view showing event throughput (events/min), worker lag (oldest pending delivery age), and delivery success rate.
+- OpenTelemetry: propagate `trace_id` from `POST /events` through materialization and into webhook delivery headers (`X-Trace-Id`).
+
+### Tests
+- SDK: integration test using each SDK to post an event and read state
+- dry-run: returns projected state without side effects (event count unchanged after call)
+- observability: trace_id appears in delivery webhook headers
+
+### Acceptance
+- A new developer can go from `npm install @statis/sdk` (or `pip install statis`) to their first state-change push in under 5 minutes.
+- `/dry-run` returns correct projected state without persisting anything.
+
+**Status:** PLANNED

@@ -2,11 +2,11 @@ import uuid
 from typing import Set
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_tenant_id
+from app.api.deps import AuthContext, get_auth_context
 from app.db.session import get_db
 from app.models.delivery import Delivery
 from app.models.entity_state import EntityState
@@ -20,8 +20,10 @@ router = APIRouter(tags=["replay"])
 def replay(
     body: ReplayRequest,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> ReplayResult:
+    tenant_id = auth.tenant_id
+
     sub = db.get(Subscription, body.subscription_id)
     if sub is None or sub.tenant_id != tenant_id:
         raise HTTPException(status_code=404, detail="Subscription not found")
@@ -36,7 +38,6 @@ def replay(
 
     entity_states = db.execute(es_stmt).scalars().all()
 
-    # Collect all dedupe keys we want to insert
     candidates = []
     for es in entity_states:
         from_rev = max(body.from_rev or 1, 1)
@@ -52,12 +53,13 @@ def replay(
     if not candidates:
         return ReplayResult(enqueued=0, skipped=0)
 
-    # Check which dedupe keys already exist
     all_keys = [c[2] for c in candidates]
     existing_keys: Set[str] = set(
         db.execute(
             select(Delivery.dedupe_key).where(Delivery.dedupe_key.in_(all_keys))
-        ).scalars().all()
+        )
+        .scalars()
+        .all()
     )
 
     enqueued = 0

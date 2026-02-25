@@ -1,3 +1,0 @@
-# Worker service (repo root): force Python so Nixpacks uses a Python image.
-# Without this, Node is detected from console/ and landing/ and pip is missing.
-providers = ["python"]

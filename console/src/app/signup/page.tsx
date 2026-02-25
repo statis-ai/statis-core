@@ -32,8 +32,10 @@ export default function SignupPage() {
                     const json = JSON.parse(text);
                     message = json.detail ?? (typeof json.detail === "object" ? JSON.stringify(json.detail) : text);
                 } catch {
-                    if (!text || res.status === 0)
-                        message = "Cannot reach API (network or CORS). Set Railway API FRONTEND_URL to this site’s origin (e.g. " + (typeof window !== "undefined" ? window.location.origin : "https://your-console.vercel.app") + ") and redeploy the API.";
+                    if (res.status === 405)
+                        message = "405 = wrong server. Set Vercel (Console) NEXT_PUBLIC_API_URL to your Render API URL (e.g. https://statis-api.onrender.com), not the Console URL. Currently using: " + apiUrl;
+                    else if (!text || res.status === 0)
+                        message = "Cannot reach API (network or CORS). Set Render API FRONTEND_URL to this site's origin (e.g. " + (typeof window !== "undefined" ? window.location.origin : "https://your-console.vercel.app") + ") and redeploy the API.";
                     else if (!text)
                         message = `HTTP ${res.status}`;
                 }

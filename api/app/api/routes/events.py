@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_tenant_id
+from app.api.deps import AuthContext, get_auth_context
 from app.db.session import get_db
 from app.models.event import Event
 from app.repositories.events import insert_event_idempotent
@@ -19,9 +19,9 @@ def ingest_event(
     event_in: EventIn,
     response: Response,
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> EventAccepted:
-    inserted = insert_event_idempotent(db, event_in, tenant_id)
+    inserted = insert_event_idempotent(db, event_in, auth.tenant_id)
     response.status_code = status.HTTP_201_CREATED if inserted else status.HTTP_200_OK
     return EventAccepted(event_id=event_in.event_id)
 
@@ -34,9 +34,11 @@ def query_events(
     until: Optional[datetime] = Query(default=None),
     limit: int = Query(default=50, ge=1, le=200),
     db: Session = Depends(get_db),
-    tenant_id: str = Depends(get_tenant_id),
+    auth: AuthContext = Depends(get_auth_context),
 ) -> List[EventOut]:
-    stmt = select(Event).where(Event.tenant_id == tenant_id)
+    from app.rbac import filter_events_for_role
+
+    stmt = select(Event).where(Event.tenant_id == auth.tenant_id)
 
     if entity_type is not None:
         stmt = stmt.where(Event.entity_type == entity_type)
@@ -54,4 +56,5 @@ def query_events(
     ).limit(limit)
 
     rows = db.execute(stmt).scalars().all()
-    return [EventOut.model_validate(r) for r in rows]
+    filtered = filter_events_for_role(rows, auth.role)
+    return [EventOut.model_validate(r) for r in filtered]

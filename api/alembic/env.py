@@ -15,6 +15,7 @@ from app.models import event  # noqa: F401
 from app.models import entity_state  # noqa: F401
 from app.models import subscription  # noqa: F401
 from app.models import delivery  # noqa: F401
+from app.models import quarantine  # noqa: F401
 
 config = context.config
 if config.config_file_name is not None:
