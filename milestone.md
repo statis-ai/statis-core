@@ -1,7 +1,8 @@
 # MILESTONES.md — Statis Build Plan (Wedge-first)
 
-> Status note: Milestones 1 and 2 are marked DONE per your current build.
-> Keep updating this file as the “what’s next” contract for Cursor.
+> **Status summary (last updated 2026-02-25):**
+> Milestones 1–6, 8, and 9 are **DONE**. Milestone 0 and 7 are not started.
+> Milestones 10 and 11 are **PLANNED** (next up).
 
 ---
 
@@ -16,7 +17,7 @@
 **Acceptance**
 - `make test` passes from a clean checkout
 
-**Status:** (optional / depends on repo maturity)
+**Status:** NOT STARTED
 
 ---
 
@@ -55,7 +56,7 @@
 
 ---
 
-## Milestone 2.5 — Customer Ops “Account State Pack” (Wedge Packaging)
+## ✅ Milestone 2.5 — Customer Ops “Account State Pack” (Wedge Packaging) — DONE
 **Goal:** ship an installable wedge on top of the primitives (not just infra).
 
 ### Implement
@@ -95,11 +96,11 @@
 ### Acceptance
 - `examples/csm_demo.py` runs and produces expected `account_state` transitions **without** requiring subscriptions.
 
-**Status:** PLANNED
+**Status:** DONE
 
 ---
 
-## Milestone 3 — Subscriptions + delivery queue + worker (Wedge-native)
+## ✅ Milestone 3 — Subscriptions + delivery queue + worker (Wedge-native) — DONE
 **Goal:** push-based coordination + explainable delivery.
 
 ### Implement
@@ -131,11 +132,11 @@ Create “starter subscription templates” in `examples/subscription_templates/
 - delivery trace shows:
   - fired_rule + predicate snapshot + attempt history
 
-**Status:** PLANNED
+**Status:** DONE
 
 ---
 
-## Milestone 4 — Replay + time machine (Admin)
+## ✅ Milestone 4 — Replay + time machine (Admin) — DONE
 **Goal:** backfill + audit: “what did X know at rev N?”
 
 ### Implement
@@ -154,11 +155,11 @@ Create “starter subscription templates” in `examples/subscription_templates/
 - demo question answered deterministically:
   - “What did Sales know when it paused?” → `state_at(rev)` + provenance + delivery trace
 
-**Status:** PLANNED
+**Status:** DONE
 
 ---
 
-## Milestone 5 — Console UI (Thin trust surface; wedge-first)
+## ✅ Milestone 5 — Console UI (Thin trust surface; wedge-first) — DONE
 **Goal:** make the system inspectable in minutes.
 
 ### Implement (Next.js)
@@ -175,11 +176,11 @@ Create “starter subscription templates” in `examples/subscription_templates/
 ### Acceptance
 - can debug a single entity end-to-end in < 2 minutes locally
 
-**Status:** PLANNED
+**Status:** DONE
 
 ---
 
-## Milestone 6 — CSM demo scenario (The “aha”)
+## ✅ Milestone 6 — CSM demo scenario (The “aha”) — DONE
 **Goal:** make the story undeniable: PUSH + REPLAY + EXPLAINABLE STATE.
 
 ### Implement
@@ -198,7 +199,7 @@ Create “starter subscription templates” in `examples/subscription_templates/
   - assert final state JSON + hash
   - assert delivery records + trace present
 
-**Status:** PLANNED
+**Status:** DONE
 
 ---
 
@@ -220,7 +221,7 @@ Create “starter subscription templates” in `examples/subscription_templates/
 
 ---
 
-## Milestone 8 — Security & Multi-tenancy Hardening (The Foundation)
+## ✅ Milestone 8 — Security & Multi-tenancy Hardening (The Foundation) — DONE
 **Goal:** enforce strict tenant boundaries and agent identity on top of the existing `api_keys` + tenant scoping.
 
 > **Context:** `api_keys` table, `get_tenant_id()` dependency, and per-route tenant filtering already exist (Milestones 1–2). This milestone hardens that foundation.
@@ -253,11 +254,11 @@ Create “starter subscription templates” in `examples/subscription_templates/
 - Attempting to fetch an event from tenant_A using a tenant_B key returns 404 (per OWASP: avoids leaking resource existence).
 - Billing-role key cannot see sentiment data in events or state responses.
 
-**Status:** IN PROGRESS
+**Status:** DONE
 
 ---
 
-## Milestone 9 — Concurrency, Scale & Safety
+## ✅ Milestone 9 — Concurrency, Scale & Safety — DONE
 **Goal:** remove bottlenecks and sandbox the materialization engine.
 
 ### Implement
@@ -288,7 +289,7 @@ Create “starter subscription templates” in `examples/subscription_templates/
 - Successfully ingest 100 concurrent events for the same entity without transaction deadlocks.
 - Worker throughput improves measurably with batch processing vs one-by-one.
 
-**Status:** PLANNED
+**Status:** DONE (see docs/milestone9_completed.md)
 
 ---
 
