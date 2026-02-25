@@ -3,6 +3,7 @@
 > **Status summary (last updated 2026-02-25):**
 > Milestones 1–6, 8, and 9 are **DONE**. Milestone 0 is NOT STARTED.
 > Milestones 10 through 14 are **PLANNED** (next up).
+> Milestones 15 through 18 are **PLANNED** (CrewAI integration + demos).
 
 ---
 
@@ -372,5 +373,144 @@ Create "starter subscription templates" in `examples/subscription_templates/`:
 ### Acceptance
 - Deterministic recompute yields identical outputs/hashes.
 - Late events affect only impacted days.
+
+**Status:** PLANNED
+
+
+## Milestone 15 — CrewAI Integration Foundation (Statis Tools + Provisioning)
+**Goal:** Build the shared infrastructure that all CrewAI demos depend on: per-agent API key provisioning and a Statis tool library for CrewAI agents.
+
+### Implement
+
+**Provision-Once-Cache (`examples/crewai/provision.py`)**
+- On first run: calls `POST /admin/signup` to create a tenant + master key, then `POST /admin/api-keys` five times to create per-agent keys (Triage/support, Sentiment/support, CSM/csm, Sales/sales, Billing/billing).
+- Writes keys to `examples/crewai/.statis_demo_keys.json` (gitignored).
+- On subsequent runs: loads from cache, validates master key with `GET /health`. No new tenants created.
+- `--reprovision` flag: ignores cache, provisions a fresh tenant + keys (for clean-slate recording).
+
+**Statis BaseTool Library (`examples/crewai/statis_tools.py`)**
+- `StatisPushEvent` -- wraps `POST /events`. Accepts `api_key` (per-agent identity) and generates a `trace_id` per call to link LLM reasoning to the event in the Console Timeline.
+- `StatisReadState` -- wraps `GET /state/{entity_type}/{entity_id}`. Returns the current materialized golden state.
+- `StatisReadHistory` -- wraps `GET /events`. Returns the event timeline for an entity.
+- `StatisTimeTravel` -- wraps `GET /state/{entity_type}/{entity_id}/at?rev=`. Returns state at a specific revision for audit.
+- All tools accept `base_url` and `api_key` at init so each agent instance gets its own Statis identity.
+
+**Supporting files**
+- `examples/crewai/requirements.txt` -- `crewai`, `httpx`, `openai` (or `anthropic`).
+- `examples/crewai/.gitignore` -- ignores `.statis_demo_keys.json`.
+- `examples/crewai/README.md` -- setup and run instructions.
+
+### Tests
+- Unit: `StatisPushEvent._run()` sends correct JSON body with `X-API-Key` header and `trace_id` field.
+- Unit: `StatisReadState._run()` returns parsed state dict; raises on non-200.
+- Integration: `provision.py` creates a tenant, 5 keys, and writes cache. Re-running reads cache (no duplicate signup call).
+- Integration: `--reprovision` overwrites cache with a new tenant.
+
+### Acceptance
+- `python examples/crewai/provision.py` runs without error; produces `.statis_demo_keys.json` with 6 keys (1 master + 5 agent).
+- Re-running `provision.py` reads cache and exits without calling `/admin/signup` again.
+- Each Statis tool can be instantiated with a different `api_key` and successfully calls the live API.
+
+**Status:** PLANNED
+
+---
+
+## Milestone 16 — CrewAI Demo: "Coordinated Response Crew" (Agent Amnesia Showcase)
+**Goal:** Ship the primary demo proving Statis solves "Agent Amnesia" -- a before/after contrast showing five CrewAI agents failing without shared state, then succeeding with Statis as the semantic bus.
+
+### Implement
+
+**Agent + Crew definitions (`examples/crewai/agents.py`, `tasks.py`, `crew.py`)**
+- Five agents with distinct roles, goals, and backstories: Triage, Sentiment, CSM, Sales, Billing.
+- Each agent initialized with its own Statis API key (from `provision.py` cache) for identity + RBAC.
+- Sequential task flow: Triage + Sentiment publish first → CSM reads state + escalates → Sales + Billing read state + react.
+- Real LLM calls (GPT-4o or Claude 3.5 Sonnet) for authentic semantic reasoning.
+
+**Failure run (`examples/crewai/demo_without_statis.py`)**
+- Same five agents, no Statis tools.
+- Sales Agent sends a "Happy Friday! Want to upgrade your plan?" email to a customer mid-outage -- it has no way to know about the crisis.
+- Demonstrates "Agent Amnesia": agents are stateless and uncoordinated.
+
+**Success run (`examples/crewai/demo_with_statis.py`)**
+- Same five agents, now equipped with Statis tools from Milestone 15.
+- Triage + Sentiment publish events; Console Timeline updates live.
+- CSM reads materialized state (both facts combined) and escalates.
+- Sales reads `churn_risk=true` and outputs "pausing all outreach."
+- RBAC showcase: Billing agent reads state with `role=billing` key and receives `sentiment: [REDACTED]`. Terminal output prints redacted vs. full admin view side-by-side.
+- Ends with time-travel query: "What did Sales know at revision N?" using `StatisTimeTravel`.
+
+### Tests
+- E2E: Run `demo_with_statis.py` against live API; assert final state has `churn_risk=true`, `blockers` non-empty, `sentiment.label="negative"`.
+- E2E: Assert Billing agent's `StatisReadState` response omits `sentiment` field (RBAC redaction confirmed).
+- Determinism: Run `demo_with_statis.py` twice with `--reprovision` between runs; assert both produce identical `state_hash` for the same event sequence.
+
+### Acceptance
+- `python examples/crewai/demo_without_statis.py` completes and shows Sales sending an inappropriate upsell email.
+- `python examples/crewai/demo_with_statis.py` completes and shows Sales pausing outreach after reading `churn_risk=true`.
+- Console UI Timeline tab shows each event annotated with the `agent_id` that produced it.
+- Billing agent's state read is visibly redacted (no `sentiment`) in terminal output.
+- Running the success demo twice with the same events produces the same `state_hash`.
+
+**Status:** PLANNED
+
+---
+
+## Milestone 17 — CrewAI Demo: "Shadow Audit" (Governance Showcase)
+**Goal:** Demonstrate Statis as a governance layer: a Senior Agent uses the Time Machine to audit a Junior Agent's work, proving Statis enables trust and verification across an agentic workforce.
+
+### Implement
+
+**Shadow Audit demo (`examples/crewai/demo_shadow_audit.py`)**
+- Junior Crew (cheaper LLM, e.g. GPT-4o-mini): Triage Agent + Sentiment Agent publish events about a customer scenario. May introduce errors (e.g. mislabels negative sentiment as positive).
+- Senior Auditor Agent (stronger LLM, e.g. Claude 3.5 Sonnet): uses `StatisTimeTravel` to walk through each revision the Junior Crew created.
+- Auditor compares raw `event.payload` values to the materialized state fields at each revision.
+- If a suspicious transition is found (e.g. "payload says 'furious' but state says `sentiment=positive`"), Auditor publishes a `governance.audit_flag` event with findings.
+- Final audit summary published as `governance.audit_completed` event.
+
+### Tests
+- E2E: Run `demo_shadow_audit.py`; assert a `governance.audit_flag` event is published when the Junior Agent makes a detectable error.
+- E2E: Assert `governance.audit_completed` event appears in the event log.
+- Unit: `StatisTimeTravel._run()` returns correct historical state for a given `rev`.
+
+### Acceptance
+- `python examples/crewai/demo_shadow_audit.py` completes and prints the Auditor's findings.
+- A `governance.audit_completed` event is visible in the Console Timeline with the audit summary in its `payload`.
+- Time travel queries in the Auditor's reasoning are visible as `StatisTimeTravel` tool calls in the CrewAI output.
+
+**Status:** PLANNED
+
+---
+
+## Milestone 18 — CrewAI Demo: "Multi-Crew Pipeline" (Enterprise Vision)
+**Goal:** Evolve the Coordinated Response Crew into a webhook-triggered cross-team pipeline, where three independent CrewAI crews are connected solely through Statis subscriptions -- no shared code or direct calls between teams.
+
+### Implement
+
+**Independent crew definitions**
+- Split the single crew from Milestone 16 into three independent `crew_*.py` files: `crew_support.py`, `crew_account.py`, `crew_revenue.py`.
+- Each crew has its own agent set and Statis API keys, simulating team independence.
+
+**Webhook crew trigger (`examples/crewai/webhook_crew_trigger.py`)**
+- Lightweight HTTP server (FastAPI or Flask) that receives Statis webhook payloads.
+- On receiving a state-change webhook for `entity_type=account`:
+  - If `churn_risk` flipped to `true`: spawns `crew_account.py` run.
+  - If `blockers` contains `"billing_issue"`: spawns `crew_revenue.py` run.
+- Uses existing Statis subscription templates from `examples/subscription_templates/`.
+
+**Statis subscriptions**
+- Creates two subscriptions at demo startup:
+  - Subscription A: `entity_type=account` → webhook → trigger Account Crew
+  - Subscription B: `entity_type=account` → webhook → trigger Revenue Crew
+- Reuses existing `POST /subscriptions` endpoint (no API changes needed).
+
+### Tests
+- Integration: Support Crew publishes `support.incident_reported` with high severity → Statis webhook fires → Account Crew run is triggered.
+- Integration: Two crews publishing to the same entity concurrently produce a deterministic final `state_hash`.
+
+### Acceptance
+- Running `python examples/crewai/demo_multi_crew.py` starts the trigger server and all three crews.
+- Support Crew's event publication triggers the Account Crew run automatically via webhook.
+- Console UI Deliveries tab shows webhook delivery records for both subscriptions.
+- All three crews' events appear in the Console Timeline with their respective `agent_id` annotations.
 
 **Status:** PLANNED
