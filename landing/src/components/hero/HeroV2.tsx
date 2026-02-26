@@ -59,7 +59,7 @@ export function HeroV2() {
                             Get Early Access
                         </a>
                         <a
-                            href="https://statis.mintlify.app"
+                            href="https://docs.statis.dev"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="rounded-full border border-gray-200 bg-white shadow-sm px-8 py-3.5 text-sm font-medium text-gray-900 transition-all hover:bg-gray-50"

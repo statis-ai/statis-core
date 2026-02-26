@@ -42,7 +42,7 @@ export function FooterV2() {
 
                 <div className="mt-16 border-t border-gray-200 pt-8 sm:mt-20 md:flex md:items-center md:justify-between">
                     <div className="flex space-x-6 md:order-2">
-                        <a href="https://statis.mintlify.app" target="_blank" rel="noopener noreferrer" className="hidden text-sm leading-6 text-gray-500 hover:text-gray-900 sm:inline">Docs</a>
+                        <a href="https://docs.statis.dev" target="_blank" rel="noopener noreferrer" className="hidden text-sm leading-6 text-gray-500 hover:text-gray-900 sm:inline">Docs</a>
                         <a href="/blog" className="text-sm leading-6 text-gray-500 hover:text-gray-900">Blog</a>
                         <a href="#" className="text-sm leading-6 text-gray-500 hover:text-gray-900">Terms</a>
                         <a href="#" className="text-sm leading-6 text-gray-500 hover:text-gray-900">Privacy</a>

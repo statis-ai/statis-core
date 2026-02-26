@@ -23,7 +23,7 @@ export function NavbarV2() {
                 </Link>
 
                 <div className="flex items-center gap-8">
-                    <a href="https://statis.mintlify.app" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-gray-500 hover:text-gray-900 sm:inline transition-colors">
+                    <a href="https://docs.statis.dev" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-gray-500 hover:text-gray-900 sm:inline transition-colors">
                         Docs
                     </a>
                     <Link href="#demo" className="text-sm font-semibold leading-6 text-gray-900 hover:text-indigo-600 transition-colors">
