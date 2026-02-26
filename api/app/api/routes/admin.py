@@ -126,6 +126,18 @@ def create_api_key(
     )
 
 
+@router.get("/me")
+def get_current_user(
+    auth: AuthContext = Depends(get_auth_context),
+):
+    """Retrieve auth details for the current API key."""
+    return {
+        "tenant_id": auth.tenant_id,
+        "role": auth.role,
+        "agent_id": auth.agent_id,
+    }
+
+
 @router.get("/api-keys", response_model=list[ApiKeyResponse])
 def list_api_keys(
     auth: AuthContext = Depends(get_auth_context),

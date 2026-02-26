@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { Hexagon, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-export default function SignupPage() {
-    const [email, setEmail] = useState("");
-    const [projectName, setProjectName] = useState("");
+export default function LoginPage() {
+    const [apiKey, setApiKey] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -20,10 +19,12 @@ export default function SignupPage() {
 
         try {
             const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-            const res = await fetch(`${apiUrl}/admin/signup`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, project_name: projectName }),
+            const res = await fetch(`${apiUrl}/admin/me`, {
+                method: "GET",
+                headers: { 
+                    "Content-Type": "application/json",
+                    "X-API-Key": apiKey
+                },
             });
 
             if (!res.ok) {
@@ -40,13 +41,13 @@ export default function SignupPage() {
                     else if (!text)
                         message = `HTTP ${res.status}`;
                 }
-                throw new Error(`Signup failed (${res.status}): ${message}`);
+                throw new Error(`Login failed (${res.status}): ${message}`);
             }
 
             const data = await res.json();
 
-            // Store API Key in localStorage to simulate an auth session
-            localStorage.setItem("statis_api_key", data.api_key);
+            // Store API Key and Tenant ID in localStorage to simulate an auth session
+            localStorage.setItem("statis_api_key", apiKey);
             localStorage.setItem("statis_tenant_id", data.tenant_id);
 
             // Redirect to the main console page
@@ -67,46 +68,31 @@ export default function SignupPage() {
                     <div className="h-12 w-12 bg-black border border-brand-border rounded-xl flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(16,185,129,0.2)]">
                         <Hexagon className="w-6 h-6 text-brand-accent fill-brand-accent/20" />
                     </div>
-                    <h1 className="text-2xl font-bold text-white tracking-tight">Create your workspace</h1>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">Welcome back</h1>
                     <p className="text-brand-muted text-sm mt-2 text-center">
-                        Sign up to get your Master API Key and start tracking reliable entity states.
+                        Enter your Master API Key to access your workspace.
                     </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {error && (
-                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg text-center">
+                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 text-sm px-4 py-3 rounded-lg text-center break-words">
                             {error}
                         </div>
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-brand-muted mb-1.5" htmlFor="email">
-                            Work Email
+                        <label className="block text-sm font-medium text-brand-muted mb-1.5" htmlFor="apiKey">
+                            API Key
                         </label>
                         <input
-                            id="email"
-                            type="email"
+                            id="apiKey"
+                            type="password"
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={apiKey}
+                            onChange={(e) => setApiKey(e.target.value)}
                             className="w-full bg-black/40 border border-brand-border rounded-lg px-4 py-2.5 text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-accent transition-colors"
-                            placeholder="you@company.com"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-brand-muted mb-1.5" htmlFor="projectName">
-                            Project Name
-                        </label>
-                        <input
-                            id="projectName"
-                            type="text"
-                            required
-                            value={projectName}
-                            onChange={(e) => setProjectName(e.target.value)}
-                            className="w-full bg-black/40 border border-brand-border rounded-lg px-4 py-2.5 text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-accent transition-colors"
-                            placeholder="e.g., Core API"
+                            placeholder="st_..."
                         />
                     </div>
 
@@ -115,14 +101,14 @@ export default function SignupPage() {
                         disabled={loading}
                         className="w-full bg-brand-accent hover:bg-emerald-500 text-white font-medium rounded-lg px-4 py-2.5 mt-2 transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-[0_0_15px_rgba(16,185,129,0.3)]"
                     >
-                        {loading ? "Creating..." : "Continue"}
+                        {loading ? "Logging in..." : "Log In"}
                         {!loading && <ArrowRight className="w-4 h-4" />}
                     </button>
-
+                    
                     <p className="text-center text-sm text-brand-muted pt-4">
-                        Already have a workspace?{" "}
-                        <Link href="/login" className="text-brand-accent hover:text-emerald-400 transition-colors">
-                            Log in
+                        Don't have a workspace?{" "}
+                        <Link href="/signup" className="text-brand-accent hover:text-emerald-400 transition-colors">
+                            Sign up
                         </Link>
                     </p>
                 </form>
