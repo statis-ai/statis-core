@@ -19,11 +19,15 @@ const config: Config = {
           muted: "var(--color-muted)",
           success: "var(--color-success)",
           warn: "var(--color-warn)",
+          "flow-blue": "var(--color-flow-blue)",
+          "alert-high": "var(--color-alert-high)",
+          "alert-medium": "var(--color-alert-medium)",
         },
       },
       fontFamily: {
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "monospace"],
+        serif: ["var(--font-serif)", "serif"],
       },
       borderRadius: {
         DEFAULT: "var(--radius)",

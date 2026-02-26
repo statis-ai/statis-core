@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mt-12 mb-4 border-l-2 border-brand-accent pl-4 text-2xl font-semibold text-white">
+    <h2 className="mt-12 mb-4 border-l-2 border-indigo-600 pl-4 text-2xl font-bold text-gray-900 font-serif">
       {children}
     </h2>
   );
@@ -34,7 +34,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 function StaleStateContent() {
   return (
     <>
-      <p className="text-lg font-medium text-white/90 leading-relaxed">
+      <p className="text-lg font-medium text-gray-800 leading-relaxed">
         Why Your Multi-Agent Systems are Hallucinating (and It&rsquo;s Not the
         LLM&rsquo;s Fault)
       </p>
@@ -52,7 +52,7 @@ function StaleStateContent() {
         hallucination.&rdquo; But if you look under the hood of most
         multi-agent architectures, you&rsquo;ll find the culprit isn&rsquo;t
         the model &mdash; it&rsquo;s the data. Specifically, it&rsquo;s{" "}
-        <strong className="text-white">stale state</strong>.
+        <strong className="text-gray-900">stale state</strong>.
       </p>
 
       <SectionHeading>The Coordination Crisis</SectionHeading>
@@ -76,7 +76,7 @@ function StaleStateContent() {
         routine. It looks at a cached state from five minutes ago, sees the
         customer is &ldquo;healthy,&rdquo; and fires off an automated, cheerful
         email:{" "}
-        <em className="text-white/80">
+        <em className="text-gray-600">
           &ldquo;Happy Friday! Are you ready to upgrade your plan?&rdquo;
         </em>
       </p>
@@ -110,7 +110,7 @@ function StaleStateContent() {
       <p>
         You don&rsquo;t want your agents &ldquo;retrieving&rdquo; dynamic
         state. You want them{" "}
-        <strong className="text-white">reacting</strong> to it.
+        <strong className="text-gray-900">reacting</strong> to it.
       </p>
 
       <SectionHeading>
@@ -126,7 +126,7 @@ function StaleStateContent() {
 
       <p>
         This is why we built{" "}
-        <strong className="text-brand-accent">Statis</strong> &mdash; a
+        <strong className="text-indigo-600">Statis</strong> &mdash; a
         semantic event bus designed specifically for AI agents. Think of it as{" "}
         <em>Kafka for AI state</em>.
       </p>
@@ -152,7 +152,7 @@ function StaleStateContent() {
 
       <p>
         The magic behind this real-time coordination is our{" "}
-        <strong className="text-white">Materialize-on-Write</strong>{" "}
+        <strong className="text-gray-900">Materialize-on-Write</strong>{" "}
         architecture.
       </p>
 
@@ -166,40 +166,40 @@ function StaleStateContent() {
 
       <ol className="my-6 list-none space-y-4 pl-0">
         <li className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-accent/15 text-xs font-bold text-brand-accent">
+          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
             1
           </span>
           <span>
-            <strong className="text-white">The Append</strong> &mdash; The
+            <strong className="text-gray-900">The Append</strong> &mdash; The
             semantic event is ingested into an immutable log.
           </span>
         </li>
         <li className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-accent/15 text-xs font-bold text-brand-accent">
+          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
             2
           </span>
           <span>
-            <strong className="text-white">The Lock</strong> &mdash; Statis
+            <strong className="text-gray-900">The Lock</strong> &mdash; Statis
             safely locks the entity&rsquo;s state to prevent concurrent race
             conditions.
           </span>
         </li>
         <li className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-accent/15 text-xs font-bold text-brand-accent">
+          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
             3
           </span>
           <span>
-            <strong className="text-white">The Reduction</strong> &mdash; A
+            <strong className="text-gray-900">The Reduction</strong> &mdash; A
             pure-function reducer computes the exact new state (e.g., flipping{" "}
             <code>churn_risk</code> to <code>true</code>).
           </span>
         </li>
         <li className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-accent/15 text-xs font-bold text-brand-accent">
+          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
             4
           </span>
           <span>
-            <strong className="text-white">The Push</strong> &mdash; A
+            <strong className="text-gray-900">The Push</strong> &mdash; A
             delivery notification is enqueued to push the new state to
             subscribed agents in the exact same database transaction.
           </span>
@@ -214,9 +214,9 @@ function StaleStateContent() {
         determinism.
       </p>
 
-      <hr className="my-10 border-white/10" />
+      <hr className="my-10 border-gray-200" />
 
-      <p className="text-lg text-white/90">
+      <p className="text-lg text-gray-800">
         If we want to build autonomous AI systems that enterprises can actually
         trust, we have to stop asking our agents to constantly look over their
         shoulders to see what the other agents are doing. Give them a shared,
@@ -247,7 +247,7 @@ export default async function BlogPostPage({ params }: Props) {
     <article className="mx-auto max-w-3xl px-6 lg:px-8">
       <Link
         href="/blog"
-        className="group mb-10 inline-flex items-center gap-2 text-sm text-brand-muted transition-colors hover:text-brand-accent"
+        className="group mb-12 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition-colors hover:text-indigo-600 mt-20"
       >
         <svg
           className="h-4 w-4 transition-transform group-hover:-translate-x-1"
@@ -267,33 +267,33 @@ export default async function BlogPostPage({ params }: Props) {
 
       <header className="mb-10">
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <span className="inline-block rounded-full bg-brand-accent/10 px-3 py-1 text-xs font-medium text-brand-accent">
+          <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-indigo-600">
             {post.tag}
           </span>
-          <span className="text-xs text-brand-muted">
+          <span className="text-xs font-medium text-gray-500">
             {new Date(post.date).toLocaleDateString("en-US", {
               month: "long",
               day: "numeric",
               year: "numeric",
             })}
           </span>
-          <span className="text-xs text-brand-muted">&middot;</span>
-          <span className="text-xs text-brand-muted">{post.readTime}</span>
+          <span className="text-xs text-gray-400">&middot;</span>
+          <span className="text-xs font-medium text-gray-500">{post.readTime}</span>
         </div>
 
-        <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl leading-[1.15]">
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl leading-[1.15] font-serif">
           {post.title}
         </h1>
       </header>
 
-      <div className="prose-statis space-y-5 text-[16px] leading-[1.8] text-brand-muted">
+      <div className="space-y-6 text-[17px] leading-[1.8] text-gray-600">
         <ContentComponent />
       </div>
 
-      <div className="mt-16 border-t border-white/10 pt-8">
+      <div className="mt-20 border-t border-gray-200 pt-8 mb-24">
         <Link
           href="/blog"
-          className="group inline-flex items-center gap-2 text-sm text-brand-muted transition-colors hover:text-brand-accent"
+          className="group inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition-colors hover:text-indigo-600"
         >
           <svg
             className="h-4 w-4 transition-transform group-hover:-translate-x-1"

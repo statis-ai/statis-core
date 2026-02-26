@@ -47,11 +47,11 @@ function ArrowIcon({ external }: { external?: boolean }) {
 export default function BlogPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 lg:px-8">
-      <header className="mb-16 text-center">
-        <h1 className="text-5xl font-bold tracking-tight text-gradient sm:text-6xl">
+      <header className="mb-16 text-center pt-8">
+        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl font-serif">
           Blog
         </h1>
-        <p className="mt-4 text-lg text-brand-muted max-w-2xl mx-auto">
+        <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
           Thoughts on AI state management, multi-agent coordination, and
           building reliable autonomous systems.
         </p>
@@ -63,13 +63,13 @@ export default function BlogPage() {
           const href = isExternal ? post.external! : `/blog/${post.slug}`;
 
           const inner = (
-            <article className="group glass-card border-glow flex h-full flex-col justify-between rounded-xl p-8 transition-all duration-300 hover:border-brand-accent/20 hover:bg-white/[0.04]">
+            <article className="group flex h-full flex-col justify-between rounded-[32px] bg-white border border-gray-200 p-8 shadow-sm transition-all duration-300 hover:shadow-md hover:border-indigo-100">
               <div>
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="inline-block rounded-full bg-brand-accent/10 px-3 py-1 text-xs font-medium text-brand-accent">
+                  <span className="inline-block rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold text-indigo-600 hover:bg-gray-100 transition-colors">
                     {post.tag}
                   </span>
-                  <span className="text-xs text-brand-muted">
+                  <span className="text-xs text-gray-500">
                     {new Date(post.date).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
@@ -78,19 +78,19 @@ export default function BlogPage() {
                   </span>
                 </div>
 
-                <h2 className="text-xl font-semibold text-white leading-snug mb-3">
+                <h2 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors leading-snug mb-3">
                   {post.title}
                 </h2>
 
-                <p className="text-sm leading-relaxed text-brand-muted line-clamp-3">
+                <p className="text-sm leading-relaxed text-gray-500 line-clamp-3">
                   {post.description}
                 </p>
               </div>
 
-              <div className="mt-6 flex items-center justify-between text-xs text-brand-muted">
+              <div className="mt-8 flex items-center justify-between text-xs font-semibold text-gray-500">
                 <span>{post.readTime}</span>
-                <span className="flex items-center gap-1.5 text-brand-accent">
-                  {isExternal ? "Read on Medium" : "Read more"}
+                <span className="flex items-center gap-1.5 text-indigo-600 group-hover:text-indigo-700">
+                  {isExternal ? "Read on Medium" : "Read article"}
                   <ArrowIcon external={isExternal} />
                 </span>
               </div>

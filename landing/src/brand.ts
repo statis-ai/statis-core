@@ -10,6 +10,9 @@ export const brand = {
     warn: "#f59e0b",
     text: "#e4e4e7",
     textBright: "#ffffff",
+    flowBlue: "#3b82f6",
+    alertHigh: "#ef4444",
+    alertMedium: "#f59e0b",
   },
   radii: {
     sm: "0.5rem",

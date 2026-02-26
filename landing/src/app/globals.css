@@ -3,111 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --color-statist: #0a0a0f;
-  --color-surface: rgba(255, 255, 255, 0.03);
-  --color-border: rgba(255, 255, 255, 0.06);
-  --color-accent: #00ffc8;
-  --color-accent-dim: rgba(0, 255, 200, 0.15);
-  --color-muted: #8a8a9a;
-  --color-success: #22c55e;
+  --color-statist: #f9fafb;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  --color-accent: #4f46e5;
+  --color-accent-dim: rgba(79, 70, 229, 0.1);
+  --color-muted: #6b7280;
+  --color-success: #10b981;
   --color-warn: #f59e0b;
+  --color-flow-blue: #3b82f6;
+  --color-alert-high: #ef4444;
+  --color-alert-medium: #f59e0b;
 
-  --radius: 0.75rem;
+  --radius: 1rem;
   --duration-default: 300ms;
   --duration-slow: 600ms;
   --duration-fast: 150ms;
 
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
+  --font-serif: "Playfair Display", serif;
 }
 
 body {
   background: var(--color-statist);
-  color: #e4e4e7;
+  color: #111827;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Aurora background ─────────────────────────────────────── */
+/* ── Aurora & Noise (Disabled for Light Theme) ─────────────────────────────────────── */
 
 .aurora {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
+  display: none;
 }
-
-.aurora__blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(120px);
-  will-change: transform, opacity;
-}
-
-.aurora__blob--mint {
-  width: 60vw;
-  height: 60vw;
-  max-width: 800px;
-  max-height: 800px;
-  top: -15%;
-  left: -10%;
-  background: radial-gradient(circle, rgba(0, 255, 200, 0.09) 0%, transparent 70%);
-  animation: auroraFloat1 20s ease-in-out infinite;
-}
-
-.aurora__blob--violet {
-  width: 50vw;
-  height: 50vw;
-  max-width: 700px;
-  max-height: 700px;
-  bottom: -10%;
-  right: -10%;
-  background: radial-gradient(circle, rgba(79, 70, 229, 0.06) 0%, transparent 70%);
-  animation: auroraFloat2 25s ease-in-out infinite;
-}
-
-.aurora__blob--cyan {
-  width: 40vw;
-  height: 40vw;
-  max-width: 500px;
-  max-height: 500px;
-  top: 40%;
-  left: 50%;
-  background: radial-gradient(circle, rgba(0, 255, 200, 0.05) 0%, transparent 70%);
-  animation: auroraFloat3 18s ease-in-out infinite;
-}
-
-@keyframes auroraFloat1 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.8; }
-  33% { transform: translate(8vw, 6vh) scale(1.1); opacity: 1; }
-  66% { transform: translate(-4vw, 10vh) scale(0.95); opacity: 0.7; }
-}
-
-@keyframes auroraFloat2 {
-  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.7; }
-  40% { transform: translate(-6vw, -8vh) scale(1.15); opacity: 1; }
-  70% { transform: translate(4vw, -4vh) scale(0.9); opacity: 0.6; }
-}
-
-@keyframes auroraFloat3 {
-  0%, 100% { transform: translate(-50%, 0) scale(1); opacity: 0.6; }
-  50% { transform: translate(-50%, -8vh) scale(1.1); opacity: 0.9; }
-}
-
-/* ── Noise overlay ─────────────────────────────────────────── */
 
 .noise-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.04;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 200px 200px;
+  display: none;
 }
 
 /* ── Animated border glow for cards ────────────────────────── */
@@ -123,12 +56,10 @@ body {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: conic-gradient(
-    from var(--border-angle, 0deg),
-    transparent 40%,
-    var(--color-accent) 50%,
-    transparent 60%
-  );
+  background: conic-gradient(from var(--border-angle, 0deg),
+      transparent 40%,
+      var(--color-accent) 50%,
+      transparent 60%);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   -webkit-mask-composite: xor;
@@ -142,7 +73,9 @@ body {
 }
 
 @keyframes borderRotate {
-  to { --border-angle: 360deg; }
+  to {
+    --border-angle: 360deg;
+  }
 }
 
 @property --border-angle {
@@ -152,32 +85,79 @@ body {
 }
 
 @layer utilities {
-  .bg-grid {
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-  }
-
   .glass-card {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: #ffffff;
+    border: 1px solid var(--color-border);
     border-radius: var(--radius);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #ffffff 0%, var(--color-accent) 100%);
+    background: linear-gradient(135deg, #111827 0%, var(--color-accent) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  .dot-pattern {
+    background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+}
+
+/* ── Nervous System Animations ─────────────────────────────── */
+
+@keyframes pulseRing {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.2;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.6;
+  }
+}
+
+@keyframes flowDash {
+  to {
+    stroke-dashoffset: -20;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulseRing 3s ease-in-out infinite;
+}
+
+.animate-flow-dash {
+  animation: flowDash 1s linear infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out both;
 }
 
 /* ── Blog prose ────────────────────────────────────────────── */
 
 .prose-statis code {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.05);
   padding: 0.15em 0.4em;
   border-radius: 4px;
   font-family: var(--font-mono);
