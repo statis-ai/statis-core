@@ -1,358 +1,174 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Database, Code, BarChart2, AlertTriangle, Headphones, Briefcase } from "lucide-react";
-
-/* ── 1. Animated Race Condition (Light Theme) ──────────────────────── */
-function RaceConditionDiagramLight() {
-    return (
-        <div className="relative w-full h-[360px] bg-white rounded-2xl overflow-hidden flex items-center justify-center">
-            {/* Premium Dotted Background */}
-            <div className="absolute inset-0 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] [background-size:20px_20px] opacity-60" />
-
-            {/* Subtle radial gradient to fade out the dots near the edges */}
-            <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-white pointer-events-none opacity-80" />
-            <div className="absolute inset-0 bg-gradient-to-r from-white via-transparent to-white pointer-events-none opacity-80" />
-
-            {/* Connecting Lines (SVG) */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                {/* Line to Left Agent */}
-                <path
-                    d="M 50% 70% L 35% 35%"
-                    stroke="#E2E8F0"
-                    strokeWidth="2"
-                    strokeDasharray="4 4"
-                    fill="none"
-                />
-                {/* Line to Right Agent */}
-                <path
-                    d="M 50% 70% L 65% 35%"
-                    stroke="#E2E8F0"
-                    strokeWidth="2"
-                    strokeDasharray="4 4"
-                    fill="none"
-                />
-            </svg>
-
-            {/* Red 'conflict' dot on the left path (matches reference) */}
-            <div className="absolute top-[52%] left-[42.5%] w-2 h-2 bg-red-400 rounded-full shadow-[0_0_8px_rgba(248,113,113,0.8)] z-10" />
-
-            {/* TOP LEFT: Agent Node (Code) */}
-            <div className="absolute top-[25%] left-[35%] -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white border border-slate-100 rounded-[1rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center justify-center z-10">
-                <Code className="text-blue-600 w-6 h-6" />
-            </div>
-
-            {/* TOP RIGHT: Agent Node (Graph) */}
-            <div className="absolute top-[25%] left-[65%] -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white border border-slate-100 rounded-[1rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center justify-center z-10">
-                <BarChart2 className="text-blue-600 w-6 h-6" />
-            </div>
-
-            {/* BOTTOM CENTER: PostgreSQL Window */}
-            <div className="absolute bottom-[10%] left-[50%] -translate-x-1/2 w-52 bg-white/80 backdrop-blur-md border border-slate-200 rounded-xl shadow-[0_12px_40px_rgb(0,0,0,0.08)] z-10 overflow-hidden">
-                {/* Window Header */}
-                <div className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-slate-50/50">
-                    <div className="flex items-center gap-2">
-                        <Database className="w-3.5 h-3.5 text-slate-500" />
-                        <span className="text-xs font-semibold text-slate-600 tracking-wide">
-                            PostgreSQL
-                        </span>
-                    </div>
-                    {/* Window Controls (Yellow/Orange dots) */}
-                    <div className="flex gap-1.5">
-                        <div className="w-2 h-2 rounded-full bg-amber-400" />
-                        <div className="w-2 h-2 rounded-full bg-orange-500" />
-                    </div>
-                </div>
-                {/* Window Body (Skeleton lines) */}
-                <div className="p-3 space-y-2.5">
-                    <div className="w-full h-1.5 bg-slate-200 rounded-full" />
-                    <div className="w-3/4 h-1.5 bg-slate-200 rounded-full" />
-                    <div className="w-4/5 h-1.5 bg-red-100 rounded-full" />
-                </div>
-            </div>
-
-            {/* ANIMATED PACKET A (Left - Red) */}
-            <motion.div
-                className="absolute w-max bg-white border border-red-200 shadow-[0_4px_20px_rgba(254,226,226,0.8)] rounded-lg px-3 py-2 z-20 flex flex-col gap-1"
-                initial={{ top: "65%", left: "50%", x: "-50%", y: "-50%", opacity: 0, scale: 0.9 }}
-                animate={{
-                    top: ["65%", "45%", "45%", "45%"],
-                    left: ["50%", "42%", "42%", "42%"],
-                    opacity: [0, 1, 1, 0],
-                    scale: [0.9, 1, 1, 0.9],
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
-                <span className="text-[9px] font-bold text-slate-400 tracking-wider">READ A</span>
-                <span className="font-mono text-xs text-red-500 font-medium">
-                    {`{ status: "ok" }`}
-                </span>
-            </motion.div>
-
-            {/* ANIMATED PACKET B (Right - Yellow/Error) */}
-            <motion.div
-                className="absolute w-max bg-white border border-amber-200 shadow-[0_4px_20px_rgba(254,243,199,0.8)] rounded-lg px-3 py-2 z-30 flex flex-col gap-1"
-                initial={{ top: "65%", left: "50%", x: "-50%", y: "-50%", opacity: 0, scale: 0.9 }}
-                animate={{
-                    top: ["65%", "65%", "45%", "45%", "45%"], // Slightly delayed trajectory
-                    left: ["50%", "50%", "58%", "58%", "58%"],
-                    opacity: [0, 0, 1, 1, 0],
-                    scale: [0.9, 0.9, 1, 1, 0.9],
-                }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            >
-                <span className="text-[9px] font-bold text-slate-400 tracking-wider">READ B</span>
-                <div className="flex items-center gap-1.5">
-                    <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                    <span className="font-mono text-xs text-amber-600 font-medium">
-                        {`status: "err"`}
-                    </span>
-                </div>
-            </motion.div>
-        </div>
-    );
-}
-
-/* ── 2. Live Terminal (Light Theme) ───────────────────────────── */
-
-function LiveTerminalLight({ step }: { step: number }) {
-    const fields = [
-        { key: "entity_id", value: '"acct-42"', always: true },
-        { key: "account_tier", value: '"enterprise"', always: true },
-        {
-            key: "churn_risk",
-            valueOff: "false",
-            valueOn: "true",
-            flipsAt: 1,
-        },
-        {
-            key: "blockers",
-            valueOff: "[]",
-            valueOn: '["login_outage"]',
-            flipsAt: 1,
-        },
-        {
-            key: "sentiment",
-            valueOff: '"satisfied"',
-            valueOn: '"angry"',
-            flipsAt: 1,
-        },
-        {
-            key: "sales_status",
-            valueOff: '"active"',
-            valueOn: '"paused"',
-            flipsAt: 3,
-        },
-        {
-            key: "billing_status",
-            valueOff: '"active"',
-            valueOn: '"paused"',
-            flipsAt: 3,
-        },
-    ];
-
-    return (
-        <div className="font-mono text-xs leading-relaxed text-gray-800">
-            <span className="text-gray-400">{"{"}</span>
-            {fields.map((f, i) => {
-                const flipsAt = "flipsAt" in f ? f.flipsAt : undefined;
-                const isFlipped = flipsAt !== undefined && step >= flipsAt;
-                const val = f.always
-                    ? f.value
-                    : isFlipped
-                        ? f.valueOn
-                        : f.valueOff;
-                const isHighlighted = flipsAt !== undefined && step === flipsAt;
-                const isRed = isFlipped && !f.always;
-
-                return (
-                    <div
-                        key={f.key}
-                        className={`pl-4 transition-all duration-500 ${isHighlighted
-                            ? "bg-red-50 -mx-3 px-7 py-0.5 rounded border border-red-100"
-                            : "border border-transparent -mx-3 px-7 py-0.5"
-                            }`}
-                    >
-                        <span className="text-indigo-600">&quot;{f.key}&quot;</span>
-                        <span className="text-gray-400">: </span>
-                        <span
-                            className={`transition-colors duration-700 ${isRed
-                                ? "text-red-600 font-semibold"
-                                : "text-emerald-600"
-                                }`}
-                        >
-                            {val}
-                        </span>
-                        {i < fields.length - 1 && (
-                            <span className="text-gray-400">,</span>
-                        )}
-                    </div>
-                );
-            })}
-            <span className="text-gray-400">{"}"}</span>
-        </div>
-    );
-}
-
-/* ── 3. Pipeline Flow ─────────────────────────────────────────── */
-
-const stages = [
-    { label: "Ingest", desc: "Events -> Log", icon: "📥", color: "text-blue-600", bg: "bg-blue-50/80", shadow: "shadow-blue-500/10", border: "border-blue-200" },
-    { label: "Lock", desc: "Isolate State", icon: "🔒", color: "text-cyan-600", bg: "bg-cyan-50/80", shadow: "shadow-cyan-500/10", border: "border-cyan-200" },
-    { label: "Reduce", desc: "Materialize", icon: "🧠", color: "text-violet-600", bg: "bg-violet-50/80", shadow: "shadow-violet-500/10", border: "border-violet-200" },
-    { label: "Push", desc: "Webhooks", icon: "📡", color: "text-amber-600", bg: "bg-amber-50/80", shadow: "shadow-amber-500/10", border: "border-amber-200" },
-];
-
-function PipelineFlowLight() {
-    return (
-        <div className="flex flex-col md:flex-row items-center justify-between w-full h-full max-w-3xl mx-auto gap-3 md:gap-0 relative pointer-events-none select-none">
-
-            {/* Background animated connecting line */}
-            <div className="hidden md:block absolute left-12 right-12 top-[45px] h-0.5 bg-gray-200 z-0">
-                <motion.div
-                    className="absolute top-0 left-0 bottom-0 bg-indigo-500 w-1/4 shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-                    animate={{ left: ["0%", "75%"] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                />
-            </div>
-
-            {stages.map((stage, i) => (
-                <div key={i} className="flex flex-col items-center flex-1 z-10 w-full md:w-auto relative group pt-2 px-2">
-                    <motion.div
-                        whileHover={{ y: -4 }}
-                        className={`w-16 h-16 rounded-2xl ${stage.bg} border ${stage.border} flex items-center justify-center text-2xl shadow-lg ${stage.shadow} mb-4 relative backdrop-blur-sm z-10 bg-white/50`}
-                    >
-                        {stage.icon}
-
-                        {/* Ping animation behind icon */}
-                        <div className={`absolute inset-0 rounded-2xl bg-white/40 border-2 ${stage.border} animate-ping opacity-20`} style={{ animationDuration: '3s', animationDelay: `${i * 0.5}s` }} />
-                    </motion.div>
-
-                    <div className="flex flex-col items-center bg-white/80 backdrop-blur-md border border-gray-100 px-4 py-2 rounded-xl shadow-sm min-w-28">
-                        <div className={`text-sm font-bold tracking-tight ${stage.color}`}>{stage.label}</div>
-                        <div className="text-[10px] text-gray-500 font-medium uppercase tracking-widest mt-0.5">{stage.desc}</div>
-                    </div>
-
-                    {/* Mobile connecting arrow */}
-                    {i < stages.length - 1 && (
-                        <div className="md:hidden mt-3 text-gray-300">
-                            ↓
-                        </div>
-                    )}
-                </div>
-            ))}
-        </div>
-    );
-}
-
-/* ── Main Bento Section ───────────────────────────────────────── */
+import { motion } from "framer-motion";
+import { Layers, GitMerge, Clock, AlertTriangle } from "lucide-react";
 
 export function BentoFeaturesSection() {
-    const [auditStep, setAuditStep] = useState(0);
-
-    // Auto-play the audit terminal
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setAuditStep((s) => (s + 1 > 4 ? 0 : s + 1));
-        }, 2400);
-        return () => clearInterval(interval);
-    }, []);
-
     return (
-        <section className="py-24 sm:py-32 bg-gray-50">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-2xl text-center mb-16">
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600 mb-4">
-                        The Problem
-                    </h2>
-                    <p className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-5xl font-serif">
-                        The Hidden Risk of Multi-Agent Systems
-                    </p>
-                    <p className="mt-6 text-lg leading-8 text-gray-500">
-                        Today&rsquo;s AI systems are stitched together with polling, cached state, vector memory, and disconnected databases. Each agent sees a slightly different world. In production, that becomes systemic risk.
-                    </p>
-                </div>
+        <section className="relative py-32 bg-[#020617] overflow-hidden border-t border-white/5">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-rose-900/10 blur-[150px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-900/10 blur-[150px] rounded-full pointer-events-none" />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(300px,auto)]">
+            <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
 
-                    {/* Block 1: The Race Condition (2 cols) */}
-                    <div className="group md:col-span-2 rounded-[32px] bg-white border border-gray-200 shadow-sm p-8 pb-0 relative overflow-hidden flex flex-col pt-10 grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-500">
-                        <div className="absolute inset-0 dot-pattern opacity-50 pointer-events-none" />
-                        <div className="relative z-10 flex-1 flex flex-col">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Sales emailing churned customers.</h3>
-                            <p className="text-gray-500 text-sm max-w-md mb-8">
-                                Agents contradict each other. Support promises refunds billing already denied. Compliance decisions can&rsquo;t be explained. Debugging requires reconstruction.
+                {/* 1. Header & Intro */}
+                <div className="max-w-4xl mx-auto mb-20 text-center">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-rose-500 mb-6 flex items-center justify-center gap-2">
+                            <AlertTriangle className="w-4 h-4" />
+                            The Problem
+                        </h2>
+                        <h3 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl font-serif mb-8 leading-[1.1]">
+                            When Systems Don&rsquo;t Share State, <br className="hidden sm:block" />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 to-orange-400">They Diverge.</span>
+                        </h3>
+
+                        <div className="space-y-6 text-lg sm:text-xl text-slate-400 leading-relaxed font-medium">
+                            <p className="max-w-3xl mx-auto">
+                                Modern AI systems aren&rsquo;t single programs.<br className="hidden sm:block" />
+                                They&rsquo;re collections of agents, services, workflows, and tools — all acting independently.
                             </p>
-                            <div className="mt-auto flex justify-center pb-8">
-                                <div className="w-full max-w-md">
-                                    <RaceConditionDiagramLight />
-                                </div>
+                            <div className="flex flex-col items-center justify-center space-y-3 py-2">
+                                <p>Each one reads from slightly different data.</p>
+                                <p>Each one reacts at slightly different times.</p>
+                                <p>Each one derives its own view of what&rsquo;s true.</p>
+                            </div>
+                            <p className="text-white text-2xl font-serif pt-4">
+                                That works in demos. <span className="text-rose-400 font-bold">In production, it breaks.</span>
+                            </p>
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* 2. Bento Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-fr mb-24">
+
+                    {/* Bento Card 1: Fragmented State */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className="group flex flex-col items-center text-center p-8 sm:p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 backdrop-blur-sm shadow-xl"
+                    >
+                        <div className="w-14 h-14 rounded-2xl bg-slate-800/50 flex items-center justify-center mb-6 border border-slate-700/50 group-hover:scale-110 group-hover:bg-slate-800 group-hover:border-slate-600 transition-all duration-300">
+                            <Layers className="w-7 h-7 text-slate-300 group-hover:text-white" />
+                        </div>
+                        <h4 className="text-2xl font-bold tracking-tight text-white mb-6">
+                            1. Fragmented State
+                        </h4>
+                        <div className="font-mono text-sm sm:text-base text-slate-500 mb-8 space-y-3">
+                            <p>Events are emitted.</p>
+                            <p>Caches are updated.</p>
+                            <p>Services subscribe.</p>
+                        </div>
+                        <div className="mt-auto space-y-4 text-base sm:text-lg text-slate-400">
+                            <p>But every system materializes its own version of reality.</p>
+                            <p className="font-bold text-rose-300 bg-rose-500/10 inline-block px-3 py-1 rounded-md border border-rose-500/20 shadow-sm transition-colors duration-300">
+                                There is no single, authoritative state.
+                            </p>
+                        </div>
+                    </motion.div>
+
+                    {/* Bento Card 2: Inconsistent Action */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        className="group flex flex-col items-center text-center p-8 sm:p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 backdrop-blur-sm shadow-xl"
+                    >
+                        <div className="w-14 h-14 rounded-2xl bg-slate-800/50 flex items-center justify-center mb-6 border border-slate-700/50 group-hover:scale-110 group-hover:bg-slate-800 group-hover:border-slate-600 transition-all duration-300">
+                            <GitMerge className="w-7 h-7 text-slate-300 group-hover:text-white" />
+                        </div>
+                        <h4 className="text-2xl font-bold tracking-tight text-white mb-6">
+                            2. Inconsistent Action
+                        </h4>
+                        <div className="font-mono text-sm sm:text-base text-slate-500 mb-8 space-y-3">
+                            <p>One workflow proceeds.</p>
+                            <p>Another pauses.</p>
+                            <p>A third retries.</p>
+                        </div>
+                        <div className="space-y-4 text-base sm:text-lg text-slate-400 mt-auto">
+                            <p>All technically correct — but not aligned.</p>
+                            <div className="font-bold text-rose-300 bg-rose-500/10 px-4 py-3 rounded-xl border border-rose-500/20 leading-relaxed shadow-sm transition-colors duration-300">
+                                <p>Autonomy increases speed.</p>
+                                <p>Fragmentation increases divergence.</p>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
 
-                    {/* Block 2: Live Audit Terminal (1 col, 2 rows) */}
-                    <div className="group md:col-span-1 md:row-span-2 rounded-[32px] bg-white border border-gray-200 shadow-sm p-8 relative flex flex-col grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-500">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">Drift becomes systemic risk.</h3>
-                        <p className="text-gray-500 text-sm mb-6">
-                            As autonomy increases, subtle inconsistencies compound. You don&rsquo;t need smarter agents. You need shared reality.
+                    {/* Bento Card 3: No Moment in Time */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                        className="group flex flex-col items-center text-center p-8 sm:p-10 rounded-[2.5rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 backdrop-blur-sm shadow-xl"
+                    >
+                        <div className="w-14 h-14 rounded-2xl bg-slate-800/50 flex items-center justify-center mb-6 border border-slate-700/50 group-hover:scale-110 group-hover:bg-slate-800 group-hover:border-slate-600 transition-all duration-300">
+                            <Clock className="w-7 h-7 text-slate-300 group-hover:text-white" />
+                        </div>
+                        <h4 className="text-2xl font-bold tracking-tight text-white mb-6">
+                            3. No Clear &ldquo;Moment in Time&rdquo;
+                        </h4>
+                        <p className="text-base sm:text-lg text-slate-400 mb-6 max-w-[280px]">
+                            When something goes wrong, you dig through logs. You can&rsquo;t easily answer:
                         </p>
-
-                        <div className="flex-1 rounded-2xl bg-gray-50 border border-gray-200 p-5 font-mono text-sm relative overflow-hidden flex flex-col">
-                            {/* Animated Toast / Badge */}
-                            <AnimatePresence>
-                                {auditStep === 1 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                                        transition={{ duration: 0.3 }}
-                                        className="absolute top-12 right-2 left-2 z-20 bg-indigo-600 text-white text-[10px] sm:text-xs px-3 py-2 rounded-lg font-sans shadow-lg flex items-center gap-2"
-                                    >
-                                        <span className="text-amber-300">⚡</span>
-                                        <span className="font-bold">EVENT INGESTED:</span> Support logs critical outage
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            {/* IDE Header */}
-                            <div className="flex items-center gap-2 border-b border-gray-200 pb-3 mb-4">
-                                <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
-                                <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                                <div className="w-2.5 h-2.5 rounded-full bg-green-400" />
-                                <span className="ml-2 text-xs text-gray-400">state.json</span>
-                            </div>
-
-                            <LiveTerminalLight step={auditStep} />
-
-                            {/* Status indicator */}
-                            <div className="mt-auto pt-4 flex gap-2 w-full">
-                                {['Support', 'Sales', 'Billing'].map((agent, i) => {
-                                    const isPaused = auditStep >= 3 && agent !== 'Support';
-                                    return (
-                                        <div key={agent} className={`flex-1 flex flex-col items-center justify-center py-2 rounded-lg border text-[10px] font-bold uppercase transition-colors duration-500 ${isPaused ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-white border-gray-200 text-gray-400'}`}>
-                                            <span className="mb-0.5">{agent === 'Support' ? '🎧' : agent === 'Sales' ? '💼' : '💳'}</span>
-                                            {isPaused ? 'PAUSED' : 'IDLE'}
-                                        </div>
-                                    )
-                                })}
-                            </div>
+                        <div className="font-mono text-[13px] sm:text-[14px] text-indigo-300 mb-8 space-y-3 bg-[#0a0f1d]/40 p-5 rounded-xl border border-indigo-900/30 shadow-inner w-full sm:max-w-md flex flex-col items-center text-center">
+                            <p className="flex gap-2 justify-center w-full"><span className="text-indigo-500 hidden sm:inline">?</span> What was the state?</p>
+                            <p className="flex gap-2 justify-center w-full"><span className="text-indigo-500 hidden sm:inline">?</span> Why did it act?</p>
+                            <p className="flex gap-2 justify-center w-full"><span className="text-indigo-500 hidden sm:inline">?</span> Who reacted?</p>
                         </div>
-                    </div>
-
-                    {/* Block 3: Architecture Flow / Push (2 cols) - Fit flawlessly into Row 2 */}
-                    <div className="group md:col-span-2 rounded-[32px] bg-white border border-gray-200 shadow-sm p-8 relative flex flex-col grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-500">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Cron-triggered workflows. Stale dashboards.</h3>
-                        <p className="text-gray-500 text-sm max-w-lg mb-10">
-                            No more polling cron jobs or scattered scripts. The entire pipeline — ingest, reduce, push — happens in real time.
-                        </p>
-                        <div className="flex-1 flex items-center bg-gray-50/50 rounded-2xl border border-gray-100 p-8 transform group-hover:scale-[1.02] transition-transform duration-500">
-                            <PipelineFlowLight />
+                        <div className="mt-auto">
+                            <p className="font-bold text-rose-300 bg-rose-500/10 inline-block px-3 py-2 rounded-md border border-rose-500/20 shadow-sm transition-colors duration-300">
+                                You reconstruct history instead of querying it.
+                            </p>
                         </div>
-                    </div>
+                    </motion.div>
 
                 </div>
+
+                {/* 3. The Core Issue (Outro) */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.7, delay: 0.4 }}
+                    className="max-w-4xl mx-auto text-center bg-gradient-to-b from-[#0a0f1d] to-[#020617] p-10 sm:p-16 rounded-[3rem] border border-slate-800/60 shadow-2xl relative overflow-hidden"
+                >
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[400px] h-[1px] bg-gradient-to-r from-transparent via-rose-500 to-transparent opacity-60" />
+
+                    <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-slate-500 mb-8">
+                        The Core Issue
+                    </h4>
+
+                    <p className="text-2xl sm:text-3xl md:text-4xl font-serif text-white leading-tight mb-8">
+                        Today&rsquo;s AI systems coordinate <span className="text-slate-500 line-through">messages.</span><br className="hidden sm:block" />
+                        <span className="text-rose-400 sm:ml-2">They don&rsquo;t coordinate state.</span>
+                    </p>
+
+                    <p className="text-lg sm:text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
+                        As autonomy increases, subtle inconsistencies compound into real execution failures.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 text-lg font-medium">
+                        <span className="text-slate-400 px-6 py-3.5 rounded-full border border-slate-800 bg-slate-900/50">
+                            You don&rsquo;t need smarter agents.
+                        </span>
+                        <span className="text-indigo-200 px-6 py-3.5 rounded-full border border-indigo-500/40 bg-indigo-600/20 shadow-[0_0_30px_rgba(99,102,241,0.15)] relative overflow-hidden group">
+                            <div className="absolute inset-0 bg-indigo-400/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-in-out" />
+                            You need shared, deterministic state.
+                        </span>
+                    </div>
+                </motion.div>
+
             </div>
         </section>
     );

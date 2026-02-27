@@ -31,7 +31,7 @@ export function HeroV2() {
                         transition={{ duration: 0.5, delay: 0.1 }}
                         className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-brand-accent"
                     >
-                        The Shared Reality Layer for Autonomous Systems
+                        The Decision Layer for Autonomous Systems
                     </motion.p>
 
                     {/* Headline */}
@@ -43,9 +43,9 @@ export function HeroV2() {
 
                     {/* Sub-headline */}
                     <p className="mx-auto mt-7 max-w-2xl text-lg text-gray-500 md:text-xl leading-relaxed">
-                        As systems become multi-agent and autonomous, subtle inconsistencies
-                        become real business failures. Statis ensures every agent reacts to the
-                        same live state — instantly.
+                        As systems become autonomous and cross workflows, fragmented state becomes
+                        fragmented execution. Statis materializes a single, authoritative state — so
+                        every agent acts from the same decision surface, instantly.
                     </p>
 
                     {/* Punch lines */}

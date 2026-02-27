@@ -5,7 +5,6 @@ import { IntroducingStatisSection } from "@/components/sections/IntroducingStati
 import { BeforeAfterSection } from "@/components/sections/BeforeAfterSection";
 import { UseCasesSection } from "@/components/sections/UseCasesSection";
 import { MemoryVsRealitySection } from "@/components/sections/MemoryVsRealitySection";
-import { MetricsRibbonSection } from "@/components/sections/MetricsRibbonSection";
 import { AIStackSection } from "@/components/sections/AIStackSection";
 import { FAQSection } from "@/components/sections/FAQSection";
 import { FooterV2 } from "@/components/sections/FooterV2";
@@ -21,7 +20,6 @@ export default function Home() {
         <BeforeAfterSection />
         <UseCasesSection />
         <MemoryVsRealitySection />
-        <MetricsRibbonSection />
         <AIStackSection />
         <FAQSection />
         <FooterV2 />
