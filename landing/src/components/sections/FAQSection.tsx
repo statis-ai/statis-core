@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 export function FAQSection() {
     const faqs = [
         {
-            q: "How is Statis different from a standard vector database?",
-            a: "Vector databases are for semantic retrieval (memory). Statis is for deterministic structured state (reality). If an agent needs to know 'what color is the sky in this context?', you use RAG/Vectors. If an agent needs to know 'did the billing agent charge this user?', you need Statis."
+            q: "How is Statis different from a vector database?",
+            a: "Vector databases are for semantic retrieval — memory. Statis is for deterministic structured state — reality. If an agent needs context, use RAG. If an agent needs to know whether something is true right now, it needs shared reality."
         },
         {
             q: "Do I need to rewrite my agent logic?",

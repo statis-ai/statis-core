@@ -31,22 +31,42 @@ export function HeroV2() {
                         transition={{ duration: 0.5, delay: 0.1 }}
                         className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-brand-accent"
                     >
-                        The State Layer for AI Agents
+                        The Shared Reality Layer for Autonomous Systems
                     </motion.p>
 
                     {/* Headline */}
                     <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08] font-serif">
-                        Stop AI Agents from
+                        AI agents shouldn&rsquo;t invent
                         <br />
-                        <span className="text-gradient">acting on stale data.</span>
+                        <span className="text-gradient">their own version of the truth.</span>
                     </h1>
 
                     {/* Sub-headline */}
                     <p className="mx-auto mt-7 max-w-2xl text-lg text-gray-500 md:text-xl leading-relaxed">
-                        Statis is the event-driven state layer for multi-agent workflows.
-                        Ingest semantic facts once, materialize a single source of truth,
-                        and push state changes to your entire swarm in real-time.
+                        As systems become multi-agent and autonomous, subtle inconsistencies
+                        become real business failures. Statis ensures every agent reacts to the
+                        same live state — instantly.
                     </p>
+
+                    {/* Punch lines */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6, duration: 0.7 }}
+                        className="mt-10 flex flex-wrap items-center justify-center gap-y-3 gap-x-4 md:gap-x-6 text-lg md:text-xl font-serif font-bold tracking-tight cursor-default select-none"
+                    >
+                        <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
+                            No contradictions
+                        </span>
+                        <span className="text-violet-200 text-sm hidden sm:inline-block animate-pulse">✦</span>
+                        <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
+                            No silent drift
+                        </span>
+                        <span className="text-fuchsia-200 text-sm hidden sm:inline-block animate-pulse" style={{ animationDelay: '500ms' }}>✦</span>
+                        <span className="bg-gradient-to-r from-fuchsia-500 to-rose-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
+                            No automation surprises
+                        </span>
+                    </motion.div>
 
                     {/* CTAs */}
                     <div className="mt-10 flex flex-wrap justify-center items-center gap-4">
@@ -56,7 +76,7 @@ export function HeroV2() {
                             rel="noopener noreferrer"
                             className="rounded-full bg-indigo-600 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:scale-105 hover:bg-indigo-700 shadow-sm"
                         >
-                            Get Early Access
+                            Request Design Partner Access
                         </a>
                         <a
                             href="https://docs.statis.dev"

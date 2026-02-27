@@ -264,10 +264,13 @@ export function BentoFeaturesSection() {
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
                 <div className="mx-auto max-w-2xl text-center mb-16">
                     <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600 mb-4">
-                        deterministic Reality
+                        The Problem
                     </h2>
                     <p className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-5xl font-serif">
-                        A single source of truth for your AI agents.
+                        The Hidden Risk of Multi-Agent Systems
+                    </p>
+                    <p className="mt-6 text-lg leading-8 text-gray-500">
+                        Today&rsquo;s AI systems are stitched together with polling, cached state, vector memory, and disconnected databases. Each agent sees a slightly different world. In production, that becomes systemic risk.
                     </p>
                 </div>
 
@@ -277,9 +280,9 @@ export function BentoFeaturesSection() {
                     <div className="group md:col-span-2 rounded-[32px] bg-white border border-gray-200 shadow-sm p-8 pb-0 relative overflow-hidden flex flex-col pt-10 grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-500">
                         <div className="absolute inset-0 dot-pattern opacity-50 pointer-events-none" />
                         <div className="relative z-10 flex-1 flex flex-col">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Prevent Agent State Drift.</h3>
+                            <h3 className="text-2xl font-bold text-gray-900 mb-2">Sales emailing churned customers.</h3>
                             <p className="text-gray-500 text-sm max-w-md mb-8">
-                                When agents poll isolated databases, they invent their own reality. Statis guarantees your entire swarm acts on the exact same cryptographic state at the exact same millisecond.
+                                Agents contradict each other. Support promises refunds billing already denied. Compliance decisions can&rsquo;t be explained. Debugging requires reconstruction.
                             </p>
                             <div className="mt-auto flex justify-center pb-8">
                                 <div className="w-full max-w-md">
@@ -291,9 +294,9 @@ export function BentoFeaturesSection() {
 
                     {/* Block 2: Live Audit Terminal (1 col, 2 rows) */}
                     <div className="group md:col-span-1 md:row-span-2 rounded-[32px] bg-white border border-gray-200 shadow-sm p-8 relative flex flex-col grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-500">
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">The Golden Record, Pushed Instantly.</h3>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Drift becomes systemic risk.</h3>
                         <p className="text-gray-500 text-sm mb-6">
-                            Say goodbye to stale caches. Statis materializes a verified JSON state and pushes webhooks to your agents in under 300ms the moment a critical event occurs.
+                            As autonomy increases, subtle inconsistencies compound. You don&rsquo;t need smarter agents. You need shared reality.
                         </p>
 
                         <div className="flex-1 rounded-2xl bg-gray-50 border border-gray-200 p-5 font-mono text-sm relative overflow-hidden flex flex-col">
@@ -340,9 +343,9 @@ export function BentoFeaturesSection() {
 
                     {/* Block 3: Architecture Flow / Push (2 cols) - Fit flawlessly into Row 2 */}
                     <div className="group md:col-span-2 rounded-[32px] bg-white border border-gray-200 shadow-sm p-8 relative flex flex-col grayscale hover:grayscale-0 opacity-70 hover:opacity-100 transition-all duration-500">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Sync-on-Write Architecture.</h3>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">Cron-triggered workflows. Stale dashboards.</h3>
                         <p className="text-gray-500 text-sm max-w-lg mb-10">
-                            No more polling cron jobs or scattered scripts. Ingest raw events, reduce them into a single golden state record, and push delta webhooks instantly.
+                            No more polling cron jobs or scattered scripts. The entire pipeline — ingest, reduce, push — happens in real time.
                         </p>
                         <div className="flex-1 flex items-center bg-gray-50/50 rounded-2xl border border-gray-100 p-8 transform group-hover:scale-[1.02] transition-transform duration-500">
                             <PipelineFlowLight />

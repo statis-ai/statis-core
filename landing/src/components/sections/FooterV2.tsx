@@ -22,7 +22,7 @@ export function FooterV2() {
                             </span>
                         </Link>
                         <p className="text-lg leading-6 text-gray-500">
-                            Multi-agent systems shouldn&rsquo;t run on vibes and vector similarity. Build on deterministic state.
+                            Multi-agent systems shouldn&rsquo;t run on vibes. Build on shared reality.
                         </p>
                     </div>
 
@@ -35,7 +35,7 @@ export function FooterV2() {
                             Request Design Partner Access
                         </a>
                         <p className="text-xs text-gray-500 mt-1 max-w-sm">
-                            <span className="text-indigo-600 font-semibold">Current Status:</span> Enrolling Design Partners (VP Engineering / Head of Platform). Hosted &amp; VPC-ish deployment modes coming soon.
+                            Hosted today. VPC and self-hosted options coming soon.
                         </p>
                     </div>
                 </div>
