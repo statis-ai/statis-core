@@ -35,6 +35,8 @@ GOLDEN_STATE = {
     "churn_risk": False,
     "next_actions": [{"owner": "sales", "action": "schedule call", "reason": "churn risk"}],
     "plan": "pro",
+    "ltv": 0,
+    "last_discount_at": None,
     "extensions": {},
 }
 

@@ -4,7 +4,10 @@ from app.models.api_key import ApiKey
 from app.models.delivery import Delivery
 from app.models.entity_state import EntityState
 from app.models.event import Event
+from app.models.execution_lock import ExecutionLock
+from app.models.policy_rule import PolicyRule
 from app.models.quarantine import QuarantineEntry
+from app.models.receipt import Receipt
 from app.models.subscription import Subscription
 
 __all__ = [
@@ -12,6 +15,9 @@ __all__ = [
     "Delivery",
     "EntityState",
     "Event",
+    "ExecutionLock",
+    "PolicyRule",
     "QuarantineEntry",
+    "Receipt",
     "Subscription",
 ]

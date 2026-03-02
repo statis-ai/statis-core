@@ -22,6 +22,8 @@ def init_account_v2() -> Dict[str, Any]:
         "churn_risk": False,
         "next_actions": [],
         "plan": None,
+        "ltv": 0,
+        "last_discount_at": None,
         "extensions": {},
     }
 

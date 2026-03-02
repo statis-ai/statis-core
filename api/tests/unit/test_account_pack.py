@@ -1,13 +1,17 @@
 """Unit tests for the Account State Pack v2 reducers, alias resolution,
 schema upgrade, and conflict rules.
 """
+from datetime import datetime, timezone
 from types import SimpleNamespace
 
 import pytest
 
 from app.reducers.account import (
+    reduce_churn_risk_updated,
+    reduce_discount_applied,
     reduce_escalation_requested,
     reduce_incident_reported,
+    reduce_ltv_updated,
     reduce_plan_changed,
     reduce_schema_migrated,
     reduce_sentiment_updated,
@@ -208,6 +212,120 @@ class TestConflictRules:
 
     def test_should_apply_equal_precedence(self) -> None:
         assert should_apply("human", "human") is True
+
+
+# ── billing.ltv_updated ───────────────────────────────────────────────────
+
+class TestLtvUpdated:
+    def test_sets_ltv(self) -> None:
+        evt = _evt("billing.ltv_updated", {"ltv": 1200})
+        result = reduce_ltv_updated({}, evt)
+        assert result["ltv"] == 1200
+
+    def test_overwrites_existing_ltv(self) -> None:
+        state = init_account_v2()
+        state["ltv"] = 500
+        evt = _evt("billing.ltv_updated", {"ltv": 2000})
+        result = reduce_ltv_updated(state, evt)
+        assert result["ltv"] == 2000
+
+    def test_defaults_to_zero_when_payload_missing_ltv(self) -> None:
+        evt = _evt("billing.ltv_updated", {})
+        result = reduce_ltv_updated({}, evt)
+        assert result["ltv"] == 0
+
+    def test_does_not_mutate_input(self) -> None:
+        state = init_account_v2()
+        state["ltv"] = 100
+        evt = _evt("billing.ltv_updated", {"ltv": 999})
+        reduce_ltv_updated(state, evt)
+        assert state["ltv"] == 100
+
+    def test_registered_in_registry(self) -> None:
+        from app.reducers.registry import get_reducer
+        assert get_reducer("billing.ltv_updated") is reduce_ltv_updated
+
+
+# ── billing.discount_applied ──────────────────────────────────────────────
+
+class TestDiscountApplied:
+    def test_sets_last_discount_at_from_event(self) -> None:
+        ts = datetime(2026, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
+        evt = SimpleNamespace(
+            event_type="billing.discount_applied",
+            payload={"discount_pct": 10, "duration_days": 30},
+            producer="billing",
+            occurred_at=ts,
+        )
+        result = reduce_discount_applied({}, evt)
+        assert result["last_discount_at"] == ts
+
+    def test_falls_back_to_payload_occurred_at(self) -> None:
+        ts = "2026-01-15T12:00:00Z"
+        evt = _evt("billing.discount_applied", {"discount_pct": 10, "occurred_at": ts})
+        result = reduce_discount_applied({}, evt)
+        assert result["last_discount_at"] == ts
+
+    def test_overwrites_previous_discount(self) -> None:
+        old_ts = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        new_ts = datetime(2026, 2, 1, tzinfo=timezone.utc)
+        state = init_account_v2()
+        state["last_discount_at"] = old_ts
+        evt = SimpleNamespace(
+            event_type="billing.discount_applied",
+            payload={},
+            producer="billing",
+            occurred_at=new_ts,
+        )
+        result = reduce_discount_applied(state, evt)
+        assert result["last_discount_at"] == new_ts
+
+    def test_does_not_mutate_input(self) -> None:
+        ts = datetime(2026, 1, 15, tzinfo=timezone.utc)
+        state = init_account_v2()
+        evt = SimpleNamespace(
+            event_type="billing.discount_applied",
+            payload={},
+            producer="billing",
+            occurred_at=ts,
+        )
+        reduce_discount_applied(state, evt)
+        assert state["last_discount_at"] is None
+
+    def test_registered_in_registry(self) -> None:
+        from app.reducers.registry import get_reducer
+        assert get_reducer("billing.discount_applied") is reduce_discount_applied
+
+
+# ── account.churn_risk_updated ────────────────────────────────────────────
+
+class TestChurnRiskUpdated:
+    def test_sets_churn_risk_true(self) -> None:
+        evt = _evt("account.churn_risk_updated", {"churn_risk": True})
+        result = reduce_churn_risk_updated({}, evt)
+        assert result["churn_risk"] is True
+
+    def test_sets_churn_risk_false(self) -> None:
+        state = init_account_v2()
+        state["churn_risk"] = True
+        evt = _evt("account.churn_risk_updated", {"churn_risk": False})
+        result = reduce_churn_risk_updated(state, evt)
+        assert result["churn_risk"] is False
+
+    def test_defaults_to_false_when_key_missing(self) -> None:
+        evt = _evt("account.churn_risk_updated", {})
+        result = reduce_churn_risk_updated({}, evt)
+        assert result["churn_risk"] is False
+
+    def test_does_not_mutate_input(self) -> None:
+        state = init_account_v2()
+        state["churn_risk"] = False
+        evt = _evt("account.churn_risk_updated", {"churn_risk": True})
+        reduce_churn_risk_updated(state, evt)
+        assert state["churn_risk"] is False
+
+    def test_registered_in_registry(self) -> None:
+        assert get_reducer("account.churn_risk_updated") is reduce_churn_risk_updated
 
 
 # ── alias resolution ──────────────────────────────────────────────────────

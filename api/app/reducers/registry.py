@@ -26,8 +26,11 @@ def register(event_type: str, fn: ReducerFn) -> None:
 def _bootstrap() -> None:
     """Register all built-in reducers. Called once at module load."""
     from app.reducers.account import (
+        reduce_churn_risk_updated,
+        reduce_discount_applied,
         reduce_escalation_requested,
         reduce_incident_reported,
+        reduce_ltv_updated,
         reduce_plan_changed,
         reduce_schema_migrated,
         reduce_sentiment_updated,
@@ -38,7 +41,10 @@ def _bootstrap() -> None:
     register("support.incident_reported", reduce_incident_reported)
     register("support.sentiment_updated", reduce_sentiment_updated)
     register("billing.plan_changed", reduce_plan_changed)
+    register("billing.ltv_updated", reduce_ltv_updated)
+    register("billing.discount_applied", reduce_discount_applied)
     register("csm.escalation_requested", reduce_escalation_requested)
+    register("account.churn_risk_updated", reduce_churn_risk_updated)
     register("account.schema_migrated", reduce_schema_migrated)
 
 

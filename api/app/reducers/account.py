@@ -139,6 +139,46 @@ def reduce_escalation_requested(state: dict, event: Any) -> dict:
     return state
 
 
+# -- billing.ltv_updated --------------------------------------------------
+
+def reduce_ltv_updated(state: dict, event: Any) -> dict:
+    """Set ltv from payload."""
+    state = ensure_v2(state)
+    p = _payload(event)
+    state["ltv"] = p.get("ltv", 0)
+    return state
+
+
+# -- billing.discount_applied ---------------------------------------------
+
+def reduce_discount_applied(state: dict, event: Any) -> dict:
+    """Record when the most recent discount was applied.
+
+    Reads occurred_at from the event object first (set by the event store),
+    falling back to the payload for test fixtures that use SimpleNamespace.
+    """
+    state = ensure_v2(state)
+    occurred_at = getattr(event, "occurred_at", None)
+    if occurred_at is None:
+        occurred_at = _payload(event).get("occurred_at")
+    state["last_discount_at"] = occurred_at
+    return state
+
+
+# -- account.churn_risk_updated -------------------------------------------
+
+def reduce_churn_risk_updated(state: dict, event: Any) -> dict:
+    """Directly set churn_risk from payload {churn_risk: true|false}.
+
+    Allows agents and external systems to assert the risk level without
+    requiring three open incidents (the ticket-count heuristic).
+    """
+    state = ensure_v2(state)
+    p = _payload(event)
+    state["churn_risk"] = bool(p.get("churn_risk", False))
+    return state
+
+
 # -- account.schema_migrated ----------------------------------------------
 
 def reduce_schema_migrated(state: dict, event: Any) -> dict:

@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.routes.actions import router as actions_router
 from app.api.routes.events import router as events_router
+from app.api.routes.receipts import router as receipts_router
 from app.api.routes.state import router as state_router
 from app.api.routes.subscriptions import router as subscriptions_router
 from app.api.routes.deliveries import router as deliveries_router
@@ -26,7 +28,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(actions_router)
 app.include_router(events_router)
+app.include_router(receipts_router)
 app.include_router(state_router)
 app.include_router(subscriptions_router)
 app.include_router(deliveries_router)

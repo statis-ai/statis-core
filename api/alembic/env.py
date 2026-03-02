@@ -11,6 +11,10 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.db.base import Base
+from app.models import action_contract  # noqa: F401
+from app.models import execution_lock  # noqa: F401
+from app.models import policy_rule  # noqa: F401
+from app.models import receipt  # noqa: F401
 from app.models import event  # noqa: F401
 from app.models import entity_state  # noqa: F401
 from app.models import subscription  # noqa: F401
