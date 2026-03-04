@@ -1,5 +1,6 @@
 import { NavbarV2 } from "@/components/sections/NavbarV2";
 import { HeroV2 } from "@/components/hero/HeroV2";
+import { ProblemBridgeSection } from "@/components/sections/ProblemBridgeSection";
 import { BentoFeaturesSection } from "@/components/sections/BentoFeaturesSection";
 import { IntroducingStatisSection } from "@/components/sections/IntroducingStatisSection";
 import { BeforeAfterSection } from "@/components/sections/BeforeAfterSection";
@@ -16,11 +17,12 @@ export default function Home() {
       <main className="relative z-10 min-h-screen bg-gray-50">
         <HeroV2 />
         <BentoFeaturesSection />
+        <ProblemBridgeSection />
         <IntroducingStatisSection />
         <BeforeAfterSection />
         <UseCasesSection />
-        <MemoryVsRealitySection />
         <AIStackSection />
+        <MemoryVsRealitySection />
         <FAQSection />
         <FooterV2 />
       </main>
