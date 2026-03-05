@@ -5,9 +5,9 @@ import { AlertTriangle } from "lucide-react";
 
 function Incident({ text }: { text: string }) {
     return (
-        <div className="flex items-start gap-3">
-            <span className="mt-[7px] shrink-0 w-1.5 h-1.5 rounded-full bg-rose-500/80" />
-            <p className="text-sm sm:text-[15px] text-gray-600 leading-relaxed">{text}</p>
+        <div className="flex items-start gap-2.5">
+            <span className="mt-[6px] shrink-0 w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.5)]" />
+            <p className="text-sm text-gray-600 leading-snug">{text}</p>
         </div>
     );
 }
@@ -26,63 +26,63 @@ const WRITE_INCIDENTS = [
 
 export function BentoFeaturesSection() {
     return (
-        <section className="relative py-32 bg-gray-50 overflow-hidden border-t border-gray-100">
+        <section className="relative py-24 bg-gray-50/50 overflow-hidden border-t border-gray-100">
             {/* Ambient glows */}
-            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-rose-100/60 blur-[150px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-indigo-100/60 blur-[150px] rounded-full pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-rose-100/40 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/40 blur-[120px] rounded-full pointer-events-none" />
 
-            <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
                 {/* Section header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 15 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="max-w-3xl mx-auto mb-20 text-center"
+                    transition={{ duration: 0.5 }}
+                    className="max-w-2xl mx-auto mb-16 text-center"
                 >
-                    <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-rose-600 flex items-center justify-center gap-2">
-                        <AlertTriangle className="w-4 h-4" />
+                    <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-rose-500 flex items-center justify-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5" />
                         The Problem
                     </p>
-                    <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-[3.5rem] font-serif mb-6 leading-[1.1] text-gradient">
+                    <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-[2.75rem] font-serif mb-4 leading-[1.1] text-gradient">
                         Two ways autonomous systems
                         <br className="hidden sm:block" />
                         fail in production.
                     </h2>
-                    <p className="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto">
+                    <p className="text-base sm:text-lg text-gray-500 leading-relaxed mx-auto">
                         Demos work. Then agents hit real systems, real state, real consequences — and the cracks appear.
                     </p>
                 </motion.div>
 
                 {/* Problem cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
 
                     {/* Problem 01 — The Read Problem */}
                     <motion.div
-                        initial={{ opacity: 0, y: 24 }}
+                        initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.55, delay: 0.1 }}
-                        className="group flex flex-col p-8 sm:p-10 rounded-[2.5rem] bg-white border border-gray-100 hover:border-rose-200 transition-all duration-300 shadow-sm"
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                        className="group flex flex-col p-7 sm:p-8 rounded-[2rem] bg-white border border-gray-100 hover:border-gray-200 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
                     >
                         {/* Card header */}
-                        <div className="mb-8">
-                            <span className="inline-block text-[11px] font-mono font-semibold tracking-[0.22em] text-rose-500 uppercase mb-3">
+                        <div className="mb-6">
+                            <span className="inline-block text-[10px] font-mono font-semibold tracking-[0.2em] text-rose-400 uppercase mb-2.5">
                                 Problem 01
                             </span>
-                            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 font-serif mb-5">
+                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 font-serif mb-3">
                                 The Read Problem
                             </h3>
-                            <p className="text-gray-600 leading-relaxed">
+                            <p className="text-sm text-gray-500 leading-relaxed">
                                 Agents fragment state. Each one materializes its own version of reality from slightly different data, at slightly different times. One agent thinks a customer is at risk. Another doesn&rsquo;t. Both act — on different truths.
                             </p>
                         </div>
 
                         {/* Incident log */}
-                        <div className="flex-1 space-y-4 mb-8 p-5 rounded-2xl bg-rose-50 border border-rose-100">
-                            <p className="text-[11px] font-mono text-rose-400 uppercase tracking-widest mb-5">
-                                — incident log
+                        <div className="flex-1 space-y-3 mb-6 p-4 rounded-xl bg-gray-50/80 border border-gray-100">
+                            <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-3.5 flex items-center gap-2">
+                                <span className="w-2 h-[1px] bg-gray-300" /> incident log
                             </p>
                             {READ_INCIDENTS.map((text) => (
                                 <Incident key={text} text={text} />
@@ -90,37 +90,37 @@ export function BentoFeaturesSection() {
                         </div>
 
                         {/* Closing statement */}
-                        <p className="text-base sm:text-lg font-serif text-gray-900 leading-snug">
+                        <p className="text-sm sm:text-base font-serif text-gray-900 leading-snug">
                             Today&rsquo;s AI systems coordinate messages.{" "}
-                            <span className="text-rose-500">They don&rsquo;t coordinate state.</span>
+                            <span className="text-rose-500 italic font-medium">They don&rsquo;t coordinate state.</span>
                         </p>
                     </motion.div>
 
                     {/* Problem 02 — The Write Problem */}
                     <motion.div
-                        initial={{ opacity: 0, y: 24 }}
+                        initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.55, delay: 0.2 }}
-                        className="group flex flex-col p-8 sm:p-10 rounded-[2.5rem] bg-white border border-gray-100 hover:border-rose-200 transition-all duration-300 shadow-sm"
+                        transition={{ duration: 0.5, delay: 0.2 }}
+                        className="group flex flex-col p-7 sm:p-8 rounded-[2rem] bg-white border border-gray-100 hover:border-gray-200 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
                     >
                         {/* Card header */}
-                        <div className="mb-8">
-                            <span className="inline-block text-[11px] font-mono font-semibold tracking-[0.22em] text-rose-500 uppercase mb-3">
+                        <div className="mb-6">
+                            <span className="inline-block text-[10px] font-mono font-semibold tracking-[0.2em] text-rose-400 uppercase mb-2.5">
                                 Problem 02
                             </span>
-                            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 font-serif mb-5">
+                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 font-serif mb-3">
                                 The Write Problem
                             </h3>
-                            <p className="text-gray-600 leading-relaxed">
+                            <p className="text-sm text-gray-500 leading-relaxed">
                                 Now agents act. They call Stripe. They update Salesforce. They send emails. Once state is shared and agents agree on what&rsquo;s true — what stops them from acting on it without oversight, twice, or forever?
                             </p>
                         </div>
 
                         {/* Incident log */}
-                        <div className="flex-1 space-y-4 mb-8 p-5 rounded-2xl bg-rose-50 border border-rose-100">
-                            <p className="text-[11px] font-mono text-rose-400 uppercase tracking-widest mb-5">
-                                — incident log
+                        <div className="flex-1 space-y-3 mb-6 p-4 rounded-xl bg-gray-50/80 border border-gray-100">
+                            <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-3.5 flex items-center gap-2">
+                                <span className="w-2 h-[1px] bg-gray-300" /> incident log
                             </p>
                             {WRITE_INCIDENTS.map((text) => (
                                 <Incident key={text} text={text} />
@@ -128,9 +128,9 @@ export function BentoFeaturesSection() {
                         </div>
 
                         {/* Closing statement */}
-                        <p className="text-base sm:text-lg font-serif text-gray-900 leading-snug">
+                        <p className="text-sm sm:text-base font-serif text-gray-900 leading-snug">
                             Shared state tells agents what&rsquo;s true.{" "}
-                            <span className="text-rose-500">It doesn&rsquo;t govern what they can do about it.</span>
+                            <span className="text-rose-500 italic font-medium">It doesn&rsquo;t govern what they can do about it.</span>
                         </p>
                     </motion.div>
 

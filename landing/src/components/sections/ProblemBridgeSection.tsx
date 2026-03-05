@@ -1,40 +1,21 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
-
-const STATEMENTS = [
-    {
-        word: "Agents act.",
-        sub: "On stale data, at different times, with different truths.",
-    },
-    {
-        word: "Actions fire twice.",
-        sub: "Retry logic. Race conditions. No one notices until Stripe does.",
-    },
-    {
-        word: "Auditors ask why.",
-        sub: "You have logs. Logs are reconstructed. That's not proof.",
-    },
-    {
-        word: "Statis.",
-        sub: "Shared state in. Governed, receipted action out.",
-        isFinal: true,
-    },
-];
+import { motion, useScroll, useTransform } from "framer-motion";
 
 function StaticFallback() {
     return (
         <section className="py-24 bg-white border-t border-gray-100">
-            <div className="mx-auto max-w-4xl px-6 text-center space-y-16">
-                {STATEMENTS.map((s, i) => (
-                    <div key={i}>
-                        <p className={`text-4xl font-extrabold tracking-tight font-serif ${s.isFinal ? "text-indigo-600" : "text-gray-900"}`}>
-                            {s.word}
-                        </p>
-                        <p className="mt-3 text-gray-500">{s.sub}</p>
-                    </div>
-                ))}
+            <div className="mx-auto max-w-5xl px-6 text-center space-y-6">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-gray-400 font-medium">
+                    You wouldn&rsquo;t deploy code without CI/CD.
+                </h2>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-gray-900 font-bold leading-tight">
+                    You shouldn&rsquo;t deploy agents without{" "}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500 text-[1.2em]">
+                        Statis.
+                    </span>
+                </h2>
             </div>
         </section>
     );
@@ -42,7 +23,6 @@ function StaticFallback() {
 
 export function ProblemBridgeSection() {
     const sectionRef = useRef<HTMLElement>(null);
-    const [activeIndex, setActiveIndex] = useState(0);
     const [reduced, setReduced] = useState(false);
 
     useEffect(() => {
@@ -58,70 +38,50 @@ export function ProblemBridgeSection() {
         offset: ["start start", "end end"],
     });
 
-    useMotionValueEvent(scrollYProgress, "change", (v) => {
-        setActiveIndex(Math.min(STATEMENTS.length - 1, Math.floor(v * STATEMENTS.length)));
-    });
+    // Zoom In effect: starts very small (scale 0.5) and grows to scale 1
+    const scale = useTransform(scrollYProgress, [0, 0.8], [0.5, 1]);
+
+    // Opacity fades in as it grows
+    const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [0.1, 1, 1]);
+
+    // Blur effect clears up
+    const filter = useTransform(scrollYProgress, [0, 0.6], ["blur(12px)", "blur(0px)"]);
 
     if (reduced) return <StaticFallback />;
-
-    const current = STATEMENTS[activeIndex];
 
     return (
         <section
             ref={sectionRef}
             className="relative bg-white border-t border-gray-100"
-            style={{ height: `${STATEMENTS.length * 80}vh` }}
+            style={{ height: "200vh" }} // Provides plenty of scroll distance for the zoom
         >
-            <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden">
-                {/* Subtle ambient gradient that shifts with each statement */}
+            <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
+
+                {/* Subtle ambient glow in the background */}
                 <motion.div
                     className="absolute inset-0 pointer-events-none"
-                    animate={{
-                        background: current.isFinal
-                            ? "radial-gradient(ellipse at 50% 60%, rgba(99,102,241,0.06) 0%, transparent 65%)"
-                            : "radial-gradient(ellipse at 50% 50%, rgba(0,0,0,0.02) 0%, transparent 65%)",
+                    style={{
+                        background: "radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.08) 0%, transparent 60%)",
+                        opacity: useTransform(scrollYProgress, [0, 1], [0.4, 1])
                     }}
-                    transition={{ duration: 0.9, ease: "easeInOut" }}
                 />
 
-                <div className="relative z-10 mx-auto max-w-4xl px-6 text-center">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={activeIndex}
-                            initial={{ opacity: 0, filter: "blur(10px)", y: 28 }}
-                            animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
-                            exit={{ opacity: 0, filter: "blur(10px)", y: -28 }}
-                            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-                        >
-                            <h2
-                                className={`text-[clamp(3rem,9vw,7.5rem)] font-extrabold leading-none tracking-tight font-serif ${
-                                    current.isFinal
-                                        ? "text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500"
-                                        : "text-gray-900"
-                                }`}
-                            >
-                                {current.word}
-                            </h2>
-                            <p className={`mt-5 text-lg md:text-xl leading-relaxed ${current.isFinal ? "text-indigo-500" : "text-gray-400"}`}>
-                                {current.sub}
-                            </p>
-                        </motion.div>
-                    </AnimatePresence>
+                <motion.div
+                    style={{ scale, opacity, filter }}
+                    className="relative z-10 w-full max-w-6xl px-4 text-center flex flex-col items-center justify-center space-y-4 md:space-y-6"
+                >
+                    <h2 className="text-[clamp(1.2rem,2.5vw,2.5rem)] font-serif text-gray-400 font-medium leading-tight tracking-tight drop-shadow-sm">
+                        You wouldn&rsquo;t deploy code without CI/CD.
+                    </h2>
 
-                    {/* Progress dots */}
-                    <div className="mt-14 flex items-center justify-center gap-2">
-                        {STATEMENTS.map((_, i) => (
-                            <div
-                                key={i}
-                                className={`h-1.5 rounded-full transition-all duration-500 ${
-                                    i === activeIndex
-                                        ? "w-8 bg-indigo-500"
-                                        : "w-1.5 bg-gray-200"
-                                }`}
-                            />
-                        ))}
-                    </div>
-                </div>
+                    <h2 className="text-[clamp(1.8rem,4.5vw,4.5rem)] font-serif text-gray-900 font-extrabold leading-[1.1] tracking-tight">
+                        You shouldn&rsquo;t deploy agents without<br className="hidden sm:block" />{" "}
+                        <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-violet-600 drop-shadow-sm text-[1.5em] tracking-tighter mix-blend-multiply">
+                            Statis.
+                        </span>
+                    </h2>
+                </motion.div>
+
             </div>
         </section>
     );
