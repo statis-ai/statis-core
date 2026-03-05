@@ -24,48 +24,53 @@ export function HeroV2() {
                     transition={{ duration: 0.7 }}
                     className="mx-auto max-w-4xl text-center"
                 >
-                    {/* Eyebrow */}
-                    <motion.p
+                    {/* Badge */}
+                    <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.1 }}
-                        className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-brand-accent"
+                        className="mb-6 inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5"
                     >
-                        The Decision Layer for Autonomous Systems
-                    </motion.p>
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
+                            Agent Execution Infrastructure
+                        </span>
+                    </motion.div>
 
                     {/* Headline */}
                     <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08] font-serif">
-                        AI agents shouldn&rsquo;t invent
+                        Agents that read the truth.
                         <br />
-                        <span className="text-gradient">their own version of the truth.</span>
+                        <span className="text-gradient">Act on it safely.</span>
                     </h1>
 
                     {/* Sub-headline */}
                     <p className="mx-auto mt-7 max-w-2xl text-lg text-gray-500 md:text-xl leading-relaxed">
-                        As systems become autonomous and cross workflows, fragmented state becomes
-                        fragmented execution. Statis materializes a single, authoritative state — so
-                        every agent acts from the same decision surface, instantly.
+                        Statis is the execution layer between AI agents and production systems.
+                        Shared state in. Governed, receipted action out.
                     </p>
 
-                    {/* Punch lines */}
+                    {/* Pill chain */}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.6, duration: 0.7 }}
-                        className="mt-10 flex flex-wrap items-center justify-center gap-y-3 gap-x-4 md:gap-x-6 text-lg md:text-xl font-serif font-bold tracking-tight cursor-default select-none"
+                        className="mt-10 flex flex-wrap items-center justify-center gap-2 text-sm font-medium cursor-default select-none"
                     >
-                        <span className="bg-gradient-to-r from-indigo-600 to-violet-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
-                            No contradictions
-                        </span>
-                        <span className="text-violet-200 text-sm hidden sm:inline-block animate-pulse">✦</span>
-                        <span className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
-                            No silent drift
-                        </span>
-                        <span className="text-fuchsia-200 text-sm hidden sm:inline-block animate-pulse" style={{ animationDelay: '500ms' }}>✦</span>
-                        <span className="bg-gradient-to-r from-fuchsia-500 to-rose-500 bg-clip-text text-transparent hover:scale-105 transition-transform duration-300">
-                            No automation surprises
-                        </span>
+                        {[
+                            "Shared State",
+                            "Policy Evaluation",
+                            "Exactly-Once Execution",
+                            "Tamper-Evident Receipt",
+                        ].map((label, i, arr) => (
+                            <span key={label} className="flex items-center gap-2">
+                                <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-1 text-indigo-700">
+                                    {label}
+                                </span>
+                                {i < arr.length - 1 && (
+                                    <span className="text-gray-300 font-light">→</span>
+                                )}
+                            </span>
+                        ))}
                     </motion.div>
 
                     {/* CTAs */}

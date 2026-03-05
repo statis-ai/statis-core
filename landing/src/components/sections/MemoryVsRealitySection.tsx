@@ -1,119 +1,130 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BrainCircuit, Globe2 } from "lucide-react";
-import Image from "next/image";
+import { GitCompare } from "lucide-react";
+
+const NOT_CARDS = [
+    {
+        label: "Not Orchestration",
+        body: "LangGraph, AutoGen, CrewAI handle how agents reason and sequence. Statis governs when they act.",
+    },
+    {
+        label: "Not Observability",
+        body: "Langfuse, Arize tell you what happened. Statis creates tamper-evident proof of what was approved and why.",
+    },
+    {
+        label: "Not a Workflow Engine",
+        body: "Temporal, Inngest manage long-running workflows. Statis governs individual agent actions with write-access to production.",
+    },
+    {
+        label: "Not Authorization",
+        body: "Permit.io, OPA handle who can do what. Statis adds: under what conditions, with what receipts, and exactly once.",
+    },
+];
+
+const COMPARISONS = [
+    {
+        left: { label: "Memory", desc: "Vector DBs help agents remember." },
+        right: { label: "Reality", desc: "Statis helps agents agree." },
+        detail: "When an agent needs context, use RAG. When it needs to know what's true right now — it needs shared reality.",
+    },
+    {
+        left: { label: "Logs", desc: "Observability tells you what happened." },
+        right: { label: "Receipts", desc: "Statis proves it." },
+        detail: "Logs are reconstructed. Receipts are cryptographically signed at the moment of execution, with the rule version that approved it.",
+    },
+    {
+        left: { label: "Human-in-loop", desc: "LangSmith can pause for human approval." },
+        right: { label: "Policy", desc: "Statis adds a deterministic policy engine." },
+        detail: "Rules that evaluate entity state, version-controlled, auditable, with no ML involved.",
+    },
+];
 
 export function MemoryVsRealitySection() {
     return (
-        <section className="relative py-24 sm:py-32 bg-white overflow-hidden">
-            <div className="mx-auto max-w-5xl px-6 lg:px-8 relative z-10">
+        <section className="relative py-32 bg-gray-50 overflow-hidden border-t border-gray-100">
+            {/* Ambient glows */}
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-100/50 blur-[140px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-rose-100/30 blur-[140px] rounded-full pointer-events-none" />
 
+            <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+
+                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "-80px" }}
+                    viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="text-center mb-16"
+                    className="max-w-3xl mx-auto mb-20 text-center"
                 >
-                    <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-accent mb-4">
-                        The distinction
+                    <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-violet-600 flex items-center justify-center gap-2">
+                        <GitCompare className="w-4 h-4" />
+                        The Distinction
+                    </p>
+                    <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-[3.5rem] font-serif mb-6 leading-[1.1] text-gradient">
+                        What Statis is not.
                     </h2>
-                    <h3 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl md:text-6xl font-serif">
-                        Memory Is <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-rose-400">Not Reality</span>
-                    </h3>
-                    <p className="mx-auto mt-6 max-w-2xl text-[19px] leading-8 text-slate-500">
-                        Vector databases help agents <span className="font-semibold text-slate-800">remember</span>.
-                        <br />
-                        Statis helps agents <span className="font-semibold text-indigo-600">agree</span>.
+                    <p className="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto">
+                        Precision matters. The agent infrastructure category is being defined now. Here&rsquo;s where Statis ends and others begin.
                     </p>
                 </motion.div>
 
-                {/* The Comparison Cards - Glowing & Floating */}
-                <div className="relative mt-14 grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-12 max-w-4xl mx-auto">
+                {/* "Not X" cards grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-20">
+                    {NOT_CARDS.map((card, i) => (
+                        <motion.div
+                            key={card.label}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: i * 0.07 }}
+                            className="flex gap-4 p-6 sm:p-7 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 shadow-sm transition-all duration-300"
+                        >
+                            <div className="shrink-0 w-1.5 h-1.5 rounded-full bg-rose-500/60 mt-2" />
+                            <div>
+                                <h3 className="font-bold text-gray-900 mb-2">{card.label}</h3>
+                                <p className="text-gray-500 text-sm leading-relaxed">{card.body}</p>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
 
-                    {/* Background glow tying them together */}
-                    <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-r from-slate-200/50 via-indigo-100/50 to-violet-200/50 blur-3xl -z-10 rounded-[100%]" />
-
-                    {/* Card 1: Memory (Status Quo) */}
-                    <motion.div
-                        initial={{ opacity: 0, x: -30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.15, duration: 0.6, type: "spring", stiffness: 100 }}
-                        className="group relative rounded-[2rem] bg-white border border-slate-200 p-8 sm:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-500 overflow-hidden"
-                    >
-                        {/* Decorative background element */}
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-slate-100 rounded-bl-[100%] transition-transform duration-500 group-hover:scale-110 -z-10 opacity-50" />
-
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-center mb-6">
-                            <BrainCircuit className="w-6 h-6 text-slate-500" strokeWidth={1.5} />
-                        </div>
-
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
-                            When an agent needs context
-                        </p>
-                        <h4 className="text-xl font-bold text-slate-900 mb-4">
-                            Look to the Past
-                        </h4>
-                        <p className="text-slate-500 leading-relaxed group-hover:text-slate-700 transition-colors">
-                            Use RAG, embeddings, and vector search to retrieve relevant documents and historical data.
-                        </p>
-
-                        <div className="mt-8 pt-6 border-t border-slate-100 flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-slate-300" />
-                            <span className="text-[13px] font-medium text-slate-400">Vector Database</span>
-                        </div>
-                    </motion.div>
-
-                    {/* Card 2: Reality (Statis) */}
-                    <motion.div
-                        initial={{ opacity: 0, x: 30 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: 0.3, duration: 0.6, type: "spring", stiffness: 100 }}
-                        className="group relative rounded-[2rem] bg-white border border-indigo-100 p-8 sm:p-10 shadow-[0_8px_30px_rgb(79,70,229,0.08)] hover:shadow-[0_20px_40px_rgb(79,70,229,0.15)] hover:border-indigo-200 hover:-translate-y-1 transition-all duration-500 overflow-hidden"
-                    >
-                        {/* Decorative background element */}
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-indigo-500/10 to-transparent rounded-bl-[100%] transition-transform duration-700 group-hover:scale-125 -z-10" />
-
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-6 shadow-inner relative">
-                            {/* Inner glow ping */}
-                            <div className="absolute inset-0 rounded-2xl bg-indigo-400 opacity-20 group-hover:animate-ping" style={{ animationDuration: '2s' }} />
-                            <Globe2 className="w-6 h-6 text-indigo-600 relative z-10" strokeWidth={1.5} />
-                        </div>
-
-                        <p className="text-[11px] sm:text-xs font-bold uppercase tracking-widest text-indigo-400 mb-3 leading-snug">
-                            When an agent needs to know what&rsquo;s true right now
-                        </p>
-                        <h4 className="text-xl font-bold text-slate-900 mb-4 tracking-tight">
-                            Read Shared Reality
-                        </h4>
-                        <p className="text-slate-600 leading-relaxed font-medium">
-                            It needs a deterministic, universally agreed-upon state. It needs shared reality.
-                        </p>
-
-                        <div className="mt-8 pt-6 border-t border-indigo-50 flex items-center justify-between">
-                            <span className="text-[13px] font-medium text-slate-500">The Solution</span>
-                            <div className="relative inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-1.5 shadow-[0_4px_14px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.6)] hover:scale-105 transition-all cursor-pointer">
-
-                                {/* Statis Logo */}
-                                <div className="bg-white rounded-full p-0.5 flex items-center justify-center shadow-sm relative z-10 w-5 h-5 overflow-hidden border border-indigo-200">
-                                    <Image
-                                        src="/new-statis-logo.png"
-                                        alt="Statis logo"
-                                        width={16}
-                                        height={16}
-                                        className="object-cover"
-                                    />
+                {/* Comparison pairs */}
+                <div className="space-y-5">
+                    {COMPARISONS.map((comp, i) => (
+                        <motion.div
+                            key={comp.left.label}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: i * 0.08 }}
+                            className="p-6 sm:p-8 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 shadow-sm transition-all duration-300"
+                        >
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-4">
+                                {/* Left */}
+                                <div className="flex-1 text-center sm:text-right">
+                                    <p className="text-gray-400 text-xs font-mono uppercase tracking-widest mb-1">{comp.left.label}</p>
+                                    <p className="text-gray-500 text-sm">{comp.left.desc}</p>
                                 </div>
 
-                                <span className="text-[14px] font-bold text-white tracking-wide pr-1">Statis</span>
-                            </div>
-                        </div>
-                    </motion.div>
+                                {/* vs */}
+                                <div className="shrink-0 flex items-center justify-center">
+                                    <span className="text-gray-400 text-xs font-mono uppercase tracking-widest px-3 py-1 border border-gray-200 rounded-full">vs</span>
+                                </div>
 
+                                {/* Right */}
+                                <div className="flex-1 text-center sm:text-left">
+                                    <p className="text-indigo-600 text-xs font-mono uppercase tracking-widest mb-1">{comp.right.label}</p>
+                                    <p className="text-gray-900 font-semibold text-sm">{comp.right.desc}</p>
+                                </div>
+                            </div>
+                            <p className="text-gray-500 text-sm leading-relaxed text-center border-t border-gray-100 pt-4">
+                                {comp.detail}
+                            </p>
+                        </motion.div>
+                    ))}
                 </div>
+
             </div>
         </section>
     );
