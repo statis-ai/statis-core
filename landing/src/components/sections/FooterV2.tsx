@@ -10,7 +10,7 @@ export function FooterV2() {
                     <div className="space-y-4 max-w-sm">
                         <Link href="/" className="flex items-center gap-2.5">
                             <Image
-                                src="/new-statis-logo.png"
+                                src="/logomark-light.png"
                                 alt="Statis"
                                 width={32}
                                 height={32}
