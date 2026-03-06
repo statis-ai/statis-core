@@ -2,15 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Code2, Users, Hexagon, Activity, LogOut } from "lucide-react";
+import { Search, Code2, Activity, LogOut, Hexagon } from "lucide-react";
 import EntityLookup from "@/components/entity-lookup";
 import StateTab from "@/components/tabs/state-tab";
 import TimelineTab from "@/components/tabs/timeline-tab";
 import DiffTab from "@/components/tabs/diff-tab";
 import DeliveriesTab from "@/components/tabs/deliveries-tab";
+import ActionsTab from "@/components/tabs/actions-tab";
+import ReceiptTab from "@/components/tabs/receipt-tab";
 import DevelopersTab from "@/components/tabs/developers-tab";
 
-const INSPECTOR_TABS = ["State", "Timeline", "Diff", "Deliveries"] as const;
+const INSPECTOR_TABS = ["State", "Timeline", "Diff", "Deliveries", "Actions", "Receipt"] as const;
 type InspectorTab = (typeof INSPECTOR_TABS)[number];
 
 const NAV_ITEMS = [
@@ -25,13 +27,13 @@ export default function ConsoleLayout() {
   const [activeNav, setActiveNav] = useState<NavItem>("inspector");
   const [isApiHealthy, setIsApiHealthy] = useState(true);
 
-  // Inspector State
+  // Inspector state
   const [entity, setEntity] = useState<{ type: string; id: string } | null>(null);
   const [activeTab, setActiveTab] = useState<InspectorTab>("State");
   const [loading, setLoading] = useState(false);
+  const [selectedActionId, setSelectedActionId] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check auth and health silently
     const key = localStorage.getItem("statis_api_key");
     if (!key) {
       router.push("/signup");
@@ -46,7 +48,13 @@ export default function ConsoleLayout() {
     setLoading(true);
     setEntity({ type: entityType, id: entityId });
     setActiveTab("State");
+    setSelectedActionId(null);
     setTimeout(() => setLoading(false), 100);
+  }
+
+  function handleSelectAction(actionId: string) {
+    setSelectedActionId(actionId);
+    setActiveTab("Receipt");
   }
 
   function handleLogout() {
@@ -119,7 +127,7 @@ export default function ConsoleLayout() {
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <header className="mb-8">
                 <h1 className="text-2xl font-bold text-white tracking-tight">Account Inspector</h1>
-                <p className="mt-1 text-sm text-brand-muted">Debug any entity's state, timeline, and webhook deliveries seamlessly.</p>
+                <p className="mt-1 text-sm text-brand-muted">Inspect entity state, events, webhook deliveries, and action receipts.</p>
               </header>
 
               <section className="mb-8 relative z-20">
@@ -129,27 +137,55 @@ export default function ConsoleLayout() {
               {entity ? (
                 <div className="bg-brand-surface/30 border border-brand-border rounded-xl overflow-hidden backdrop-blur-xl shadow-2xl">
                   {/* Tab bar */}
-                  <div className="flex border-b border-brand-border bg-black/20">
+                  <div className="flex border-b border-brand-border bg-black/20 overflow-x-auto">
                     {INSPECTOR_TABS.map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveTab(tab)}
-                        className={`px-5 py-3 text-sm font-medium transition-all border-b-2 -mb-px ${activeTab === tab
+                        className={`px-5 py-3 text-sm font-medium transition-all border-b-2 -mb-px whitespace-nowrap ${activeTab === tab
                             ? "border-brand-accent text-brand-accent bg-brand-accent/5"
                             : "border-transparent text-brand-muted hover:text-white hover:bg-white/5"
                           }`}
                       >
                         {tab}
+                        {tab === "Receipt" && selectedActionId && (
+                          <span className="ml-1.5 text-[10px] text-brand-accent">●</span>
+                        )}
                       </button>
                     ))}
                   </div>
 
                   {/* Tab content */}
                   <div className="p-0">
-                    {activeTab === "State" && <StateTab entityType={entity.type} entityId={entity.id} />}
-                    {activeTab === "Timeline" && <TimelineTab entityType={entity.type} entityId={entity.id} />}
-                    {activeTab === "Diff" && <DiffTab entityType={entity.type} entityId={entity.id} />}
-                    {activeTab === "Deliveries" && <DeliveriesTab entityType={entity.type} entityId={entity.id} />}
+                    {activeTab === "State" && (
+                      <div className="p-6">
+                        <StateTab entityType={entity.type} entityId={entity.id} />
+                      </div>
+                    )}
+                    {activeTab === "Timeline" && (
+                      <div className="p-6">
+                        <TimelineTab entityType={entity.type} entityId={entity.id} />
+                      </div>
+                    )}
+                    {activeTab === "Diff" && (
+                      <div className="p-6">
+                        <DiffTab entityType={entity.type} entityId={entity.id} />
+                      </div>
+                    )}
+                    {activeTab === "Deliveries" && (
+                      <DeliveriesTab entityType={entity.type} entityId={entity.id} />
+                    )}
+                    {activeTab === "Actions" && (
+                      <ActionsTab
+                        entityType={entity.type}
+                        entityId={entity.id}
+                        selectedActionId={selectedActionId}
+                        onSelectAction={handleSelectAction}
+                      />
+                    )}
+                    {activeTab === "Receipt" && (
+                      <ReceiptTab actionId={selectedActionId} />
+                    )}
                   </div>
                 </div>
               ) : (
