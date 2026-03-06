@@ -22,7 +22,7 @@ Agent execution infrastructure. The layer between AI agents and production syste
 
 ## Backend — `api/`
 
-### Status: ✅ Complete (Milestones 1–6, 8–9)
+### Status: ✅ Complete (Milestones 1–6, 8–9 + Console API)
 
 | Feature | Status | Key Files |
 |---|---|---|
@@ -33,12 +33,15 @@ Agent execution infrastructure. The layer between AI agents and production syste
 | Multi-tenancy + RBAC-lite (role filtering + state field redaction) | ✅ | `api/app/rbac.py` |
 | Poison-pill quarantine (3 failures → quarantine entity) | ✅ | `api/app/models/quarantine.py` |
 | Action Contract (P1) | ✅ | `api/app/models/action_contract.py`, `POST /actions` |
+| List actions by entity (`GET /actions?entity_type=&entity_id=`) | ✅ | `api/app/api/routes/actions.py` |
 | Policy Engine (P2) | ✅ | `api/app/policy/evaluator.py`, `POST /actions/{id}/evaluate` |
+| Conditions evaluated stored on receipt | ✅ | `receipts.conditions_evaluated` JSONB |
+| Entity state snapshot stored on receipt | ✅ | `receipts.entity_state_snapshot` JSONB |
 | Execution Guarantee (P3) | ✅ | `api/app/models/execution_lock.py`, `worker/execute.py` |
 | Ledger / Receipt (P4) | ✅ | `api/app/models/receipt.py`, `GET /receipts/{action_id}` |
 
-### DB Schema (12 migrations)
-`events`, `entity_state`, `subscriptions`, `deliveries`, `api_keys`, `quarantine`, `action_contracts`, `policy_rules`, `receipts`, `execution_locks`
+### DB Schema (13 migrations)
+`events`, `entity_state`, `subscriptions`, `deliveries`, `api_keys`, `quarantine`, `action_contracts`, `policy_rules`, `receipts` (+ `conditions_evaluated`, `entity_state_snapshot`), `execution_locks`
 
 ### Tests
 - **112 unit tests** (`api/tests/unit/`)
@@ -64,14 +67,21 @@ Agent execution infrastructure. The layer between AI agents and production syste
 
 ## Console UI — `console/`
 
-### Status: ✅ Complete
+### Status: ✅ Complete (7 tabs)
 
-Next.js 15 Account Inspector with 5 tabs:
-- **State** — current materialized entity state
-- **Timeline** — event log
-- **Diff** — state changes between revisions
-- **Deliveries** — webhook delivery status
-- **Developers** — API keys, subscriptions
+Next.js 15 Account Inspector:
+
+| Tab | Description |
+|---|---|
+| **State** | Current materialized entity state + provenance |
+| **Timeline** | Full event log, expandable payload per event |
+| **Diff** | State changes between revisions |
+| **Deliveries** | Webhook delivery status, attempts, errors |
+| **Actions** | All action contracts for entity — status lifecycle, clickable rows |
+| **Receipt** | Selected action's tamper-evident receipt — decision, rule, conditions evaluated with pass/fail, entity state snapshot, execution result, SHA-256 hash with copy button |
+| **Developers** | API keys, subscriptions |
+
+**Flow:** Actions tab → click a row → auto-navigates to Receipt tab (dot indicator shows active selection)
 
 ---
 
@@ -89,7 +99,7 @@ Next.js 15 Account Inspector with 5 tabs:
 | Hero | `HeroV2` | Particle network BG, badge, H1 with gradient span, pill chain, CTAs |
 | The Problem | `BentoFeaturesSection` | Two-card grid: Read Problem + Write Problem with incident logs |
 | Bridge | `ProblemBridgeSection` | Kinetic zoom animation: "You wouldn't deploy code without CI/CD. You shouldn't deploy agents without Statis." |
-| The Solution | `IntroducingStatisSection` | 5-step bento grid (dark bg) — State → Propose → Evaluate → Execute → Receipt |
+| The Solution | `IntroducingStatisSection` | 5-step bento grid — State → Propose → Evaluate → Execute → Receipt |
 | Core Primitives | `BeforeAfterSection` | 2×2 grid of P1–P4 with pastel cards and code detail blocks |
 | Demo Scenario | `UseCasesSection` | Split layout: entity state + rule panels (light) + dark terminal |
 | Architecture | `AIStackSection` | 3-row stack: Agents ↕ Statis (highlighted) ↕ Production |
@@ -97,14 +107,7 @@ Next.js 15 Account Inspector with 5 tabs:
 | FAQ + CTA | `FAQSection` | Animated accordion FAQ (light) + dark CTA block |
 | Footer | `FooterV2` | Logo, tagline, GitHub link |
 
-**Theme:**
-- White/gray-50 backgrounds throughout
-- `text-gradient` utility: `indigo-600 → violet-600` applied to all H2 section headers
-- Accent labels at `-600` saturation for light bg contrast
-- Terminal in Demo section kept dark (intentional)
-- CTA block at bottom kept dark (intentional contrast)
-
-**Public assets:** `landing/public/` — logomark variants, og-banner, twitter-card, favicons, brand-sheet, hero-visual
+**Theme:** White/gray-50 backgrounds, `text-gradient` (indigo-600 → violet-600) on all H2 headers
 
 ---
 
@@ -136,7 +139,7 @@ Next.js 15 Account Inspector with 5 tabs:
 
 | Branch | Status | Notes |
 |---|---|---|
-| `main` | Stable | Backend + 4 primitives + Console UI |
+| `main` | Stable | Backend + 4 primitives + Console UI (7 tabs) |
 | `feature/landing-light-theme-redesign` | Active | Full landing page redesign |
 
 ---
@@ -146,7 +149,6 @@ Next.js 15 Account Inspector with 5 tabs:
 - [ ] Real adapter integrations (Salesforce, Zendesk, HubSpot)
 - [ ] VPC / self-hosted deployment option
 - [ ] SDK (Python, TypeScript) for agent integration
-- [ ] Console: Action Contract viewer + Receipt viewer tabs
 - [ ] Escalation flow (ESCALATED → human approval → resume)
 - [ ] Multi-policy support (multiple rules per action type)
 - [ ] Landing: Blog section

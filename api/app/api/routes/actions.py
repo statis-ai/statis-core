@@ -1,7 +1,8 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -46,6 +47,27 @@ def propose_action(
             detail=f"Action '{action_in.action_id}' already exists",
         )
     return ActionAccepted(action_id=contract.action_id, status=ActionStatus.PROPOSED)
+
+
+@router.get("/actions", response_model=list[ActionOut])
+def list_actions(
+    entity_type: str = Query(...),
+    entity_id: str = Query(...),
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> list[ActionOut]:
+    """List all action contracts targeting a specific entity."""
+    contracts = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.tenant_id == auth.tenant_id,
+            ActionContract.target_entity["entity_type"].as_string() == entity_type,
+            ActionContract.target_entity["entity_id"].as_string() == entity_id,
+        )
+        .order_by(ActionContract.created_at.desc())
+        .all()
+    )
+    return [ActionOut.model_validate(c) for c in contracts]
 
 
 @router.get("/actions/{action_id}", response_model=ActionOut)
@@ -140,7 +162,45 @@ def evaluate_action(
         rules=rule_specs,
     )
 
-    # 5. Build receipt — generate id + timestamp in Python so they can be hashed
+    # 5. Compute per-condition evaluation trace for the matched rule
+    conditions_evaluated: dict[str, Any] | None = None
+    if decision.rule_id is not None:
+        matched_rule = next((r for r in db_rules if r.rule_id == decision.rule_id), None)
+        if matched_rule:
+            evaluator = PolicyEvaluator()
+            conditions_evaluated = {}
+            for key, expected in matched_rule.conditions.items():
+                passed = evaluator._check(key, expected, entity_state, [])
+                if key == "churn_risk":
+                    conditions_evaluated[key] = {
+                        "label": "Churn Risk",
+                        "expected": expected,
+                        "actual": entity_state.get("churn_risk"),
+                        "passed": passed,
+                    }
+                elif key == "min_ltv":
+                    conditions_evaluated[key] = {
+                        "label": f"LTV ≥ {expected}",
+                        "threshold": expected,
+                        "actual": entity_state.get("ltv"),
+                        "passed": passed,
+                    }
+                elif key == "no_discount_days":
+                    last_discount = entity_state.get("last_discount_at")
+                    conditions_evaluated[key] = {
+                        "label": f"No discount in {expected} days",
+                        "days": expected,
+                        "actual_last_discount": str(last_discount) if last_discount else None,
+                        "passed": passed,
+                    }
+                else:
+                    conditions_evaluated[key] = {
+                        "label": key,
+                        "expected": expected,
+                        "passed": passed,
+                    }
+
+    # 6. Build receipt — generate id + timestamp in Python so they can be hashed
     receipt_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc)
     receipt_canonical = {
@@ -166,10 +226,12 @@ def evaluate_action(
         executed_at=None,
         execution_result=None,
         hash=receipt_hash,
+        conditions_evaluated=conditions_evaluated,
+        entity_state_snapshot=dict(entity_state),
         created_at=created_at,
     )
 
-    # 6. Persist receipt + status update atomically in one transaction
+    # 7. Persist receipt + status update atomically in one transaction
     contract.status = decision.decision
     contract.updated_at = datetime.now(timezone.utc)
     db.add(receipt)

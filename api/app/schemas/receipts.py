@@ -16,4 +16,6 @@ class ReceiptOut(BaseModel):
     executed_at: Optional[datetime]
     execution_result: Optional[dict[str, Any]]
     hash: str
+    conditions_evaluated: Optional[dict[str, Any]]
+    entity_state_snapshot: Optional[dict[str, Any]]
     created_at: datetime

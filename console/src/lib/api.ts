@@ -39,6 +39,44 @@ export interface DeliveryRecord {
   created_at: string;
 }
 
+export interface ActionContract {
+  action_id: string;
+  proposed_by: string;
+  action_type: string;
+  target_entity: Record<string, string>;
+  target_system: string;
+  parameters: Record<string, unknown>;
+  context: Record<string, unknown>;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConditionResult {
+  label: string;
+  passed: boolean;
+  expected?: unknown;
+  actual?: unknown;
+  threshold?: number;
+  days?: number;
+  actual_last_discount?: string | null;
+}
+
+export interface ReceiptDetail {
+  receipt_id: string;
+  action_id: string;
+  decision: string;
+  rule_id: string | null;
+  rule_version: string | null;
+  approved_by: string;
+  executed_at: string | null;
+  execution_result: Record<string, unknown> | null;
+  hash: string;
+  conditions_evaluated: Record<string, ConditionResult> | null;
+  entity_state_snapshot: Record<string, unknown> | null;
+  created_at: string;
+}
+
 async function json<T>(url: string): Promise<T> {
   const apiKey =
     (typeof window !== "undefined" && localStorage.getItem("statis_api_key")) ||
@@ -89,4 +127,17 @@ export function fetchDeliveries(
   return json<DeliveryRecord[]>(
     `${BASE}/deliveries?entity_type=${entityType}&entity_id=${entityId}`,
   );
+}
+
+export function fetchActions(
+  entityType: string,
+  entityId: string,
+): Promise<ActionContract[]> {
+  return json<ActionContract[]>(
+    `${BASE}/actions?entity_type=${entityType}&entity_id=${entityId}`,
+  );
+}
+
+export function fetchReceipt(actionId: string): Promise<ReceiptDetail> {
+  return json<ReceiptDetail>(`${BASE}/receipts/${actionId}`);
 }
