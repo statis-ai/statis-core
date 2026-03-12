@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://statis.dev">
-    <img src="docs/logo/light.svg" alt="Statis" width="120" />
+    <img src="landing/public/logomark-transparent.png" alt="Statis" width="80" />
   </a>
 </p>
 
