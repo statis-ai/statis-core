@@ -1,7 +1,14 @@
 <p align="center">
   <a href="https://statis.dev">
-    <img src="docs/images/readme-banner.png" alt="Statis — The base layer for reliable AI state" width="800" />
+    <img src="docs/logo/light.svg" alt="Statis" width="120" />
   </a>
+</p>
+
+<h1 align="center">Statis</h1>
+
+<p align="center">
+  <b>Agent execution infrastructure.</b><br>
+  Propose → Evaluate → Execute once → Receipt.
 </p>
 
 <p align="center">
@@ -19,224 +26,245 @@
   &nbsp;
   <a href="https://github.com/statis-ai/statis-core/commits/main"><img src="https://img.shields.io/github/last-commit/statis-ai/statis-core" alt="Last Commit" /></a>
   &nbsp;
-  <a href="https://github.com/statis-ai/statis-core/pulls"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs Welcome" /></a>
-</p>
-
-<h1 align="center">Statis</h1>
-
-<p align="center">
-  <b>The Semantic Event Bus for AI Workflows</b><br>
-  Append-only semantic events &rarr; deterministic materialized state &rarr; push updates + replay for audit.
+  <a href="https://pypi.org/project/statis-sdk/"><img src="https://img.shields.io/pypi/v/statis-sdk?label=statis-sdk" alt="PyPI" /></a>
 </p>
 
 ---
 
-## 💡 Why Statis?
+## What is Statis?
 
-When AI agents poll isolated databases or rely on stateless memory, they invent their own reality. This causes "Agent Amnesia," conflicts, and unpredictable behavior. 
+AI agents need to act on the world — trigger a DAG, apply a discount, modify a record. Without a governance layer, those actions are invisible, unauditable, and irreversible.
 
-[Statis](https://statis.dev) provides a single source of truth for your AI swarm. It ingests claims, facts, and signals from agents into an append-only log, deterministically materializes entity state, and pushes state-change notifications immediately.
+Statis is the layer between your agents and your production systems. Every agent action goes through four primitives:
 
-*   ⚡ **Single Source of Truth**: Guarantee all agents act on the exact same cryptographic state at the exact same millisecond.
-*   🔒 **Audit & Time Travel**: Every state is derived from an immutable SHA-256 hashed event log. Replay history to answer "What did X know at rev N?"
-*   🚀 **Push, Don't Poll**: Webhook delivery with exponential backoff and trace ensures agents react to critical events in under 300ms.
+| Primitive | What it does |
+|---|---|
+| **Action Contract** | Agent proposes an action before executing it |
+| **Policy Engine** | Deterministic rules evaluate the proposal — APPROVED, DENIED, or ESCALATED |
+| **Execution Guarantee** | Distributed lock ensures the action executes exactly once |
+| **Receipt (Ledger)** | SHA-256 tamper-evident receipt written at execution — immutable audit trail |
 
----
-
-## 🎯 Use Cases
-
-Statis is built for complex, multi-agent orchestrations and hybrid human-AI workflows:
-
-*   **🤖 AI Agent Orchestration**: Multiple specialized agents (e.g., in a CrewAI swarm) publish facts to a shared entity. Statis materializes a deterministic state that any agent can read, avoiding stale views and race conditions.
-*   **🚨 Customer Ops Coordination**: Support, CSM, Sales, and Billing share a single golden record. When a Support agent reports an outage, Sales automatically pauses outreach and Billing suspends dunning.
-*   **⚖️ Compliance & Governance**: Shadow auditing for high-risk AI decisions. Replay the exact state context an agent had when making a decision to prove compliance.
-*   **⚡ Webhook-driven Pipelines**: Ditch cron jobs. Ingest raw events, reduce them into a golden state record, and automatically kick off downstream AI multi-agent workflows via push notifications.
+The result: every agent action has a paper trail. Who proposed it, what the policy said, who (or what) approved it, exactly what was executed, and a hash you can verify.
 
 ---
 
-## 💻 Integrations
+## Python SDK
 
-### CrewAI + Statis
-
-Prevent "Agent Amnesia" in CrewAI. Equip your agents with Statis tools to publish semantic events and seamlessly share materialized state across isolated runs.
+```bash
+pip install statis-sdk
+```
 
 ```python
-import os
-from crewai import Agent, Task, Crew
-from statis_tools import make_push_tool, make_read_tool
+from statis import StatisClient, ActionDeniedError, ActionEscalatedError
 
-os.environ["OPENAI_API_KEY"] = "sk-..."
-STATIS_API_KEY = "st_admin_..." # Your Statis API Key
+with StatisClient(api_key="st_...") as client:
+    try:
+        receipt = client.execute(
+            action_type="retention_offer",
+            target={"entity_type": "account", "entity_id": "acct-42"},
+            parameters={"discount_pct": 20},
+            agent_id="csm-agent-v2",
+            target_system="stripe",
+        )
+        print(f"Executed — receipt: {receipt.receipt_id}, hash: {receipt.hash}")
 
-# 1. Equip agents with Statis Tools
-push_tool = make_push_tool(api_key=STATIS_API_KEY)
-read_tool = make_read_tool(api_key=STATIS_API_KEY)
+    except ActionDeniedError as e:
+        print(f"Policy denied: {e.receipt.rule_id}")
 
-# 2. Support Agent publishes an outage fact
-support_agent = Agent(
-    role="Support Specialist",
-    goal="Identify and report system outages",
-    backstory="You monitor systems and report directly to the Statis event bus.",
-    tools=[push_tool],
-    verbose=True
-)
-
-# 3. Sales Agent reads the golden state
-sales_agent = Agent(
-    role="Sales Representative",
-    goal="Read the latest account state before outreach",
-    backstory="You always check the Statis state for 'outage' before emailing customers.",
-    tools=[read_tool],
-    verbose=True
-)
-
-# 4. Create Tasks
-task_report = Task(
-    description="Publish an event that acct-42 is experiencing an outage.",
-    expected_output="Confirmation of published event",
-    agent=support_agent
-)
-
-task_check = Task(
-    description="Read state for acct-42 and decide if we should send a marketing email.",
-    expected_output="Decision: Send or Pause outreach",
-    agent=sales_agent
-)
-
-# 5. Run the Crew
-crew = Crew(
-    agents=[support_agent, sales_agent],
-    tasks=[task_report, task_check]
-)
-crew.kickoff()
+    except ActionEscalatedError as e:
+        # A human must approve in the Console before execution proceeds
+        print(f"Escalated for human review — action_id: {e.action_id}")
 ```
-*See the full codebase in `examples/crewai/` for advanced RBAC and Time Travel demonstrations.*
+
+`execute()` is a single blocking call: propose → evaluate → poll until done → return receipt. The SDK raises typed errors for every terminal state.
 
 ---
 
-## 🚀 Quickstart
+## Architecture
 
-Ensure PostgreSQL is running locally.
+```
+Agent
+  │
+  ▼
+POST /actions              ← Action Contract (P1)
+  │
+  ▼
+POST /actions/{id}/evaluate ← Policy Engine (P2)
+  │                            deterministic rules → APPROVED / DENIED / ESCALATED
+  ├─ ESCALATED ──────────────► Console Escalation Queue
+  │                            human approves / rejects
+  │
+  ▼
+Execution Worker           ← Execution Guarantee (P3)
+  │                            distributed lock → exactly-once
+  │  adapter.execute(action)
+  │    ├─ stripe → MockStripeAdapter
+  │    └─ airflow → AirflowAdapter (POST /api/v1/dags/{dag_id}/dagRuns)
+  │
+  ▼
+Receipt written            ← Ledger (P4)
+  SHA-256 hash of canonical fields
+  includes: conditions evaluated, entity state snapshot, reviewer (if escalated)
+```
 
-### 1. Installation
+---
+
+## Quickstart
+
+**Prerequisites:** PostgreSQL running locally.
 
 ```bash
 git clone https://github.com/statis-ai/statis-core.git
 cd statis-core/api
-
 pip install -r requirements.txt
 alembic upgrade head
-python scripts/seed_admin.py   # Generates your STATIS_API_KEY
+python scripts/seed_admin.py   # outputs your STATIS_API_KEY
 ```
 
-### 2. Start Services
+Start all three services:
 
 ```bash
-# Terminal 1 — Statis API
+# Terminal 1 — API
 cd api && fastapi run app/main.py
 
-# Terminal 2 — Statis Console
+# Terminal 2 — Console
 cd console && npm install && npm run dev
 
-# Terminal 3 — Delivery Worker
-cd worker && python main.py
+# Terminal 3 — Execution worker
+python -m worker.execute
 ```
 
-### 3. Try it out
+Run the end-to-end demo:
 
-**Ingest an event:**
 ```bash
-curl -s -X POST http://localhost:8000/events \
-  -H "Content-Type: application/json" \
-  -H "X-API-Key: $API_KEY" \
-  -d '{
-    "event_id": "evt-001",
-    "entity_type": "account",
-    "entity_id": "acct-42",
-    "event_type": "support.incident_reported",
-    "payload": {"severity": "high", "issue": "login_outage"},
-    "occurred_at": "2025-06-01T10:00:00Z",
-    "producer": "support_agent",
-    "schema_version": "1"
-  }'
+STATIS_API_KEY=<your-key> python examples/retention_demo.py
 ```
 
-**Read materialized state:**
-```bash
-curl -s http://localhost:8000/state/account/acct-42 \
-  -H "X-API-Key: $API_KEY"
-```
-
-**Time travel to a specific revision:**
-```bash
-curl -s http://localhost:8000/state/account/acct-42/at?rev=1 \
-  -H "X-API-Key: $API_KEY"
-```
+The demo proposes a retention offer for `acct-42`, evaluates it against the `churn_retention_v1` policy, executes via the mock Stripe adapter, and prints the receipt with its SHA-256 hash.
 
 ---
 
-## 🏗️ Architecture
+## API Reference
 
-```mermaid
-flowchart LR
-    subgraph producers [Producers]
-        Agent[AI Agents]
-        Service[Services]
-        Human[Humans]
-    end
-
-    subgraph statis [Statis Core]
-        API[FastAPI API]
-        Log[Append-only Log]
-        Reducer[Reducers]
-        State["Entity State (hash)"]
-        Queue[Delivery Queue]
-        Worker[Delivery Worker]
-    end
-
-    subgraph consumers [Consumers]
-        Webhook[Webhooks]
-        Console[Developer Console]
-    end
-
-    Agent -->|"POST /events"| API
-    Service -->|"POST /events"| API
-    Human -->|"POST /events"| API
-    API --> Log
-    Log --> Reducer
-    Reducer --> State
-    State --> Queue
-    Queue --> Worker
-    Worker --> Webhook
-    State -->|"GET /state"| Console
-```
-
-## 📚 API Surface
+### Events & State
 
 | Endpoint | Description |
 |---|---|
-| `POST /events` | Ingest events (idempotent) |
-| `GET /events` | Query event log |
-| `GET /state/{entity_type}/{entity_id}` | Read materialized state |
-| `GET /state/{entity_type}/{entity_id}/at?rev=` | Time travel to any revision |
-| `POST /subscriptions` | Subscribe to state changes |
-| `POST /replay` | Replay deliveries for a subscription |
+| `POST /events` | Ingest events (idempotent by `event_id`) |
+| `GET /events?entity_type=&entity_id=` | Query event log for an entity |
+| `GET /state/{entity_type}/{entity_id}` | Current materialized state |
+| `GET /state/{entity_type}/{entity_id}/at?rev=N` | Time-travel to revision N |
 
-## 🛠 Tech Stack
+### Actions & Policy
 
-- **Backend:** Python, FastAPI, SQLAlchemy, Alembic
-- **Database:** PostgreSQL
-- **Console:** Next.js, React
-- **Worker:** Python daemon (DB-backed delivery queue)
+| Endpoint | Description |
+|---|---|
+| `POST /actions` | Propose an action |
+| `GET /actions/{action_id}` | Get action status |
+| `GET /actions?entity_type=&entity_id=` | List actions for an entity |
+| `POST /actions/{action_id}/evaluate` | Run policy evaluation → APPROVED / DENIED / ESCALATED |
+| `POST /actions/{action_id}/approve` | Human approves an ESCALATED action |
+| `POST /actions/{action_id}/reject` | Human rejects an ESCALATED action |
+| `GET /escalations` | List all ESCALATED actions (tenant-wide queue) |
 
-## 📖 Documentation & Support
+### Receipts & Delivery
 
-- **Full Docs:** [docs.statis.dev](https://docs.statis.dev)
-- **Website:** [statis.dev](https://statis.dev)
-- **Twitter:** [@statis_ai](https://x.com/statis_ai)
+| Endpoint | Description |
+|---|---|
+| `GET /receipts/{action_id}` | Fetch the tamper-evident receipt |
+| `POST /subscriptions` | Subscribe to entity state changes (webhook) |
+| `GET /deliveries?entity_type=&entity_id=` | Webhook delivery status |
 
 ---
 
-## 📝 License
+## Console
+
+The Statis Console is a Next.js UI for inspecting entities and managing escalations.
+
+**Account Inspector** — search any entity by type + ID, then explore:
+- **State** — current materialized state with provenance
+- **Timeline** — full append-only event log
+- **Diff** — state changes between revisions
+- **Deliveries** — webhook delivery status and retry history
+- **Actions** — all action contracts with lifecycle status
+- **Receipt** — decision, conditions evaluated (pass/fail), entity state snapshot, execution result, SHA-256 hash
+
+**Escalation Queue** — tenant-wide view of ESCALATED actions. Inspect the proposal, approve or reject with a reviewer note. Approved actions are picked up by the worker automatically.
+
+---
+
+## Adapters
+
+Adapters connect the execution worker to external systems. Two are included:
+
+| Adapter | Target system | Handles |
+|---|---|---|
+| `MockStripeAdapter` | `stripe` | `retention_offer`, `apply_discount` |
+| `AirflowAdapter` | `airflow` | `airflow_dag_trigger` — triggers DAG runs via Airflow REST API v1 |
+
+The `AirflowAdapter` uses `action_id` as `dag_run_id` (idempotency key) and stores `{dag_run_id, dag_id, state, logical_date}` in the receipt's `execution_result`.
+
+Config via env vars: `AIRFLOW_BASE_URL`, `AIRFLOW_USERNAME`, `AIRFLOW_PASSWORD`.
+
+To add a new adapter:
+
+```python
+from app.adapters.base import BaseAdapter, ExecutionResult
+
+class MySalesforceAdapter(BaseAdapter):
+    def execute(self, action) -> ExecutionResult:
+        # action.action_id  — use as idempotency key
+        # action.parameters — whatever the agent proposed
+        ...
+        return ExecutionResult(success=True, result={"sf_id": "..."})
+```
+
+Register it in `worker/execute.py`:
+
+```python
+ADAPTERS = {
+    "stripe": MockStripeAdapter(),
+    "airflow": AirflowAdapter(),
+    "salesforce": MySalesforceAdapter(),
+}
+```
+
+---
+
+## Policy Engine
+
+Policies are rows in the `policy_rules` table. Conditions are evaluated as a conjunction (all must pass).
+
+Two rules are seeded:
+
+```
+churn_retention_v1
+  action_type: retention_offer
+  conditions: { churn_risk: true, min_ltv: 1000, no_discount_days: 30 }
+  decision: APPROVED
+
+airflow_dag_trigger_v1
+  action_type: airflow_dag_trigger
+  conditions: { operator_approved: true }
+  decision: APPROVED
+```
+
+Condition types: `churn_risk` (entity state), `min_ltv` (entity state), `no_discount_days` (entity state + event history), `operator_approved` (action context — caller attestation).
+
+No match → DENIED by default (fail-closed).
+
+---
+
+## Tech Stack
+
+- **Backend:** Python 3.11 · FastAPI · SQLAlchemy · Alembic · PostgreSQL
+- **Worker:** Python daemon · psycopg3 · `SKIP LOCKED` for concurrent workers
+- **Console:** Next.js 15 · React 19 · Tailwind CSS · TypeScript
+- **SDK:** `statis-sdk` · httpx · hatchling
+- **Tests:** pytest · testcontainers[postgres] · respx — 123 unit + 16 integration tests
+
+---
+
+## License
 
 MIT — see [LICENSE](LICENSE) for details.
