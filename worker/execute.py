@@ -25,10 +25,12 @@ from sqlalchemy import create_engine, delete, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.adapters.airflow import AirflowAdapter
 from app.adapters.base import BaseAdapter
 from app.adapters.stripe_mock import MockStripeAdapter
 from app.config import settings
 from app.models.action_contract import ActionContract
+from app.models.escalation_review import EscalationReview
 from app.models.execution_lock import ExecutionLock
 from app.models.receipt import Receipt
 
@@ -39,6 +41,7 @@ WORKER_ID = os.getenv("WORKER_ID", str(uuid.uuid4()))
 # Adapter registry: target_system → adapter instance
 ADAPTERS: dict[str, BaseAdapter] = {
     "stripe": MockStripeAdapter(),
+    "airflow": AirflowAdapter(),
 }
 
 logging.basicConfig(
@@ -128,10 +131,23 @@ def process_action(db: Session, action: ActionContract) -> None:
         )
         return
 
+    # Check if this action was human-approved after escalation — include reviewer in receipt
+    review = db.query(EscalationReview).filter(EscalationReview.action_id == action_id).first()
+
     # Call external system — outside any long-held transaction
     exec_result = adapter.execute(action)
 
     result_payload = exec_result.result if exec_result.success else {"error": exec_result.error}
+    if review is not None:
+        result_payload = {
+            **result_payload,
+            "escalation_review": {
+                "review_id": review.review_id,
+                "reviewer_id": review.reviewer_id,
+                "reviewer_decision": review.reviewer_decision,
+                "reviewed_at": review.reviewed_at.isoformat(),
+            },
+        }
     _finalize(db, action, success=exec_result.success, execution_result=result_payload)
 
 

@@ -141,3 +141,59 @@ export function fetchActions(
 export function fetchReceipt(actionId: string): Promise<ReceiptDetail> {
   return json<ReceiptDetail>(`${BASE}/receipts/${actionId}`);
 }
+
+export interface EscalatedAction {
+  action_id: string;
+  action_type: string;
+  target_entity: Record<string, string>;
+  target_system: string;
+  proposed_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export function fetchEscalations(): Promise<EscalatedAction[]> {
+  return json<EscalatedAction[]>(`${BASE}/escalations`);
+}
+
+export async function approveEscalation(
+  actionId: string,
+  reviewerId: string,
+  note?: string,
+): Promise<ActionContract> {
+  const apiKey =
+    (typeof window !== "undefined" && localStorage.getItem("statis_api_key")) ||
+    process.env.NEXT_PUBLIC_API_KEY ||
+    "";
+  const res = await fetch(`${BASE}/actions/${actionId}/approve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+    body: JSON.stringify({ reviewer_id: reviewerId, note: note ?? null }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`API ${res.status}: ${body}`);
+  }
+  return res.json() as Promise<ActionContract>;
+}
+
+export async function rejectEscalation(
+  actionId: string,
+  reviewerId: string,
+  note?: string,
+): Promise<ActionContract> {
+  const apiKey =
+    (typeof window !== "undefined" && localStorage.getItem("statis_api_key")) ||
+    process.env.NEXT_PUBLIC_API_KEY ||
+    "";
+  const res = await fetch(`${BASE}/actions/${actionId}/reject`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+    body: JSON.stringify({ reviewer_id: reviewerId, note: note ?? null }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`API ${res.status}: ${body}`);
+  }
+  return res.json() as Promise<ActionContract>;
+}

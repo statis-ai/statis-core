@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Search, Code2, Activity, LogOut, Hexagon } from "lucide-react";
+import { Search, Code2, Activity, LogOut, Hexagon, AlertTriangle } from "lucide-react";
 import EntityLookup from "@/components/entity-lookup";
 import StateTab from "@/components/tabs/state-tab";
 import TimelineTab from "@/components/tabs/timeline-tab";
@@ -11,12 +11,14 @@ import DeliveriesTab from "@/components/tabs/deliveries-tab";
 import ActionsTab from "@/components/tabs/actions-tab";
 import ReceiptTab from "@/components/tabs/receipt-tab";
 import DevelopersTab from "@/components/tabs/developers-tab";
+import EscalationPanel from "@/components/EscalationPanel";
 
 const INSPECTOR_TABS = ["State", "Timeline", "Diff", "Deliveries", "Actions", "Receipt"] as const;
 type InspectorTab = (typeof INSPECTOR_TABS)[number];
 
 const NAV_ITEMS = [
   { id: "inspector", label: "Inspector", icon: Search },
+  { id: "escalations", label: "Escalations", icon: AlertTriangle },
   { id: "events", label: "Events Feed", icon: Activity },
   { id: "developers", label: "Developers", icon: Code2 },
 ] as const;
@@ -210,6 +212,21 @@ export default function ConsoleLayout() {
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* ESCALATIONS VIEW */}
+          {activeNav === "escalations" && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <header className="mb-8">
+                <h1 className="text-2xl font-bold text-white tracking-tight">Escalation Queue</h1>
+                <p className="mt-1 text-sm text-brand-muted">
+                  Actions that require human review before execution.
+                </p>
+              </header>
+              <div className="bg-brand-surface/30 border border-brand-border rounded-xl overflow-hidden backdrop-blur-xl shadow-2xl min-h-[400px]">
+                <EscalationPanel />
+              </div>
             </div>
           )}
 

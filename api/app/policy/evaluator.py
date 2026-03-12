@@ -60,7 +60,7 @@ class PolicyEvaluator:
         matching.sort(key=lambda r: r.priority, reverse=True)
 
         for rule in matching:
-            if self._conditions_met(rule.conditions, entity_state, event_history):
+            if self._conditions_met(rule.conditions, entity_state, event_history, action):
                 return PolicyDecision(
                     decision=rule.decision,
                     rule_id=rule.rule_id,
@@ -82,9 +82,10 @@ class PolicyEvaluator:
         conditions: dict[str, Any],
         entity_state: dict[str, Any],
         event_history: list[Any],
+        action: Any = None,
     ) -> bool:
         for key, value in conditions.items():
-            if not self._check(key, value, entity_state, event_history):
+            if not self._check(key, value, entity_state, event_history, action):
                 return False
         return True
 
@@ -94,7 +95,15 @@ class PolicyEvaluator:
         value: Any,
         entity_state: dict[str, Any],
         event_history: list[Any],
+        action: Any = None,
     ) -> bool:
+        if key == "operator_approved":
+            # Caller attestation carried in action.context, not entity state.
+            ctx: dict = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            return bool(ctx.get("operator_approved")) == bool(value)
+
         if key == "churn_risk":
             # entity_state["churn_risk"] must be truthy (True / "HIGH" / non-empty)
             state_val = entity_state.get("churn_risk")

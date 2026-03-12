@@ -10,10 +10,12 @@ from app.api.deps import AuthContext, get_auth_context
 from app.db.session import get_db
 from app.models.action_contract import ActionContract
 from app.models.entity_state import EntityState
+from app.models.escalation_review import EscalationReview
 from app.models.policy_rule import PolicyRule
 from app.models.receipt import Receipt
 from app.policy.evaluator import PolicyEvaluator, RuleSpec
 from app.schemas.actions import ActionAccepted, ActionIn, ActionOut, ActionStatus
+from app.schemas.escalation import EscalatedActionOut, EscalationReviewIn, EscalationReviewOut
 from app.schemas.policy import EvaluateResponse
 from app.utils.hashing import canonical_state_hash
 
@@ -245,3 +247,95 @@ def evaluate_action(
         rule_version=decision.rule_version,
         reason=decision.reason,
     )
+
+
+# ---------------------------------------------------------------------------
+# Escalation review endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.get("/escalations", response_model=list[EscalatedActionOut])
+def list_escalated_actions(
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> list[EscalatedActionOut]:
+    """Return all ESCALATED action contracts for the tenant (admin queue view)."""
+    contracts = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.tenant_id == auth.tenant_id,
+            ActionContract.status == ActionStatus.ESCALATED,
+        )
+        .order_by(ActionContract.created_at.asc())
+        .all()
+    )
+    return [EscalatedActionOut.model_validate(c) for c in contracts]
+
+
+def _handle_escalation_review(
+    action_id: str,
+    review_in: EscalationReviewIn,
+    reviewer_decision: str,  # "APPROVED" | "REJECTED"
+    db: Session,
+    auth: AuthContext,
+) -> ActionOut:
+    contract = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.action_id == action_id,
+            ActionContract.tenant_id == auth.tenant_id,
+        )
+        .first()
+    )
+    if contract is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Action '{action_id}' not found",
+        )
+    if contract.status != ActionStatus.ESCALATED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Action '{action_id}' is in status '{contract.status}', expected ESCALATED",
+        )
+
+    # Write the audit record
+    review = EscalationReview(
+        review_id=str(uuid.uuid4()),
+        action_id=action_id,
+        reviewer_id=review_in.reviewer_id,
+        reviewer_decision=reviewer_decision,
+        reviewer_note=review_in.note,
+        reviewed_at=datetime.now(timezone.utc),
+    )
+    db.add(review)
+
+    # Transition: REJECTED → DENIED, APPROVED → APPROVED (worker picks up)
+    new_status = ActionStatus.APPROVED if reviewer_decision == "APPROVED" else ActionStatus.DENIED
+    contract.status = new_status
+    contract.updated_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(contract)
+    return ActionOut.model_validate(contract)
+
+
+@router.post("/actions/{action_id}/approve", response_model=ActionOut)
+def approve_escalated_action(
+    action_id: str,
+    review_in: EscalationReviewIn,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> ActionOut:
+    """Approve an ESCALATED action — transitions to APPROVED so the worker executes it."""
+    return _handle_escalation_review(action_id, review_in, "APPROVED", db, auth)
+
+
+@router.post("/actions/{action_id}/reject", response_model=ActionOut)
+def reject_escalated_action(
+    action_id: str,
+    review_in: EscalationReviewIn,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> ActionOut:
+    """Reject an ESCALATED action — transitions to DENIED."""
+    return _handle_escalation_review(action_id, review_in, "REJECTED", db, auth)

@@ -195,3 +195,69 @@ class TestPriorityResolution:
         )
         assert decision.decision == "APPROVED"
         assert decision.rule_id == "high_prio_rule"
+
+
+# ---------------------------------------------------------------------------
+# operator_approved condition (airflow_dag_trigger use-case)
+# ---------------------------------------------------------------------------
+
+
+def _dag_action(operator_approved: bool = True):
+    m = SimpleNamespace()
+    m.action_type = "airflow_dag_trigger"
+    m.context = {"operator_approved": operator_approved}
+    return m
+
+
+def _dag_rule(decision: str = "APPROVED") -> RuleSpec:
+    return RuleSpec(
+        rule_id="airflow_dag_trigger_v1",
+        rule_version="1.0",
+        action_type="airflow_dag_trigger",
+        conditions={"operator_approved": True},
+        decision=decision,
+        priority=100,
+    )
+
+
+class TestOperatorApprovedCondition:
+    def test_approved_when_context_flag_set(self):
+        decision = evaluator.evaluate(
+            action=_dag_action(operator_approved=True),
+            entity_state={},
+            event_history=[],
+            rules=[_dag_rule()],
+        )
+        assert decision.decision == "APPROVED"
+        assert decision.rule_id == "airflow_dag_trigger_v1"
+
+    def test_denied_when_context_flag_false(self):
+        decision = evaluator.evaluate(
+            action=_dag_action(operator_approved=False),
+            entity_state={},
+            event_history=[],
+            rules=[_dag_rule()],
+        )
+        assert decision.decision == "DENIED"
+
+    def test_denied_when_context_flag_missing(self):
+        m = SimpleNamespace()
+        m.action_type = "airflow_dag_trigger"
+        m.context = {}  # key absent
+        decision = evaluator.evaluate(
+            action=m,
+            entity_state={},
+            event_history=[],
+            rules=[_dag_rule()],
+        )
+        assert decision.decision == "DENIED"
+
+    def test_no_rule_match_for_unknown_type(self):
+        decision = evaluator.evaluate(
+            action=_dag_action(),
+            entity_state={},
+            event_history=[],
+            rules=[],  # no rules at all
+        )
+        assert decision.decision == "DENIED"
+        assert decision.rule_id is None
