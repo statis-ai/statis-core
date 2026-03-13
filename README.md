@@ -26,7 +26,7 @@
   &nbsp;
   <a href="https://github.com/statis-ai/statis-core/commits/main"><img src="https://img.shields.io/github/last-commit/statis-ai/statis-core" alt="Last Commit" /></a>
   &nbsp;
-  <a href="https://pypi.org/project/statis-sdk/"><img src="https://img.shields.io/pypi/v/statis-sdk?label=statis-sdk" alt="PyPI" /></a>
+  <a href="https://pypi.org/project/statis-ai/"><img src="https://img.shields.io/pypi/v/statis-ai?label=statis-ai" alt="PyPI" /></a>
 </p>
 
 ---
@@ -51,7 +51,7 @@ The result: every agent action has a paper trail. Who proposed it, what the poli
 ## Python SDK
 
 ```bash
-pip install statis-sdk
+pip install statis-ai
 ```
 
 ```python
@@ -260,7 +260,7 @@ No match → DENIED by default (fail-closed).
 - **Backend:** Python 3.11 · FastAPI · SQLAlchemy · Alembic · PostgreSQL
 - **Worker:** Python daemon · psycopg3 · `SKIP LOCKED` for concurrent workers
 - **Console:** Next.js 15 · React 19 · Tailwind CSS · TypeScript
-- **SDK:** `statis-sdk` · httpx · hatchling
+- **SDK:** `statis-ai` · httpx · hatchling
 - **Tests:** pytest · testcontainers[postgres] · respx — 123 unit + 16 integration tests
 
 ---

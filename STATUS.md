@@ -187,7 +187,7 @@ Pure `PolicyEvaluator` — zero DB imports, fully unit-testable.
 
 ### Status: ✅ Complete
 
-**Package:** `statis-sdk` (PyPI name), import as `statis`
+**Package:** `statis-ai` (PyPI name), import as `statis`
 **Build backend:** hatchling | **Runtime dep:** `httpx>=0.24.0`
 
 ```python
