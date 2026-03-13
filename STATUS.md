@@ -183,6 +183,29 @@ Pure `PolicyEvaluator` — zero DB imports, fully unit-testable.
 
 ---
 
+## TypeScript SDK — `sdk-ts/`
+
+### Status: ✅ Complete
+
+**Package:** `statis-ai` (npm), zero runtime dependencies (native `fetch`, Node 18+)
+**Build:** TypeScript 5 / CommonJS
+
+**Public surface:**
+
+| Symbol | Description |
+|---|---|
+| `StatisClient` | Async client — `propose()`, `execute()`, `getReceipt()`, `getActionStatus()` |
+| `Receipt` | Typed interface — all receipt fields including `conditions_evaluated` |
+| `ActionDeniedError` | Raised by `execute()` on DENIED; carries `.receipt` |
+| `ActionEscalatedError` | Raised by `execute()` on ESCALATED; carries `.action_id` |
+| `ActionTimeoutError` | Raised by `execute()` on poll timeout; carries `.action_id`, `.timeout` |
+| `StatisError` | Raised on non-2xx API responses; carries `.status_code`, `.message` |
+
+- 11 unit tests using Node built-in test runner — all passing
+- Mirrors Python SDK surface exactly
+
+---
+
 ## Python SDK — `sdk/`
 
 ### Status: ✅ Complete
@@ -285,7 +308,7 @@ with StatisClient(api_key="...", base_url="https://api.statis.dev") as client:
 ## What's Next (not yet built)
 
 - [ ] Run `alembic upgrade head` on deployed DB (migrations 0013–0015)
-- [ ] TypeScript SDK
+- [x] TypeScript SDK (`sdk-ts/`, published to npm as `statis-ai`)
 - [ ] Real adapter integrations (Salesforce, Zendesk, HubSpot)
 - [ ] VPC / self-hosted deployment option
 - [ ] Landing: Docs site
