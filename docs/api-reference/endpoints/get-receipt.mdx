@@ -1,0 +1,62 @@
+---
+title: "Get Receipt"
+api: "GET /receipts/{action_id}"
+description: "Fetch the tamper-evident SHA-256 receipt for a completed or denied action."
+---
+
+## Path parameters
+
+<ParamField path="action_id" type="string" required>
+  The action whose receipt to retrieve.
+</ParamField>
+
+## Response
+
+<ResponseField name="receipt_id" type="string" />
+<ResponseField name="action_id" type="string" />
+<ResponseField name="decision" type="string">`APPROVED` or `DENIED`</ResponseField>
+<ResponseField name="rule_id" type="string | null">The policy rule that fired.</ResponseField>
+<ResponseField name="rule_version" type="string | null" />
+<ResponseField name="approved_by" type="string">`policy_engine` or `human:{reviewer_id}`</ResponseField>
+<ResponseField name="conditions_evaluated" type="object | null">Per-condition pass/fail detail.</ResponseField>
+<ResponseField name="entity_state_snapshot" type="object | null">Full entity state at evaluation time.</ResponseField>
+<ResponseField name="execution_result" type="object | null">Adapter output. Includes reviewer metadata if escalated.</ResponseField>
+<ResponseField name="executed_at" type="string | null" />
+<ResponseField name="hash" type="string">SHA-256 of canonical receipt fields.</ResponseField>
+<ResponseField name="created_at" type="string" />
+
+<RequestExample>
+```bash cURL
+curl https://api.statis.dev/receipts/act-abc123 \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "receipt_id": "rcpt-xyz789",
+  "action_id": "act-abc123",
+  "decision": "APPROVED",
+  "rule_id": "churn_retention_v1",
+  "rule_version": "1",
+  "approved_by": "policy_engine",
+  "conditions_evaluated": {
+    "churn_risk": { "label": "Churn Risk", "passed": true },
+    "min_ltv": { "label": "Minimum LTV", "passed": true, "value": 1500 },
+    "no_discount_days": { "label": "No Discount Days", "passed": true }
+  },
+  "entity_state_snapshot": {
+    "churn_risk": true,
+    "ltv": 1500,
+    "plan": "pro"
+  },
+  "execution_result": {
+    "charge_id": "ch_mock_act-abc1"
+  },
+  "executed_at": "2024-01-15T10:00:05Z",
+  "hash": "a3f8b2c1d4e5...",
+  "created_at": "2024-01-15T10:00:01Z"
+}
+```
+</ResponseExample>

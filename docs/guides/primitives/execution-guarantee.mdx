@@ -1,0 +1,73 @@
+---
+title: "Execution Guarantee (P3)"
+description: "Distributed lock ensures every approved action executes exactly once."
+---
+
+## The problem
+
+Without a lock, two things can go wrong:
+
+1. **Double-execution** — if your agent retries or two workers race, the same action executes twice
+2. **Partial execution** — the adapter call succeeds but the receipt write fails, leaving the system in an inconsistent state
+
+## How it works
+
+The execution worker uses a three-transaction pattern:
+
+```
+T1: INSERT INTO execution_locks (action_id) ON CONFLICT DO NOTHING
+    → if 0 rows inserted, another worker owns it — skip
+    UPDATE action_contracts SET status = 'EXECUTING'
+    COMMIT
+
+T2: adapter.execute(action)
+    → calls external system (Stripe, Airflow, etc.)
+
+T3: INSERT INTO receipts (...)
+    UPDATE action_contracts SET status = 'COMPLETED' | 'FAILED'
+    DELETE FROM execution_locks WHERE action_id = ?
+    COMMIT
+```
+
+The `execution_locks` table has a primary key on `action_id`. The `INSERT ... ON CONFLICT DO NOTHING` is the distributed mutex — only one worker can acquire it, even across multiple processes or machines.
+
+## Adapters
+
+Adapters connect the worker to external systems. Two are included:
+
+| Adapter | `target_system` | Handles |
+|---|---|---|
+| `MockStripeAdapter` | `"stripe"` | `retention_offer`, `apply_discount` |
+| `AirflowAdapter` | `"airflow"` | `airflow_dag_trigger` — Airflow REST API v1 |
+
+The `AirflowAdapter` uses `action_id` as `dag_run_id` — making DAG triggering idempotent at the Airflow level too. A 409 from Airflow (duplicate run ID) is treated as success.
+
+## Adding a custom adapter
+
+```python
+from app.adapters.base import BaseAdapter, ExecutionResult
+
+class MySalesforceAdapter(BaseAdapter):
+    def execute(self, action) -> ExecutionResult:
+        # action.action_id  — use as idempotency key
+        # action.parameters — whatever the agent proposed
+        return ExecutionResult(success=True, result={"sf_id": "..."})
+```
+
+Register in `worker/execute.py`:
+
+```python
+ADAPTERS = {
+    "stripe": MockStripeAdapter(),
+    "airflow": AirflowAdapter(),
+    "salesforce": MySalesforceAdapter(),
+}
+```
+
+## Running the worker
+
+```bash
+python -m worker.execute
+```
+
+The worker polls for `APPROVED` actions every second using `SELECT ... FOR UPDATE SKIP LOCKED` — safe to run multiple instances concurrently.

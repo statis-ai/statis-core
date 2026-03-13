@@ -1,0 +1,59 @@
+---
+title: "Evaluate Action"
+api: "POST /actions/{action_id}/evaluate"
+description: "Run policy evaluation. Returns APPROVED, DENIED, or ESCALATED."
+---
+
+## Path parameters
+
+<ParamField path="action_id" type="string" required>
+  The action to evaluate. Must be in `PROPOSED` status.
+</ParamField>
+
+## How it works
+
+The policy engine loads all `policy_rules` matching the action's `action_type`, evaluates conditions against entity state and `action.context`, and returns the first matching rule's decision.
+
+If no rule matches → `DENIED` (fail-closed).
+
+## Response
+
+<ResponseField name="decision" type="string">
+  `APPROVED`, `DENIED`, or `ESCALATED`
+</ResponseField>
+<ResponseField name="rule_id" type="string">
+  ID of the matching rule. `null` if no rule matched (default DENIED).
+</ResponseField>
+<ResponseField name="rule_version" type="string" />
+<ResponseField name="receipt_id" type="string">
+  ID of the receipt written for this evaluation.
+</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/actions/act-abc123/evaluate \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200 — APPROVED
+{
+  "decision": "APPROVED",
+  "rule_id": "churn_retention_v1",
+  "rule_version": "1",
+  "receipt_id": "rcpt-xyz789"
+}
+```
+```json 200 — DENIED
+{
+  "decision": "DENIED",
+  "rule_id": null,
+  "rule_version": null,
+  "receipt_id": "rcpt-xyz790"
+}
+```
+```json 409
+{ "detail": "Action is not in PROPOSED status" }
+```
+</ResponseExample>

@@ -1,0 +1,49 @@
+---
+title: "Reject Escalation"
+api: "POST /actions/{action_id}/reject"
+description: "Human rejects an ESCALATED action. Moves status to DENIED — terminal."
+---
+
+## Path parameters
+
+<ParamField path="action_id" type="string" required>
+  The escalated action to reject. Must be in `ESCALATED` status.
+</ParamField>
+
+## Request body
+
+<ParamField body="reviewer_id" type="string" required>
+  Identifier of the human reviewer rejecting the action.
+</ParamField>
+
+<ParamField body="note" type="string">
+  Optional review note.
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/actions/act-abc123/reject \
+  -H "X-API-Key: st_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "reviewer_id": "ops-team@company.com",
+    "note": "Customer already churned."
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "review_id": "rev-def457",
+  "action_id": "act-abc123",
+  "reviewer_id": "ops-team@company.com",
+  "reviewer_decision": "DENIED",
+  "reviewer_note": "Customer already churned.",
+  "reviewed_at": "2024-01-15T10:31:00Z"
+}
+```
+```json 409
+{ "detail": "Action is not in ESCALATED status" }
+```
+</ResponseExample>

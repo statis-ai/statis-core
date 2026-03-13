@@ -1,0 +1,138 @@
+---
+title: "TypeScript SDK"
+description: "statis-ai — the official TypeScript SDK for Statis."
+---
+
+## Installation
+
+```bash
+npm install statis-ai
+```
+
+**Requires:** Node 18+ (uses native `fetch`) · Zero runtime dependencies
+
+## Quick example
+
+```typescript
+import {
+  StatisClient,
+  ActionDeniedError,
+  ActionEscalatedError,
+  ActionTimeoutError,
+} from "statis-ai";
+
+const client = new StatisClient({ api_key: "st_..." });
+
+try {
+  const receipt = await client.execute({
+    action_type: "retention_offer",
+    target: { entity_type: "account", entity_id: "acct-42" },
+    parameters: { discount_pct: 20 },
+    agent_id: "csm-agent-v2",
+    target_system: "stripe",
+  });
+  console.log(`Executed — receipt: ${receipt.receipt_id}, hash: ${receipt.hash}`);
+
+} catch (e) {
+  if (e instanceof ActionDeniedError) {
+    console.log(`Policy denied: ${e.receipt.rule_id}`);
+  } else if (e instanceof ActionEscalatedError) {
+    console.log(`Escalated — action_id: ${e.action_id}`);
+  } else if (e instanceof ActionTimeoutError) {
+    console.log(`Timed out after ${e.timeout}s`);
+  }
+}
+```
+
+## StatisClient
+
+```typescript
+new StatisClient({
+  api_key?: string,       // or set STATIS_API_KEY env var
+  base_url?: string,      // default: "https://api.statis.dev"
+  timeout?: number,       // seconds, default: 30
+  poll_interval?: number, // seconds, default: 0.5
+})
+```
+
+### Methods
+
+#### `propose(options)`
+
+Creates an action contract and returns the `action_id`.
+
+```typescript
+const actionId = await client.propose({
+  action_type: "retention_offer",
+  target: { entity_type: "account", entity_id: "acct-42" },
+  parameters: { discount_pct: 20 },
+  agent_id: "csm-agent-v2",
+  target_system: "stripe",
+  action_id: "my-action-id",          // optional
+  context: { operator_approved: true }, // optional
+});
+```
+
+#### `execute(options)`
+
+Propose → evaluate → poll until terminal status → return `Receipt`. Raises typed errors for every non-success terminal state.
+
+```typescript
+const receipt = await client.execute({
+  action_type: ...,
+  target: ...,
+  parameters: ...,
+  agent_id: ...,
+  target_system: ...,
+  timeout: 60,         // optional, seconds
+  poll_interval: 0.5,  // optional, seconds
+});
+```
+
+#### `getReceipt(action_id)`
+
+```typescript
+const receipt = await client.getReceipt("act-123");
+console.log(receipt.hash);
+console.log(receipt.conditions_evaluated);
+```
+
+#### `getActionStatus(action_id)`
+
+Returns the raw status string.
+
+```typescript
+const status = await client.getActionStatus("act-123");
+// "PROPOSED" | "APPROVED" | "DENIED" | "ESCALATED" | "EXECUTING" | "COMPLETED" | "FAILED"
+```
+
+## Receipt
+
+```typescript
+interface Receipt {
+  receipt_id: string;
+  action_id: string;
+  decision: string;
+  rule_id: string | null;
+  rule_version: string | null;
+  approved_by: string;
+  conditions_evaluated: Record<string, unknown> | null;
+  execution_result: Record<string, unknown> | null;
+  executed_at: Date | null;
+  hash: string;
+  created_at: Date;
+}
+```
+
+## Error reference
+
+| Class | When raised | Key properties |
+|---|---|---|
+| `ActionDeniedError` | Policy engine returns DENIED | `.receipt` |
+| `ActionEscalatedError` | Policy engine returns ESCALATED | `.action_id` |
+| `ActionTimeoutError` | Poll timeout exceeded | `.action_id`, `.timeout` |
+| `StatisError` | Non-2xx API response | `.status_code`, `.message` |
+
+<Note>
+`ActionEscalatedError` is thrown immediately — the SDK does not await human approval. Surface the `action_id` to your operator and move on. The action is picked up by the worker automatically once approved in the Console.
+</Note>

@@ -1,0 +1,68 @@
+---
+title: "Receipt / Ledger (P4)"
+description: "SHA-256 tamper-evident receipt written at execution. The immutable audit trail."
+---
+
+## What it captures
+
+Every completed (or denied) action produces a receipt. It records:
+
+| Field | Description |
+|---|---|
+| `receipt_id` | Unique receipt identifier |
+| `action_id` | The action this receipt covers |
+| `decision` | `APPROVED` or `DENIED` |
+| `rule_id` | Which policy rule fired |
+| `rule_version` | Version of the rule at evaluation time |
+| `approved_by` | `policy_engine` or `human:{reviewer_id}` |
+| `conditions_evaluated` | Per-condition pass/fail detail (JSONB) |
+| `entity_state_snapshot` | Full entity state at evaluation time (JSONB) |
+| `execution_result` | Adapter output — e.g. `{"charge_id": "ch_mock_..."}` |
+| `executed_at` | When the adapter call completed |
+| `hash` | SHA-256 of canonical fields |
+| `created_at` | When the receipt was written |
+
+## The hash
+
+The SHA-256 hash covers these canonical fields in deterministic order:
+
+```
+receipt_id · action_id · decision · rule_id · rule_version ·
+approved_by · executed_at · execution_result · created_at
+```
+
+Any tampering with the receipt fields will produce a different hash. You can recompute it independently to verify integrity.
+
+## Escalation traceability
+
+If the action was escalated and a human approved it, the worker injects reviewer metadata into `execution_result` before writing the receipt:
+
+```json
+{
+  "execution_result": {
+    "charge_id": "ch_mock_abc123",
+    "review_id": "rev-456",
+    "reviewer_id": "ops-team@company.com",
+    "reviewer_decision": "APPROVED",
+    "reviewed_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+This means the receipt is always a complete chain: agent → policy → human (if applicable) → adapter → hash.
+
+## API
+
+```bash
+GET /receipts/{action_id}
+X-API-Key: st_...
+```
+
+## Console
+
+The **Receipt tab** in the Account Inspector shows:
+- Decision banner (green APPROVED / red DENIED)
+- Each condition evaluated with pass/fail indicator
+- Entity state snapshot at the time of evaluation
+- Execution result from the adapter
+- SHA-256 hash with copy button

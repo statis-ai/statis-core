@@ -1,0 +1,86 @@
+---
+title: "Propose Action"
+api: "POST /actions"
+description: "Create an action contract. Agent proposes before executing."
+---
+
+## Request body
+
+<ParamField body="action_id" type="string">
+  Optional. Idempotency key — if omitted, a UUID is auto-generated. Re-sending the same `action_id` returns `409`.
+</ParamField>
+
+<ParamField body="action_type" type="string" required>
+  The type of action being proposed. Must match a `policy_rules.action_type` for evaluation to return APPROVED.
+</ParamField>
+
+<ParamField body="target_entity" type="object" required>
+  The entity this action targets.
+  - `entity_type` (string, required)
+  - `entity_id` (string, required)
+</ParamField>
+
+<ParamField body="parameters" type="object" required>
+  Action parameters — passed to the adapter at execution time.
+</ParamField>
+
+<ParamField body="proposed_by" type="string" required>
+  Identifier of the agent proposing the action.
+</ParamField>
+
+<ParamField body="target_system" type="string" required>
+  The adapter to route execution to (e.g. `"stripe"`, `"airflow"`).
+</ParamField>
+
+<ParamField body="context" type="object">
+  Optional. Passed to the policy evaluator. Use for caller attestation conditions like `operator_approved`.
+</ParamField>
+
+## Response
+
+<ResponseField name="action_id" type="string">Unique action identifier.</ResponseField>
+<ResponseField name="status" type="string">Always `PROPOSED` immediately after creation.</ResponseField>
+<ResponseField name="action_type" type="string" />
+<ResponseField name="target_entity" type="object" />
+<ResponseField name="parameters" type="object" />
+<ResponseField name="proposed_by" type="string" />
+<ResponseField name="target_system" type="string" />
+<ResponseField name="context" type="object" />
+<ResponseField name="created_at" type="string">ISO 8601 timestamp.</ResponseField>
+<ResponseField name="updated_at" type="string">ISO 8601 timestamp.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/actions \
+  -H "X-API-Key: st_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action_id": "act-abc123",
+    "action_type": "retention_offer",
+    "target_entity": { "entity_type": "account", "entity_id": "acct-42" },
+    "parameters": { "discount_pct": 20 },
+    "proposed_by": "csm-agent-v2",
+    "target_system": "stripe"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201
+{
+  "action_id": "act-abc123",
+  "status": "PROPOSED",
+  "action_type": "retention_offer",
+  "target_entity": { "entity_type": "account", "entity_id": "acct-42" },
+  "parameters": { "discount_pct": 20 },
+  "proposed_by": "csm-agent-v2",
+  "target_system": "stripe",
+  "context": {},
+  "created_at": "2024-01-15T10:00:00Z",
+  "updated_at": "2024-01-15T10:00:00Z"
+}
+```
+```json 409
+{ "detail": "Action with this ID already exists" }
+```
+</ResponseExample>

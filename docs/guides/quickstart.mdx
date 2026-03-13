@@ -1,55 +1,115 @@
 ---
 title: "Quickstart"
-description: "Get up and running with Statis in 5 minutes."
+description: "Run the full propose → evaluate → execute → receipt flow in under 5 minutes."
 ---
 
-## 1. Install the SDK
+## Prerequisites
 
-Install the Statis SDK for your preferred language.
+- PostgreSQL running locally
+- Python 3.11+
+- Node 18+ (for the Console)
 
-<CodeGroup>
-  ```bash npm
-  npm install @statis/sdk
-  ```
-  ```bash pip
-  pip install statis-sdk
-  ```
-</CodeGroup>
+## 1. Clone and install
 
-## 2. Initialize the Client
-
-Initialize the Statis client with your Project ID and API Key.
-
-<CodeGroup>
-  ```typescript TypeScript
-  import { Statis } from '@statis/sdk';
-
-  const statis = new Statis({
-    projectId: 'proj_123',
-    apiKey: process.env.STATIS_API_KEY
-  });
-  ```
-  ```python Python
-  from statis import Statis
-
-  statis = Statis(
-      project_id='proj_123',
-      api_key='your_api_key'
-  )
-  ```
-</CodeGroup>
-
-## 3. Publish Your First Fact
-
-Instead of mutating state directly in a database, your agents publish semantic facts to the Statis Event Log.
-
-```typescript
-await statis.events.publish({
-  entity_id: "cus_8891",
-  agent_id: "support_bot",
-  type: "ticket.created",
-  fact: "Customer reported login outage; highly frustrated"
-});
+```bash
+git clone https://github.com/statis-ai/statis-core.git
+cd statis-core/api
+pip install -r requirements.txt
 ```
 
-Statis will instantly append this event, materialize a golden state record, and push webhook updates to any subscribed agents or systems.
+## 2. Run migrations and seed an API key
+
+```bash
+alembic upgrade head
+python scripts/seed_admin.py
+# → STATIS_API_KEY=st_...
+```
+
+## 3. Start all three services
+
+```bash
+# Terminal 1 — API
+cd api && fastapi run app/main.py
+
+# Terminal 2 — Console
+cd console && npm install && npm run dev
+
+# Terminal 3 — Execution worker
+python -m worker.execute
+```
+
+## 4. Install the SDK
+
+<CodeGroup>
+```bash Python
+pip install statis-ai
+```
+```bash TypeScript
+npm install statis-ai
+```
+</CodeGroup>
+
+## 5. Run the demo
+
+<CodeGroup>
+```python Python
+from statis import StatisClient, ActionDeniedError, ActionEscalatedError
+
+with StatisClient(api_key="st_...") as client:
+    try:
+        receipt = client.execute(
+            action_type="retention_offer",
+            target={"entity_type": "account", "entity_id": "acct-42"},
+            parameters={"discount_pct": 20},
+            agent_id="csm-agent-v2",
+            target_system="stripe",
+        )
+        print(f"Executed — hash: {receipt.hash}")
+
+    except ActionDeniedError as e:
+        print(f"Policy denied: {e.receipt.rule_id}")
+
+    except ActionEscalatedError as e:
+        print(f"Needs human review — action_id: {e.action_id}")
+```
+```typescript TypeScript
+import { StatisClient, ActionDeniedError, ActionEscalatedError } from "statis-ai";
+
+const client = new StatisClient({ api_key: "st_..." });
+
+try {
+  const receipt = await client.execute({
+    action_type: "retention_offer",
+    target: { entity_type: "account", entity_id: "acct-42" },
+    parameters: { discount_pct: 20 },
+    agent_id: "csm-agent-v2",
+    target_system: "stripe",
+  });
+  console.log(`Executed — hash: ${receipt.hash}`);
+
+} catch (e) {
+  if (e instanceof ActionDeniedError) console.log(`Denied: ${e.receipt.rule_id}`);
+  if (e instanceof ActionEscalatedError) console.log(`Escalated: ${e.action_id}`);
+}
+```
+</CodeGroup>
+
+`execute()` is a single blocking call: propose → evaluate → poll until done → return receipt.
+
+## 6. Inspect the receipt
+
+The Console runs at `http://localhost:3000`. Search for entity type `account`, ID `acct-42`:
+
+- **Actions tab** — see the action contract with its status
+- **Receipt tab** — decision banner, conditions pass/fail, entity state snapshot, SHA-256 hash
+
+## What just happened?
+
+1. `POST /actions` — created an action contract for `acct-42`
+2. `POST /actions/{id}/evaluate` — policy engine evaluated against `churn_retention_v1` rule
+3. Worker picked up the APPROVED action, acquired a distributed lock, called the Stripe adapter
+4. Receipt written with SHA-256 hash — tamper-evident record of everything
+
+<Note>
+  The demo uses the `churn_retention_v1` policy rule which requires `churn_risk=true` and `ltv >= 1000` on the entity state. If evaluation returns DENIED, post a `account.churn_risk_updated` event first to set those values, or see the [end-to-end demo script](https://github.com/statis-ai/statis-core/blob/main/examples/retention_demo.py).
+</Note>

@@ -1,0 +1,136 @@
+---
+title: "Python SDK"
+description: "statis-ai — the official Python SDK for Statis."
+---
+
+## Installation
+
+```bash
+pip install statis-ai
+```
+
+**Requires:** Python 3.9+ · `httpx>=0.24.0`
+
+## Quick example
+
+```python
+from statis import StatisClient, ActionDeniedError, ActionEscalatedError, ActionTimeoutError
+
+with StatisClient(api_key="st_...") as client:
+    try:
+        receipt = client.execute(
+            action_type="retention_offer",
+            target={"entity_type": "account", "entity_id": "acct-42"},
+            parameters={"discount_pct": 20},
+            agent_id="csm-agent-v2",
+            target_system="stripe",
+        )
+        print(f"Executed — receipt: {receipt.receipt_id}, hash: {receipt.hash}")
+
+    except ActionDeniedError as e:
+        print(f"Policy denied: {e.receipt.rule_id}")
+
+    except ActionEscalatedError as e:
+        # A human must approve via the Console before execution proceeds
+        print(f"Escalated — action_id: {e.action_id}")
+
+    except ActionTimeoutError as e:
+        print(f"Timed out after {e.timeout}s — action_id: {e.action_id}")
+```
+
+## StatisClient
+
+```python
+StatisClient(
+    api_key: str | None = None,   # or set STATIS_API_KEY env var
+    base_url: str = "https://api.statis.dev",
+    timeout: float = 30.0,
+    poll_interval: float = 0.5,
+)
+```
+
+Implements the context manager protocol (`with` statement). Call `.close()` manually if not using `with`.
+
+### Methods
+
+#### `propose()`
+
+Creates an action contract and returns the `action_id`.
+
+```python
+action_id = client.propose(
+    action_type="retention_offer",
+    target={"entity_type": "account", "entity_id": "acct-42"},
+    parameters={"discount_pct": 20},
+    agent_id="csm-agent-v2",
+    target_system="stripe",
+    action_id="my-action-id",   # optional — auto-generated if omitted
+    context={"operator_approved": True},  # optional — passed to policy evaluator
+)
+```
+
+#### `execute()`
+
+Propose → evaluate → poll until terminal status → return `Receipt`. Raises typed errors for every non-success terminal state.
+
+```python
+receipt = client.execute(
+    action_type=...,
+    target=...,
+    parameters=...,
+    agent_id=...,
+    target_system=...,
+    timeout=60.0,         # optional, default 30s
+    poll_interval=0.5,    # optional, default 0.5s
+)
+```
+
+#### `get_receipt(action_id)`
+
+Fetch the receipt for a completed or denied action.
+
+```python
+receipt = client.get_receipt("act-123")
+print(receipt.hash)
+print(receipt.conditions_evaluated)
+```
+
+#### `get_action_status(action_id)`
+
+Returns the raw status string. Useful when polling manually.
+
+```python
+status = client.get_action_status("act-123")
+# "PROPOSED" | "APPROVED" | "DENIED" | "ESCALATED" | "EXECUTING" | "COMPLETED" | "FAILED"
+```
+
+## Receipt
+
+```python
+@dataclass
+class Receipt:
+    receipt_id: str
+    action_id: str
+    decision: str                              # "APPROVED" | "DENIED"
+    rule_id: str | None
+    rule_version: str | None
+    approved_by: str
+    conditions_evaluated: dict | None          # per-condition pass/fail detail
+    execution_result: dict | None              # adapter output
+    executed_at: datetime | None
+    hash: str                                  # SHA-256 of canonical fields
+    created_at: datetime
+```
+
+## Error reference
+
+| Exception | When raised | Key attributes |
+|---|---|---|
+| `ActionDeniedError` | Policy engine returns DENIED | `.receipt` |
+| `ActionEscalatedError` | Policy engine returns ESCALATED | `.action_id` |
+| `ActionTimeoutError` | Poll timeout exceeded | `.action_id`, `.timeout` |
+| `StatisError` | Non-2xx API response | `.status_code`, `.message` |
+
+<Note>
+`ActionEscalatedError` is raised immediately — the SDK does not block waiting for human approval. Surface the `action_id` to your operator and move on. The action will be picked up by the worker automatically once approved in the Console.
+</Note>

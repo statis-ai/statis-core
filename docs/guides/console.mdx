@@ -1,0 +1,46 @@
+---
+title: "Console"
+description: "The Statis Console — inspect entities, review escalations, manage API keys."
+---
+
+## Overview
+
+The Console is a Next.js UI for inspecting any entity and managing escalations. Run it locally:
+
+```bash
+cd console && npm install && npm run dev
+# → http://localhost:3000
+```
+
+## Account Inspector
+
+Search any entity by type + ID. The inspector has seven tabs:
+
+| Tab | What it shows |
+|---|---|
+| **State** | Current materialized entity state + provenance (which events built it) |
+| **Timeline** | Full append-only event log, expandable payload per event |
+| **Diff** | State changes between any two revisions |
+| **Deliveries** | Webhook delivery status, retry count, errors |
+| **Actions** | All action contracts — status lifecycle with colored badges, clickable rows |
+| **Receipt** | Selected action's receipt — decision banner, conditions pass/fail, entity state snapshot, execution result, SHA-256 hash with copy button |
+| **Developers** | API keys + webhook subscriptions |
+
+**Flow:** Click a row in the Actions tab → Console auto-navigates to the Receipt tab with a dot indicator showing the selected action.
+
+## Escalation Queue
+
+The **Escalations** nav item shows a tenant-wide view of all `ESCALATED` actions.
+
+- **Left panel** — queue list with `action_id`, `action_type`, target entity, `proposed_by`, and timestamp
+- **Right panel** — full action details, `reviewer_id` input, optional note field, **Approve** and **Reject** buttons
+
+After a decision, the row disappears from the queue. The action status updates server-side and the worker picks it up on its next poll.
+
+## Sidebar navigation
+
+| Item | Description |
+|---|---|
+| Inspector | Entity-scoped Account Inspector |
+| Escalations | Tenant-wide escalation queue |
+| Developers | API keys + subscriptions |

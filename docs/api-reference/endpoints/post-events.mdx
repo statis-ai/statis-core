@@ -1,3 +1,56 @@
 ---
-openapi: post /events
+title: "Ingest Event"
+api: "POST /events"
+description: "Append an event to the entity's event log. Idempotent by event_id."
 ---
+
+## Request body
+
+<ParamField body="event_id" type="string" required>
+  Idempotency key. Duplicate `event_id` is silently ignored.
+</ParamField>
+
+<ParamField body="entity_type" type="string" required>
+  Type of the entity (e.g. `"account"`).
+</ParamField>
+
+<ParamField body="entity_id" type="string" required>
+  ID of the entity.
+</ParamField>
+
+<ParamField body="event_type" type="string" required>
+  The event type (e.g. `"account.churn_risk_updated"`). Must match a registered reducer.
+</ParamField>
+
+<ParamField body="payload" type="object" required>
+  Event data — passed to the reducer.
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/events \
+  -H "X-API-Key: st_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "evt-001",
+    "entity_type": "account",
+    "entity_id": "acct-42",
+    "event_type": "account.churn_risk_updated",
+    "payload": { "churn_risk": true }
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201
+{
+  "event_id": "evt-001",
+  "entity_type": "account",
+  "entity_id": "acct-42",
+  "event_type": "account.churn_risk_updated",
+  "payload": { "churn_risk": true },
+  "sequence": 5,
+  "created_at": "2024-01-15T09:55:00Z"
+}
+```
+</ResponseExample>

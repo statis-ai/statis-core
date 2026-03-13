@@ -1,29 +1,76 @@
 ---
-title: "API Introduction"
-description: "Interact directly with the Statis REST API."
+title: "API Reference"
+description: "Statis REST API — authentication, base URL, and endpoint overview."
 ---
-
-The Statis REST API allows you to publish events, retrieve materialized states, and reconstruct historical timelines.
 
 ## Authentication
 
-All API endpoints require authentication using a Bearer token.
+All endpoints require an API key passed as a header:
 
 ```bash
-Authorization: Bearer <YOUR_API_KEY>
+X-API-Key: st_...
 ```
 
-You can generate an API key from the Statis Dashboard. 
+Generate a key by running `python scripts/seed_admin.py` against your database, or via the **Developers** tab in the Console.
 
 ## Base URL
 
-The base URL for the API is dependent on your deployment environment. For local development, it defaults to:
+| Environment | Base URL |
+|---|---|
+| Production | `https://api.statis.dev` |
+| Local dev | `http://localhost:8000` |
 
-`http://localhost:8000`
+## Endpoint groups
 
-## Endpoints
+### Actions & Policy
 
-The API is divided into the following primary resources:
-- **Events**: Ingesting new semantic facts.
-- **Entities**: Retrieving current and historical state.
-- **Webhooks**: Configuring and receiving real-time push events.
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/actions` | Propose an action |
+| `GET` | `/actions/{action_id}` | Get action status |
+| `GET` | `/actions?entity_type=&entity_id=` | List actions for an entity |
+| `POST` | `/actions/{action_id}/evaluate` | Evaluate against policy → APPROVED / DENIED / ESCALATED |
+| `POST` | `/actions/{action_id}/approve` | Human approves an ESCALATED action |
+| `POST` | `/actions/{action_id}/reject` | Human rejects an ESCALATED action |
+| `GET` | `/escalations` | Tenant-wide queue of ESCALATED actions |
+
+### Receipts
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/receipts/{action_id}` | Fetch the tamper-evident receipt |
+
+### Events & State
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/events` | Ingest events (idempotent by `event_id`) |
+| `GET` | `/events?entity_type=&entity_id=` | Query event log |
+| `GET` | `/state/{entity_type}/{entity_id}` | Current materialized state |
+| `GET` | `/state/{entity_type}/{entity_id}/at?rev=N` | Time-travel to revision N |
+
+### Webhooks
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/subscriptions` | Subscribe to entity state changes |
+| `GET` | `/deliveries?entity_type=&entity_id=` | Webhook delivery status |
+
+## Errors
+
+All errors return a JSON body with a `detail` field:
+
+```json
+{
+  "detail": "Action not found"
+}
+```
+
+| Status | Meaning |
+|---|---|
+| `400` | Bad request — invalid payload |
+| `401` | Missing or invalid API key |
+| `404` | Resource not found |
+| `409` | Conflict — e.g. duplicate action_id or action not in expected status |
+| `422` | Validation error |
+| `500` | Internal server error |

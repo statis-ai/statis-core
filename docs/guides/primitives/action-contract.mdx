@@ -1,0 +1,74 @@
+---
+title: "Action Contract (P1)"
+description: "Agents propose before they execute. Every action has a typed record."
+---
+
+## What it is
+
+Before any agent can execute an action against a production system, it must first **propose** that action to Statis. This creates an Action Contract — a typed, immutable record of intent.
+
+The contract captures:
+- **Who** is proposing (`proposed_by` / `agent_id`)
+- **What** they want to do (`action_type`, `parameters`)
+- **Against what** (`target_entity`: type + ID)
+- **Via which system** (`target_system`)
+- **Any context** for policy evaluation (`context`)
+
+## Status lifecycle
+
+```
+PROPOSED → [evaluate] → APPROVED → [worker] → EXECUTING → COMPLETED
+                      ↘ DENIED                           ↘ FAILED
+                      ↘ ESCALATED → [human] → APPROVED
+                                             ↘ DENIED
+```
+
+## API
+
+### Propose an action
+
+```bash
+POST /actions
+X-API-Key: st_...
+
+{
+  "action_id": "act-abc123",        # optional — auto-generated if omitted
+  "action_type": "retention_offer",
+  "target_entity": {
+    "entity_type": "account",
+    "entity_id": "acct-42"
+  },
+  "parameters": { "discount_pct": 20 },
+  "proposed_by": "csm-agent-v2",
+  "target_system": "stripe",
+  "context": {}
+}
+```
+
+Returns `201` with the created action contract.
+
+### Get action status
+
+```bash
+GET /actions/{action_id}
+```
+
+### List actions for an entity
+
+```bash
+GET /actions?entity_type=account&entity_id=acct-42
+```
+
+## Idempotency
+
+`action_id` is the idempotency key. A duplicate `POST /actions` with the same `action_id` returns `409`. This makes it safe to retry propose calls without creating duplicate contracts.
+
+## Next: Policy Engine
+
+Once proposed, trigger evaluation:
+
+```bash
+POST /actions/{action_id}/evaluate
+```
+
+See [Policy Engine →](/guides/primitives/policy-engine)

@@ -1,0 +1,80 @@
+---
+title: "Escalation Flow"
+description: "When policy returns ESCALATED, a human reviews in the Console before execution proceeds."
+---
+
+## The flow
+
+```
+Policy evaluates → ESCALATED
+  │
+  ▼
+GET /escalations          ← Console Escalation Queue
+  │
+  ├─ POST /actions/{id}/approve  → APPROVED → worker executes → receipt records reviewer
+  └─ POST /actions/{id}/reject   → DENIED   → terminal
+```
+
+## When escalation fires
+
+A policy rule can return `ESCALATED` instead of `APPROVED` or `DENIED` when conditions warrant human review — for example, an action that affects a high-value account, or an action type with no matching rule (though the default is DENIED, not ESCALATED).
+
+## SDK behavior
+
+The Python and TypeScript SDKs raise `ActionEscalatedError` **immediately** when polling sees `ESCALATED`. The agent should not block waiting for human review.
+
+```python
+except ActionEscalatedError as e:
+    # Surface this to your operator — don't wait
+    notify_operator(f"Action {e.action_id} needs approval in the Statis Console")
+```
+
+## Console — Escalation Queue
+
+The **Escalations** nav item in the Console shows a tenant-wide queue:
+
+- Left panel: list of escalated actions — `action_id`, `action_type`, target entity, `proposed_by`, timestamp
+- Right panel: action details + `reviewer_id` input + optional note + **Approve** / **Reject** buttons
+
+After a decision, the row disappears from the queue immediately.
+
+## API
+
+### List escalated actions
+
+```bash
+GET /escalations
+X-API-Key: st_...
+```
+
+Returns all actions in `ESCALATED` status for the tenant, ordered oldest first.
+
+### Approve
+
+```bash
+POST /actions/{action_id}/approve
+X-API-Key: st_...
+
+{
+  "reviewer_id": "ops-team@company.com",
+  "note": "Verified churn risk manually — approve."
+}
+```
+
+Returns `409` if the action is not in `ESCALATED` status.
+
+### Reject
+
+```bash
+POST /actions/{action_id}/reject
+X-API-Key: st_...
+
+{
+  "reviewer_id": "ops-team@company.com",
+  "note": "Customer already churned — no point in discount."
+}
+```
+
+## Post-approval execution
+
+Once approved, the action status moves to `APPROVED` and the worker picks it up in its next poll cycle. Before executing, the worker queries `escalation_reviews` for the `action_id` and merges reviewer metadata into `execution_result`. The final receipt records both the policy decision and the human approver.

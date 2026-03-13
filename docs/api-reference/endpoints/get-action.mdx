@@ -1,0 +1,50 @@
+---
+title: "Get Action"
+api: "GET /actions/{action_id}"
+description: "Get the current status and details of an action contract."
+---
+
+## Path parameters
+
+<ParamField path="action_id" type="string" required>
+  The action identifier.
+</ParamField>
+
+## Response
+
+<ResponseField name="action_id" type="string" />
+<ResponseField name="status" type="string">
+  One of: `PROPOSED`, `APPROVED`, `DENIED`, `ESCALATED`, `EXECUTING`, `COMPLETED`, `FAILED`
+</ResponseField>
+<ResponseField name="action_type" type="string" />
+<ResponseField name="target_entity" type="object" />
+<ResponseField name="parameters" type="object" />
+<ResponseField name="proposed_by" type="string" />
+<ResponseField name="target_system" type="string" />
+<ResponseField name="context" type="object" />
+<ResponseField name="created_at" type="string" />
+<ResponseField name="updated_at" type="string" />
+
+<RequestExample>
+```bash cURL
+curl https://api.statis.dev/actions/act-abc123 \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "action_id": "act-abc123",
+  "status": "COMPLETED",
+  "action_type": "retention_offer",
+  "target_entity": { "entity_type": "account", "entity_id": "acct-42" },
+  "parameters": { "discount_pct": 20 },
+  "proposed_by": "csm-agent-v2",
+  "target_system": "stripe",
+  "context": {},
+  "created_at": "2024-01-15T10:00:00Z",
+  "updated_at": "2024-01-15T10:00:05Z"
+}
+```
+</ResponseExample>

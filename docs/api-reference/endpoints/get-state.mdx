@@ -1,3 +1,54 @@
 ---
-openapi: get /state/{entity_type}/{entity_id}
+title: "Get Entity State"
+api: "GET /state/{entity_type}/{entity_id}"
+description: "Current materialized state for an entity."
 ---
+
+## Path parameters
+
+<ParamField path="entity_type" type="string" required>
+  Type of the entity (e.g. `"account"`).
+</ParamField>
+
+<ParamField path="entity_id" type="string" required>
+  ID of the entity.
+</ParamField>
+
+## Time-travel
+
+To get state at a specific revision:
+
+```
+GET /state/{entity_type}/{entity_id}/at?rev=N
+```
+
+<RequestExample>
+```bash Current state
+curl https://api.statis.dev/state/account/acct-42 \
+  -H "X-API-Key: st_..."
+```
+```bash At revision N
+curl "https://api.statis.dev/state/account/acct-42/at?rev=3" \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "entity_type": "account",
+  "entity_id": "acct-42",
+  "revision": 7,
+  "hash": "b9c3d1e2f4a5...",
+  "state": {
+    "plan": "pro",
+    "ltv": 1500,
+    "churn_risk": true,
+    "mrr": 299,
+    "seat_count": 5,
+    "last_login_days": 3
+  },
+  "updated_at": "2024-01-15T09:55:00Z"
+}
+```
+</ResponseExample>

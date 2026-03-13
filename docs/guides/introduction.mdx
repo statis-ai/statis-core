@@ -1,21 +1,73 @@
 ---
 title: "Introduction"
-description: "Deterministic State for AI Agents."
+description: "Agent execution infrastructure. The layer between AI agents and production systems."
 ---
 
-Welcome to the Statis documentation. Statis (Semantic Bus) is an event-driven state broker designed specifically for multi-agent workflows.
+## What is Statis?
 
-### The Problem: Agent Synchronization is Broken
-When multiple autonomous agents operate on the same customer or entity, polling fragmented vector databases or local memory leads to race conditions. If a Support agent learns a customer is furious, but your Sales agent is operating on stale state, the Sales agent will make tone-deaf mistakes.
+AI agents need to act on the world — trigger a DAG, apply a discount, modify a record. Without a governance layer, those actions are invisible, unauditable, and irreversible.
 
-### The Solution: Publish Facts, Push Truth
-Statis replaces chaotic polling with a deterministic pipeline. Agents do not mutate state; they publish **semantic facts**. Statis sequences these facts, materializes a golden state record, and instantly pushes state-change webhooks to subscribed agents.
+Statis is the layer between your agents and your production systems. Every agent action goes through four primitives:
+
+<CardGroup cols={2}>
+  <Card title="Action Contract" icon="file-contract" href="/guides/primitives/action-contract">
+    Agent proposes an action before executing it. Every action has a typed record: who proposed it, what they want to do, and against which entity.
+  </Card>
+  <Card title="Policy Engine" icon="shield-check" href="/guides/primitives/policy-engine">
+    Deterministic rules evaluate the proposal. The result is always **APPROVED**, **DENIED**, or **ESCALATED**.
+  </Card>
+  <Card title="Execution Guarantee" icon="lock" href="/guides/primitives/execution-guarantee">
+    A distributed lock ensures the action executes exactly once — no double-executions across concurrent workers or retries.
+  </Card>
+  <Card title="Receipt (Ledger)" icon="receipt" href="/guides/primitives/receipt">
+    A SHA-256 tamper-evident receipt written at execution. Records who proposed, what policy said, what was executed, and a hash you can verify.
+  </Card>
+</CardGroup>
+
+## Why Statis?
+
+| Without Statis | With Statis |
+|---|---|
+| Agents execute directly against APIs | Agents propose before they execute |
+| No record of why an action happened | Every action has a policy-linked receipt |
+| Double-execution possible on retry | Distributed lock guarantees exactly-once |
+| Human review requires custom tooling | Built-in escalation queue + Console UI |
+| Audit log = whatever your API logs | Tamper-evident ledger with SHA-256 hash |
+
+## How it works
+
+```
+Agent
+  │
+  ▼
+POST /actions              ← Action Contract (P1)
+  │
+  ▼
+POST /actions/{id}/evaluate ← Policy Engine (P2)
+  │                            APPROVED / DENIED / ESCALATED
+  ├─ ESCALATED ──────────────► Console Escalation Queue
+  │                            human approves / rejects
+  ▼
+Execution Worker           ← Execution Guarantee (P3)
+  │                            distributed lock → exactly-once
+  ▼
+Receipt written            ← Ledger (P4)
+  SHA-256 hash
+```
+
+## Next steps
 
 <CardGroup cols={2}>
   <Card title="Quickstart" icon="rocket" href="/guides/quickstart">
-    Get up and running with the Statis SDK in 5 minutes.
+    Run the full flow in under 5 minutes.
   </Card>
-  <Card title="Core Primitives" icon="cube" href="/guides/primitives/event-log">
-    Understand the Event Log, Materialization, and Push mechanics.
+  <Card title="Python SDK" icon="python" href="/sdks/python">
+    `pip install statis-ai`
+  </Card>
+  <Card title="TypeScript SDK" icon="js" href="/sdks/typescript">
+    `npm install statis-ai`
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/introduction">
+    Full REST API documentation.
   </Card>
 </CardGroup>

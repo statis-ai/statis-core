@@ -1,0 +1,84 @@
+---
+title: "Policy Engine (P2)"
+description: "Deterministic rules evaluate every action proposal. APPROVED, DENIED, or ESCALATED."
+---
+
+## What it does
+
+When you call `POST /actions/{id}/evaluate`, the policy engine:
+
+1. Loads all `policy_rules` matching the action's `action_type`
+2. Evaluates each rule's conditions against entity state + action context
+3. Returns the first matching rule's decision: **APPROVED**, **DENIED**, or **ESCALATED**
+4. If no rule matches → **DENIED** (fail-closed by default)
+
+## Condition types
+
+| Key | Source | Description |
+|---|---|---|
+| `churn_risk` | Entity state | Boolean/truthy check |
+| `min_ltv` | Entity state | Float threshold — `ltv >= value` |
+| `no_discount_days` | Entity state + event history | No discount applied within N days |
+| `operator_approved` | `action.context` | Caller attestation — not entity state |
+
+## Seeded rules
+
+### `churn_retention_v1`
+
+```json
+{
+  "rule_id": "churn_retention_v1",
+  "action_type": "retention_offer",
+  "conditions": {
+    "churn_risk": true,
+    "min_ltv": 1000,
+    "no_discount_days": 30
+  },
+  "decision": "APPROVED"
+}
+```
+
+For this rule to approve: the entity must have `churn_risk=true`, `ltv >= 1000`, and no discount applied in the last 30 days.
+
+### `airflow_dag_trigger_v1`
+
+```json
+{
+  "rule_id": "airflow_dag_trigger_v1",
+  "action_type": "airflow_dag_trigger",
+  "conditions": {
+    "operator_approved": true
+  },
+  "decision": "APPROVED"
+}
+```
+
+The `operator_approved` condition is satisfied by passing `"context": {"operator_approved": true}` in the action proposal — caller attestation, not entity state.
+
+## API
+
+```bash
+POST /actions/{action_id}/evaluate
+X-API-Key: st_...
+```
+
+Response:
+
+```json
+{
+  "decision": "APPROVED",
+  "rule_id": "churn_retention_v1",
+  "rule_version": "1",
+  "receipt_id": "rcpt-abc123"
+}
+```
+
+## Conditions are a conjunction
+
+All conditions in a rule must pass for the decision to fire. There is no OR within a rule — add multiple rules for OR semantics.
+
+## After evaluation
+
+- **APPROVED** — action is picked up by the execution worker automatically
+- **DENIED** — action is terminal; receipt is written with the denial reason
+- **ESCALATED** — action enters the human review queue; see [Escalation →](/guides/escalation)

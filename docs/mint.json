@@ -1,90 +1,96 @@
 {
-    "name": "Statis",
-    "logo": {
-        "dark": "/logo/dark.svg",
-        "light": "/logo/light.svg"
+  "name": "Statis",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#6366f1",
+    "light": "#818cf8",
+    "dark": "#4f46e5"
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/statis-ai/statis-core"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "https://statis.dev"
+  },
+  "tabs": [
+    {
+      "name": "Guides",
+      "url": "guides"
     },
-    "favicon": "/favicon.svg",
-    "colors": {
-        "primary": "#10B981",
-        "light": "#34D399",
-        "dark": "#059669"
+    {
+      "name": "SDKs",
+      "url": "sdks"
     },
-    "tabs": [
-        {
-            "name": "Guides",
-            "url": "guides"
-        },
-        {
-            "name": "Use Cases",
-            "url": "use-cases"
-        },
-        {
-            "name": "Integrations",
-            "url": "integrations"
-        },
-        {
-            "name": "API Reference",
-            "url": "api-reference"
-        }
-    ],
-    "openapi": "/openapi.yaml",
-    "api": {
-        "baseUrl": "http://localhost:8000",
-        "auth": {
-            "method": "bearer"
-        }
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "api": {
+    "baseUrl": "https://api.statis.dev",
+    "auth": {
+      "method": "key",
+      "name": "X-API-Key"
+    }
+  },
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        "guides/introduction",
+        "guides/quickstart"
+      ]
     },
-    "navigation": [
-        {
-            "group": "Getting Started",
-            "pages": [
-                "guides/introduction",
-                "guides/quickstart"
-            ]
-        },
-        {
-            "group": "Core Primitives",
-            "pages": [
-                "guides/primitives/event-log",
-                "guides/primitives/materialized-state",
-                "guides/primitives/subscriptions",
-                "guides/primitives/time-travel"
-            ]
-        },
-        {
-            "group": "Playbooks",
-            "pages": [
-                "use-cases/tone-deaf-ai",
-                "use-cases/double-spend-swarm",
-                "use-cases/black-box-autopsy"
-            ]
-        },
-        {
-            "group": "SDKs & Frameworks",
-            "pages": [
-                "integrations/python-sdk",
-                "integrations/node-sdk",
-                "integrations/langchain"
-            ]
-        },
-        {
-            "group": "API Reference",
-            "pages": [
-                "api-reference/introduction",
-                "api-reference/endpoints/get-health",
-                "api-reference/endpoints/post-events",
-                "api-reference/endpoints/get-events",
-                "api-reference/endpoints/get-state",
-                "api-reference/endpoints/get-state-at",
-                "api-reference/endpoints/post-subscriptions",
-                "api-reference/endpoints/get-subscription",
-                "api-reference/endpoints/pause-subscription",
-                "api-reference/endpoints/resume-subscription",
-                "api-reference/endpoints/get-delivery-trace",
-                "api-reference/endpoints/post-replay",
-                "api-reference/endpoints/get-analytics"
-            ]
-        }
-    ]
+    {
+      "group": "Core Primitives",
+      "pages": [
+        "guides/primitives/action-contract",
+        "guides/primitives/policy-engine",
+        "guides/primitives/execution-guarantee",
+        "guides/primitives/receipt"
+      ]
+    },
+    {
+      "group": "Concepts",
+      "pages": [
+        "guides/escalation",
+        "guides/adapters",
+        "guides/console"
+      ]
+    },
+    {
+      "group": "SDKs",
+      "pages": [
+        "sdks/python",
+        "sdks/typescript"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/introduction",
+        "api-reference/endpoints/post-actions",
+        "api-reference/endpoints/get-action",
+        "api-reference/endpoints/post-evaluate",
+        "api-reference/endpoints/post-approve",
+        "api-reference/endpoints/post-reject",
+        "api-reference/endpoints/get-escalations",
+        "api-reference/endpoints/get-receipt",
+        "api-reference/endpoints/post-events",
+        "api-reference/endpoints/get-state"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "twitter": "https://x.com/statis_ai",
+    "github": "https://github.com/statis-ai/statis-core"
+  }
 }
