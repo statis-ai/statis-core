@@ -26,7 +26,9 @@
   &nbsp;
   <a href="https://github.com/statis-ai/statis-core/commits/main"><img src="https://img.shields.io/github/last-commit/statis-ai/statis-core" alt="Last Commit" /></a>
   &nbsp;
-  <a href="https://pypi.org/project/statis-ai/"><img src="https://img.shields.io/pypi/v/statis-ai?label=statis-ai" alt="PyPI" /></a>
+  <a href="https://pypi.org/project/statis-ai/"><img src="https://img.shields.io/pypi/v/statis-ai?label=PyPI%20%7C%20statis-ai&color=blue" alt="PyPI" /></a>
+  &nbsp;
+  <a href="https://www.npmjs.com/package/statis-ai"><img src="https://img.shields.io/npm/v/statis-ai?label=npm%20%7C%20statis-ai&color=red" alt="npm" /></a>
 </p>
 
 ---
