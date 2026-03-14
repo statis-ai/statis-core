@@ -26,6 +26,9 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.adapters.airflow import AirflowAdapter
+from app.adapters.hubspot import HubSpotAdapter
+from app.adapters.salesforce import SalesforceAdapter
+from app.adapters.zendesk import ZendeskAdapter
 from app.adapters.base import BaseAdapter
 from app.adapters.stripe_mock import MockStripeAdapter
 from app.config import settings
@@ -42,6 +45,9 @@ WORKER_ID = os.getenv("WORKER_ID", str(uuid.uuid4()))
 ADAPTERS: dict[str, BaseAdapter] = {
     "stripe": MockStripeAdapter(),
     "airflow": AirflowAdapter(),
+    "salesforce": SalesforceAdapter(),
+    "zendesk": ZendeskAdapter(),
+    "hubspot": HubSpotAdapter(),
 }
 
 logging.basicConfig(
