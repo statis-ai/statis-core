@@ -50,7 +50,9 @@ The result: every agent action has a paper trail. Who proposed it, what the poli
 
 ---
 
-## Python SDK
+## SDKs
+
+### Python
 
 ```bash
 pip install statis-ai
@@ -78,6 +80,33 @@ with StatisClient(api_key="st_...") as client:
         print(f"Escalated for human review — action_id: {e.action_id}")
 ```
 
+### TypeScript
+
+```bash
+npm install statis-ai
+```
+
+```typescript
+import { StatisClient, ActionDeniedError, ActionEscalatedError } from "statis-ai";
+
+const client = new StatisClient({ api_key: "st_..." });
+
+try {
+  const receipt = await client.execute({
+    action_type: "retention_offer",
+    target: { entity_type: "account", entity_id: "acct-42" },
+    parameters: { discount_pct: 20 },
+    agent_id: "csm-agent-v2",
+    target_system: "stripe",
+  });
+  console.log(`Executed — receipt: ${receipt.receipt_id}, hash: ${receipt.hash}`);
+
+} catch (e) {
+  if (e instanceof ActionDeniedError) console.log(`Policy denied: ${e.receipt.rule_id}`);
+  if (e instanceof ActionEscalatedError) console.log(`Escalated: ${e.action_id}`);
+}
+```
+
 `execute()` is a single blocking call: propose → evaluate → poll until done → return receipt. The SDK raises typed errors for every terminal state.
 
 ---
@@ -100,8 +129,11 @@ POST /actions/{id}/evaluate ← Policy Engine (P2)
 Execution Worker           ← Execution Guarantee (P3)
   │                            distributed lock → exactly-once
   │  adapter.execute(action)
-  │    ├─ stripe → MockStripeAdapter
-  │    └─ airflow → AirflowAdapter (POST /api/v1/dags/{dag_id}/dagRuns)
+  │    ├─ stripe      → MockStripeAdapter
+  │    ├─ airflow     → AirflowAdapter    (Airflow REST API v1)
+  │    ├─ salesforce  → SalesforceAdapter (Salesforce REST API)
+  │    ├─ zendesk     → ZendeskAdapter    (Zendesk REST API v2)
+  │    └─ hubspot     → HubSpotAdapter    (HubSpot CRM API v3)
   │
   ▼
 Receipt written            ← Ledger (P4)
@@ -119,7 +151,7 @@ Receipt written            ← Ledger (P4)
 git clone https://github.com/statis-ai/statis-core.git
 cd statis-core/api
 pip install -r requirements.txt
-alembic upgrade head
+python -m alembic upgrade head
 python scripts/seed_admin.py   # outputs your STATIS_API_KEY
 ```
 
@@ -197,37 +229,45 @@ The Statis Console is a Next.js UI for inspecting entities and managing escalati
 
 ## Adapters
 
-Adapters connect the execution worker to external systems. Two are included:
+Adapters connect the execution worker to external systems. Five are included:
 
-| Adapter | Target system | Handles |
+| Adapter | `target_system` | Handles |
 |---|---|---|
 | `MockStripeAdapter` | `stripe` | `retention_offer`, `apply_discount` |
-| `AirflowAdapter` | `airflow` | `airflow_dag_trigger` — triggers DAG runs via Airflow REST API v1 |
+| `AirflowAdapter` | `airflow` | `airflow_dag_trigger` — Airflow REST API v1, `action_id` as `dag_run_id` |
+| `SalesforceAdapter` | `salesforce` | `salesforce_update_record`, `salesforce_create_record` — Salesforce REST API v57 |
+| `ZendeskAdapter` | `zendesk` | `zendesk_create_ticket`, `zendesk_update_ticket` — Zendesk REST API v2 |
+| `HubSpotAdapter` | `hubspot` | `hubspot_update_contact`, `hubspot_create_deal` — HubSpot CRM API v3 |
 
-The `AirflowAdapter` uses `action_id` as `dag_run_id` (idempotency key) and stores `{dag_run_id, dag_id, state, logical_date}` in the receipt's `execution_result`.
+All adapters are idempotent — `action_id` is used as the external system's idempotency key.
 
-Config via env vars: `AIRFLOW_BASE_URL`, `AIRFLOW_USERNAME`, `AIRFLOW_PASSWORD`.
+**Adapter config via env vars:**
+
+| Adapter | Env vars |
+|---|---|
+| Airflow | `AIRFLOW_BASE_URL`, `AIRFLOW_USERNAME`, `AIRFLOW_PASSWORD` |
+| Salesforce | `SALESFORCE_INSTANCE_URL`, `SALESFORCE_ACCESS_TOKEN` |
+| Zendesk | `ZENDESK_SUBDOMAIN`, `ZENDESK_EMAIL`, `ZENDESK_API_TOKEN` |
+| HubSpot | `HUBSPOT_ACCESS_TOKEN` |
 
 To add a new adapter:
 
 ```python
 from app.adapters.base import BaseAdapter, ExecutionResult
 
-class MySalesforceAdapter(BaseAdapter):
+class MyAdapter(BaseAdapter):
     def execute(self, action) -> ExecutionResult:
         # action.action_id  — use as idempotency key
         # action.parameters — whatever the agent proposed
-        ...
-        return ExecutionResult(success=True, result={"sf_id": "..."})
+        return ExecutionResult(success=True, result={"id": "..."})
 ```
 
 Register it in `worker/execute.py`:
 
 ```python
 ADAPTERS = {
-    "stripe": MockStripeAdapter(),
-    "airflow": AirflowAdapter(),
-    "salesforce": MySalesforceAdapter(),
+    ...,
+    "my_system": MyAdapter(),
 }
 ```
 
@@ -237,7 +277,7 @@ ADAPTERS = {
 
 Policies are rows in the `policy_rules` table. Conditions are evaluated as a conjunction (all must pass).
 
-Two rules are seeded:
+Six rules are seeded:
 
 ```
 churn_retention_v1
@@ -249,9 +289,19 @@ airflow_dag_trigger_v1
   action_type: airflow_dag_trigger
   conditions: { operator_approved: true }
   decision: APPROVED
-```
 
-Condition types: `churn_risk` (entity state), `min_ltv` (entity state), `no_discount_days` (entity state + event history), `operator_approved` (action context — caller attestation).
+salesforce_update_record_v1 / salesforce_create_record_v1
+  conditions: { operator_approved: true }
+  decision: APPROVED
+
+zendesk_create_ticket_v1 / zendesk_update_ticket_v1
+  conditions: { operator_approved: true }
+  decision: APPROVED
+
+hubspot_update_contact_v1 / hubspot_create_deal_v1
+  conditions: { operator_approved: true }
+  decision: APPROVED
+```
 
 No match → DENIED by default (fail-closed).
 
@@ -262,8 +312,10 @@ No match → DENIED by default (fail-closed).
 - **Backend:** Python 3.11 · FastAPI · SQLAlchemy · Alembic · PostgreSQL
 - **Worker:** Python daemon · psycopg3 · `SKIP LOCKED` for concurrent workers
 - **Console:** Next.js 15 · React 19 · Tailwind CSS · TypeScript
-- **SDK:** `statis-ai` · httpx · hatchling
-- **Tests:** pytest · testcontainers[postgres] · respx — 123 unit + 16 integration tests
+- **Python SDK:** `statis-ai` on PyPI · httpx · hatchling
+- **TypeScript SDK:** `statis-ai` on npm · zero runtime deps · native fetch (Node 18+)
+- **Docs:** Mintlify (`docs/`) — guides, SDK reference, API reference
+- **Tests:** pytest · testcontainers[postgres] · respx — 149 unit + 16 integration tests
 
 ---
 

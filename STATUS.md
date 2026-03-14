@@ -2,7 +2,7 @@
 
 > **Keep this file current.** Update it whenever a feature ships, a section changes, or a milestone closes.
 >
-> Last updated: 2026-03-12
+> Last updated: 2026-03-13
 
 ---
 
@@ -44,7 +44,7 @@ Agent execution infrastructure. The layer between AI agents and production syste
 | Escalation audit log — `escalation_reviews` table | ✅ | `api/app/models/escalation_review.py` |
 | Post-escalation receipt tracing — `reviewer_id` injected into `execution_result` | ✅ | `worker/execute.py` |
 
-### DB Schema — 15 migrations
+### DB Schema — 18 migrations ✅ Applied to production
 
 | Migration | Description |
 |---|---|
@@ -58,14 +58,15 @@ Agent execution infrastructure. The layer between AI agents and production syste
 | 0013 | receipts: add `conditions_evaluated` + `entity_state_snapshot` JSONB columns |
 | 0014 | seed `airflow_dag_trigger_v1` policy rule |
 | 0015 | escalation_reviews table |
-
-> ⚠️ Migrations 0013–0015 must be run against the deployed DB (`alembic upgrade head`)
+| 0016 | seed Salesforce policy rules (`salesforce_update_record_v1`, `salesforce_create_record_v1`) |
+| 0017 | seed Zendesk policy rules (`zendesk_create_ticket_v1`, `zendesk_update_ticket_v1`) |
+| 0018 | seed HubSpot policy rules (`hubspot_update_contact_v1`, `hubspot_create_deal_v1`) |
 
 ### Tests
 
-- **123 unit tests** (`api/tests/unit/`) — all passing
+- **149 unit tests** (`api/tests/unit/`) — all passing
 - **16 integration tests** using `testcontainers[postgres]`
-- Notable suites: `test_policy_evaluator.py` (14 pure unit, no DB), `test_receipt_hash.py` (8 hash property tests), `test_airflow_adapter.py` (7 tests)
+- Notable suites: `test_policy_evaluator.py` (14 tests), `test_receipt_hash.py` (8 tests), `test_airflow_adapter.py` (7 tests), `test_salesforce_adapter.py` (8 tests), `test_zendesk_adapter.py` (9 tests), `test_hubspot_adapter.py` (9 tests)
 
 ### Key Bug Fixes
 - **psycopg3 `rowcount` bug** — `INSERT ... ON CONFLICT DO NOTHING` returns unreliable rowcount with psycopg3. Fixed in `worker/execute.py` `_try_acquire_lock` using `.returning(ExecutionLock.action_id)` + `fetchone() is not None`
@@ -87,6 +88,9 @@ Agent execution infrastructure. The layer between AI agents and production syste
 |---|---|---|
 | `"stripe"` | `MockStripeAdapter` | `retention_offer`, `apply_discount` (50ms fake latency) |
 | `"airflow"` | `AirflowAdapter` | `airflow_dag_trigger` (real Airflow REST API v1) |
+| `"salesforce"` | `SalesforceAdapter` | `salesforce_update_record`, `salesforce_create_record` |
+| `"zendesk"` | `ZendeskAdapter` | `zendesk_create_ticket`, `zendesk_update_ticket` |
+| `"hubspot"` | `HubSpotAdapter` | `hubspot_update_contact`, `hubspot_create_deal` |
 
 ---
 
@@ -100,10 +104,23 @@ Agent execution infrastructure. The layer between AI agents and production syste
 ### AirflowAdapter — `airflow.py`
 - Triggers DAG runs via Airflow Stable REST API v1 (`POST /api/v1/dags/{dag_id}/dagRuns`)
 - `action_id` used as `dag_run_id` — idempotency key (Airflow 409 → success, not error)
-- `execution_result` contains `{dag_run_id, dag_id, state, logical_date}` for full receipt traceability
-- Config via env vars: `AIRFLOW_BASE_URL`, `AIRFLOW_USERNAME`, `AIRFLOW_PASSWORD`
+- Config: `AIRFLOW_BASE_URL`, `AIRFLOW_USERNAME`, `AIRFLOW_PASSWORD`
 - `parameters.dag_id` required; `parameters.conf` and `parameters.logical_date` optional
-- 7 unit tests via in-process fake HTTP server (no external deps)
+
+### SalesforceAdapter — `salesforce.py`
+- `salesforce_update_record` — PATCH sObject via Salesforce REST API v57 (idempotent by nature)
+- `salesforce_create_record` — POST sObject; injects `Statis_Action_Id__c` as idempotency key
+- Config: `SALESFORCE_INSTANCE_URL`, `SALESFORCE_ACCESS_TOKEN`, `SALESFORCE_API_VERSION` (default `v57.0`)
+
+### ZendeskAdapter — `zendesk.py`
+- `zendesk_create_ticket` — POST ticket with `external_id = action_id` (idempotency key)
+- `zendesk_update_ticket` — PUT ticket status/comment
+- Config: `ZENDESK_SUBDOMAIN`, `ZENDESK_EMAIL`, `ZENDESK_API_TOKEN`
+
+### HubSpotAdapter — `hubspot.py`
+- `hubspot_update_contact` — PATCH contact properties via HubSpot CRM API v3
+- `hubspot_create_deal` — POST deal with `hs_unique_creation_key = action_id` (idempotency key); 409 → success
+- Config: `HUBSPOT_ACCESS_TOKEN`
 
 ---
 
@@ -119,6 +136,12 @@ Pure `PolicyEvaluator` — zero DB imports, fully unit-testable.
 |---|---|---|---|
 | `churn_retention_v1` | `retention_offer` | `churn_risk=true`, `min_ltv=1000`, `no_discount_days=30` | APPROVED |
 | `airflow_dag_trigger_v1` | `airflow_dag_trigger` | `operator_approved=true` | APPROVED |
+| `salesforce_update_record_v1` | `salesforce_update_record` | `operator_approved=true` | APPROVED |
+| `salesforce_create_record_v1` | `salesforce_create_record` | `operator_approved=true` | APPROVED |
+| `zendesk_create_ticket_v1` | `zendesk_create_ticket` | `operator_approved=true` | APPROVED |
+| `zendesk_update_ticket_v1` | `zendesk_update_ticket` | `operator_approved=true` | APPROVED |
+| `hubspot_update_contact_v1` | `hubspot_update_contact` | `operator_approved=true` | APPROVED |
+| `hubspot_create_deal_v1` | `hubspot_create_deal` | `operator_approved=true` | APPROVED |
 
 **Condition keys:**
 
@@ -173,7 +196,6 @@ Pure `PolicyEvaluator` — zero DB imports, fully unit-testable.
 |---|---|
 | Inspector | Entity-scoped Account Inspector |
 | Escalations | Tenant-wide escalation queue with approve/reject UI |
-| Events Feed | Coming soon |
 | Developers | API keys + subscriptions |
 
 **Escalation panel (`EscalationPanel.tsx`):**
@@ -185,9 +207,9 @@ Pure `PolicyEvaluator` — zero DB imports, fully unit-testable.
 
 ## TypeScript SDK — `sdk-ts/`
 
-### Status: ✅ Complete
+### Status: ✅ Complete — published to npm as `statis-ai@0.1.0`
 
-**Package:** `statis-ai` (npm), zero runtime dependencies (native `fetch`, Node 18+)
+**Package:** `statis-ai` (npm) · zero runtime dependencies · native `fetch` (Node 18+)
 **Build:** TypeScript 5 / CommonJS
 
 **Public surface:**
@@ -208,30 +230,10 @@ Pure `PolicyEvaluator` — zero DB imports, fully unit-testable.
 
 ## Python SDK — `sdk/`
 
-### Status: ✅ Complete
+### Status: ✅ Complete — published to PyPI as `statis-ai@0.1.0`
 
-**Package:** `statis-ai` (PyPI name), import as `statis`
+**Package:** `statis-ai` (PyPI), import as `statis`
 **Build backend:** hatchling | **Runtime dep:** `httpx>=0.24.0`
-
-```python
-from statis import StatisClient, ActionDeniedError, ActionEscalatedError, ActionTimeoutError
-
-with StatisClient(api_key="...", base_url="https://api.statis.dev") as client:
-    try:
-        receipt = client.execute(
-            action_type="retention_offer",
-            target={"entity_type": "account", "entity_id": "acct-1"},
-            parameters={"discount_pct": 20},
-            agent_id="csm-agent-v2",
-            target_system="stripe",
-        )
-    except ActionDeniedError as e:
-        print(f"Denied — {e.receipt.decision}")
-    except ActionEscalatedError as e:
-        print(f"Needs human review — action_id: {e.action_id}")
-    except ActionTimeoutError as e:
-        print(f"Timed out after {e.timeout}s")
-```
 
 **Public surface:**
 
@@ -244,12 +246,23 @@ with StatisClient(api_key="...", base_url="https://api.statis.dev") as client:
 | `ActionTimeoutError` | Raised by `execute()` on poll timeout; carries `.action_id`, `.timeout` |
 | `StatisError` | Raised on non-2xx API responses; carries `.status_code`, `.message` |
 
-**Behavior:**
 - `agent_id` param → `proposed_by` on the wire
 - `action_id` auto-generated as `statis-{uuid}` if not provided
 - `execute()` raises `ActionEscalatedError` immediately — agents should not block for human review
-- `get_action_status(action_id)` → raw status string for agents that need to poll manually
 - 11 unit tests via `respx` mocks — all passing
+
+---
+
+## Docs — `docs/`
+
+### Status: ✅ Complete — Mintlify, ready to deploy
+
+**Structure:**
+- **Guides:** Introduction, Quickstart, 4 primitive pages, Escalation, Adapters, Console
+- **SDKs:** Python + TypeScript full reference
+- **API Reference:** Introduction + 8 endpoint pages with curl examples and request/response schemas
+
+Deploy: connect `statis-ai/statis-core` to mintlify.com → set docs dir to `docs/` → point `docs.statis.dev` CNAME.
 
 ---
 
@@ -275,8 +288,6 @@ with StatisClient(api_key="...", base_url="https://api.statis.dev") as client:
 | FAQ + CTA | `FAQSection` | Animated accordion FAQ (light) + dark CTA block |
 | Footer | `FooterV2` | Logo, tagline, GitHub link |
 
-**Theme:** White/gray-50 backgrounds, `text-gradient` (indigo-600 → violet-600) on all H2 headers
-
 ---
 
 ## Demo Script — `examples/`
@@ -299,16 +310,14 @@ with StatisClient(api_key="...", base_url="https://api.statis.dev") as client:
 |---|---|
 | Render.com | `render.yaml` |
 | Heroku | `Procfile` |
+| DB | Neon PostgreSQL (18 migrations applied) |
 | Environment | `DATABASE_URL` env var |
-
-> ⚠️ Pending: run `alembic upgrade head` on deployed DB to apply migrations 0013–0015
 
 ---
 
 ## What's Next (not yet built)
 
-- [ ] Run `alembic upgrade head` on deployed DB (migrations 0013–0015)
-- [x] TypeScript SDK (`sdk-ts/`, published to npm as `statis-ai`)
-- [ ] Real adapter integrations (Salesforce, Zendesk, HubSpot)
+- [ ] Deploy docs site — connect `docs/` to Mintlify, point `docs.statis.dev`
 - [ ] VPC / self-hosted deployment option
-- [ ] Landing: Docs site
+- [ ] More adapter integrations (Salesforce Connected App OAuth, Hubspot OAuth)
+- [ ] TypeScript SDK — async/streaming variant
