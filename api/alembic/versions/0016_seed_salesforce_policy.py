@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "0016_seed_salesforce_policy"
-down_revision = "0015_create_escalation_reviews_table"
+down_revision = "0015_create_escalation_reviews"
 branch_labels = None
 depends_on = None
 
