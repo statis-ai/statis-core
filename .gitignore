@@ -57,3 +57,11 @@ htmlcov/
 # Cache
 .cache/
 **/.cache/
+
+# Build outputs
+sdk/dist/
+sdk-ts/dist/
+
+# Archived / unused files
+landing/public/_archive/
+landing/src/components/_archive/
