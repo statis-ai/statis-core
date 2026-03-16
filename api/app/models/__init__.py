@@ -21,3 +21,5 @@ __all__ = [
     "Receipt",
     "Subscription",
 ]
+# user model added
+from app.models.user import User  # noqa
