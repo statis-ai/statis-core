@@ -55,7 +55,7 @@ export default function EscalationPanel() {
       {/* Queue list */}
       <div className="w-1/2 flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+          <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
             Escalation Queue
           </h2>
           {items.length > 0 && (
@@ -85,7 +85,7 @@ export default function EscalationPanel() {
                 className={`text-left rounded-lg border px-4 py-3 transition-colors ${
                   isSelected
                     ? "border-brand-warn bg-brand-warn/10"
-                    : "border-brand-border bg-brand-surface/40 hover:bg-brand-surface/80"
+                    : "border-brand-border bg-white hover:bg-gray-50"
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
@@ -94,7 +94,7 @@ export default function EscalationPanel() {
                   </span>
                   <span className="text-xs text-brand-warn font-semibold">ESCALATED</span>
                 </div>
-                <div className="text-xs text-white font-medium">{item.action_type}</div>
+                <div className="text-xs text-gray-900 font-medium">{item.action_type}</div>
                 <div className="text-xs text-brand-muted mt-0.5">
                   {item.target_entity.entity_type} / {item.target_entity.entity_id}
                   {" · "}proposed by {item.proposed_by}
@@ -112,11 +112,11 @@ export default function EscalationPanel() {
       <div className="w-1/2 flex flex-col gap-4">
         {selected ? (
           <>
-            <h2 className="text-sm font-semibold text-white uppercase tracking-wider">
+            <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">
               Review Action
             </h2>
 
-            <div className="rounded-lg border border-brand-border bg-brand-surface/40 p-4 space-y-2 text-xs">
+            <div className="rounded-lg border border-brand-border bg-white p-4 space-y-2 text-xs">
               <Row label="Action ID" value={selected.action_id} mono />
               <Row label="Type" value={selected.action_type} />
               <Row label="Target" value={`${selected.target_entity.entity_type} / ${selected.target_entity.entity_id}`} />
@@ -133,7 +133,7 @@ export default function EscalationPanel() {
                 value={reviewerId}
                 onChange={(e) => setReviewerId(e.target.value)}
                 placeholder="your-name or user-id"
-                className="bg-brand-surface border border-brand-border rounded-md px-3 py-2 text-sm text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-accent"
+                className="bg-white border border-brand-border rounded-md px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20"
               />
             </div>
 
@@ -144,7 +144,7 @@ export default function EscalationPanel() {
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
                 placeholder="Reason for approval or rejection…"
-                className="bg-brand-surface border border-brand-border rounded-md px-3 py-2 text-sm text-white placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-accent resize-none"
+                className="bg-white border border-brand-border rounded-md px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 resize-none"
               />
             </div>
 
@@ -171,7 +171,7 @@ export default function EscalationPanel() {
 
             <button
               onClick={() => setSelected(null)}
-              className="text-xs text-brand-muted hover:text-white transition-colors"
+              className="text-xs text-brand-muted hover:text-gray-900 transition-colors"
             >
               ← Back to queue
             </button>
@@ -190,7 +190,7 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
   return (
     <div className="flex gap-2">
       <span className="text-brand-muted w-24 shrink-0">{label}</span>
-      <span className={`text-white break-all ${mono ? "font-mono" : ""}`}>{value}</span>
+      <span className={`text-gray-900 break-all ${mono ? "font-mono" : ""}`}>{value}</span>
     </div>
   );
 }

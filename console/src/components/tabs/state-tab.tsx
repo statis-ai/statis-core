@@ -43,8 +43,8 @@ export default function StateTab({ entityType, entityId }: Props) {
         </h3>
         <pre
           data-testid="state-json"
-          className="rounded border border-brand-border bg-brand-statist p-4
-                     text-xs font-mono text-brand-accent overflow-auto max-h-[28rem]"
+          className="rounded border border-brand-border bg-gray-50 p-4
+                     text-xs font-mono text-indigo-600 overflow-auto max-h-[28rem]"
         >
           {JSON.stringify(data.state, null, 2)}
         </pre>
@@ -75,9 +75,9 @@ function MetaChip({
   mono?: boolean;
 }) {
   return (
-    <div className="rounded border border-brand-border bg-brand-surface px-3 py-2">
+    <div className="rounded border border-brand-border bg-white px-3 py-2">
       <span className="text-brand-muted text-xs uppercase tracking-wider">{label}</span>
-      <p className={`mt-0.5 text-white text-sm ${mono ? "font-mono" : ""} truncate max-w-[20rem]`}>
+      <p className={`mt-0.5 text-gray-900 text-sm ${mono ? "font-mono" : ""} truncate max-w-[20rem]`}>
         {value}
       </p>
     </div>

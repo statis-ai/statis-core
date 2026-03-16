@@ -39,39 +39,25 @@ export default function TimelineTab({ entityType, entityId }: Props) {
 
   return (
     <div className="space-y-2">
-      <p className="text-xs text-brand-muted">
-        {events.length} event{events.length !== 1 ? "s" : ""}
-      </p>
-      <div className="divide-y divide-brand-border rounded border border-brand-border overflow-hidden">
+      <p className="text-xs text-brand-muted">{events.length} event{events.length !== 1 ? "s" : ""}</p>
+      <div className="divide-y divide-brand-border rounded-lg border border-brand-border overflow-hidden">
         {events.map((ev) => {
           const isOpen = expanded.has(ev.event_id);
           return (
-            <div key={ev.event_id} className="bg-brand-surface">
+            <div key={ev.event_id} className="bg-white">
               <button
                 onClick={() => toggle(ev.event_id)}
-                className="w-full flex items-center gap-4 px-4 py-3 text-left text-sm
-                           hover:bg-brand-statist/60 transition-colors"
+                className="w-full flex items-center gap-4 px-4 py-3 text-left text-sm hover:bg-gray-50 transition-colors"
               >
-                <span className="text-brand-accent font-mono text-xs shrink-0">
-                  {isOpen ? "▾" : "▸"}
-                </span>
-                <span className="font-mono text-xs text-brand-muted w-36 shrink-0 truncate">
-                  {ev.event_id}
-                </span>
-                <span className="font-semibold text-white truncate">
-                  {ev.event_type}
-                </span>
-                <span className="ml-auto text-xs text-brand-muted shrink-0">
-                  {new Date(ev.occurred_at).toLocaleString()}
-                </span>
-                <span className="text-xs text-brand-muted shrink-0">
-                  {ev.producer}
-                </span>
+                <span className="text-brand-accent font-mono text-xs shrink-0">{isOpen ? "▾" : "▸"}</span>
+                <span className="font-mono text-xs text-brand-muted w-36 shrink-0 truncate">{ev.event_id}</span>
+                <span className="font-semibold text-gray-900 truncate">{ev.event_type}</span>
+                <span className="ml-auto text-xs text-brand-muted shrink-0">{new Date(ev.occurred_at).toLocaleString()}</span>
+                <span className="text-xs text-brand-muted shrink-0">{ev.producer}</span>
               </button>
               {isOpen && (
                 <div className="px-4 pb-3">
-                  <pre className="rounded bg-brand-statist border border-brand-border p-3
-                                  text-xs font-mono text-brand-accent overflow-auto max-h-60">
+                  <pre className="rounded-lg bg-gray-50 border border-brand-border p-3 text-xs font-mono text-indigo-600 overflow-auto max-h-60">
                     {JSON.stringify(ev.payload, null, 2)}
                   </pre>
                 </div>
