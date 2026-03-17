@@ -40,3 +40,6 @@ Statis is agent execution infrastructure — the layer between AI agents and pro
 **DB:** Neon PostgreSQL (connection string in session — not stored here)
 
 See `STATUS.md` for full build state.
+
+**Ops repo (cross-workstream context):** `/home/aniket/statis/statis-ops`
+At session start, also read `statis-ops/SYNC.md` for signals from other workstreams (landing, accelerator, marketing, security).
