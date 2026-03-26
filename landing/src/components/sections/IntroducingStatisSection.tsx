@@ -1,123 +1,225 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Zap } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AnimatedTerminal, TerminalLine } from "@/components/ui/AnimatedTerminal";
 
-const STEPS = [
+const STEPS: {
+    num: string;
+    tag: string;
+    label: string;
+    body: string;
+    lines: TerminalLine[];
+    accent: string;
+    border: string;
+    bg: string;
+    dot: string;
+    connector: string | null;
+}[] = [
     {
         num: "01",
-        label: "State Materializes",
         tag: "State Layer",
-        body: "Events are ingested. Statis materializes one authoritative, deterministic state — pushed instantly to every subscribed agent.",
-        accent: "text-brand-accent",
-        border: "border-brand-accent/20",
-        bg: "bg-brand-accent/5",
-        span: "lg:col-span-2",
+        label: "One authoritative state pushed to every agent.",
+        body: "Events are ingested. Statis materialises a single deterministic state snapshot — no stale caches, no fragmented reality.",
+        lines: [
+            { type: "prompt",  text: "GET /state/acct-8821" },
+            { type: "info",    text: "→ 200 OK" },
+            { type: "code",    text: "{" },
+            { type: "code",    text: '  "churn_risk": "HIGH",' },
+            { type: "code",    text: '  "ltv": 1200,' },
+            { type: "code",    text: '  "last_discount": null,' },
+            { type: "code",    text: '  "materialized_at": "T+00:00"' },
+            { type: "code",    text: "}" },
+        ],
+        accent: "text-[#00ffc8]",
+        border: "border-[#00ffc8]/20",
+        bg: "bg-[#00ffc8]/4",
+        dot: "bg-[#00ffc8] shadow-[0_0_10px_rgba(0,255,200,0.7)]",
+        connector: "from-[#00ffc8]/25",
     },
     {
         num: "02",
-        label: "Agent Proposes Action",
         tag: "Action Contract",
-        body: "Agent reads shared state and proposes a typed Action Contract — who, what, to whom, under what context. Nothing executes yet.",
+        label: "Agent proposes. Nothing executes yet.",
+        body: "The agent reads shared state and proposes a typed Action Contract. Intent declared. Side effects blocked until policy approves.",
+        lines: [
+            { type: "prompt",  text: "POST /actions" },
+            { type: "code",    text: "{" },
+            { type: "code",    text: '  "action_type": "apply_discount",' },
+            { type: "code",    text: '  "target": "acct-8821",' },
+            { type: "code",    text: '  "params": { "pct": 10 }' },
+            { type: "code",    text: "}" },
+            { type: "info",    text: "→ 201 PROPOSED  act-f93a" },
+        ],
         accent: "text-violet-400",
         border: "border-violet-500/20",
-        bg: "bg-violet-500/5",
-        span: "lg:col-span-1",
+        bg: "bg-violet-500/4",
+        dot: "bg-violet-400 shadow-[0_0_10px_rgba(139,92,246,0.7)]",
+        connector: "from-violet-500/25",
     },
     {
         num: "03",
-        label: "Policy Evaluates",
         tag: "Policy Engine",
-        body: "Pure deterministic rule: evaluate(action, state, history) → APPROVED | DENIED | ESCALATED. No ML. Auditable. Versioned.",
+        label: "Deterministic rule. No ML. Versioned.",
+        body: "Pure function: evaluate(action, state, history) → APPROVED | DENIED | ESCALATED. The exact rule version is receipted.",
+        lines: [
+            { type: "prompt",  text: "POST /actions/act-f93a/evaluate" },
+            { type: "info",    text: "→ rule: churn_retention_v1@1.0" },
+            { type: "info",    text: "→ churn_risk=HIGH ✓" },
+            { type: "info",    text: "→ ltv=1200 > 1000 ✓" },
+            { type: "info",    text: "→ no_discount_30d ✓" },
+            { type: "success", text: "→ APPROVED" },
+        ],
         accent: "text-sky-400",
         border: "border-sky-500/20",
-        bg: "bg-sky-500/5",
-        span: "lg:col-span-1",
+        bg: "bg-sky-500/4",
+        dot: "bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.7)]",
+        connector: "from-sky-500/25",
     },
     {
         num: "04",
-        label: "Executes Exactly Once",
-        tag: "Execution Guarantee",
-        body: "Distributed lock acquired. Adapter called once. If agent retries — receipt found — execution blocked. Stripe never called twice.",
+        tag: "Execution Lock",
+        label: "Exactly once. Always.",
+        body: "Distributed lock on the action ID. Adapter called once. If the agent retries — receipt found — execution blocked. External system never called twice.",
+        lines: [
+            { type: "info",    text: "→ lock acquired  act-f93a" },
+            { type: "info",    text: "→ salesforce.update(acct-8821)" },
+            { type: "success", text: "→ COMPLETED" },
+            { type: "spacer",  text: "" },
+            { type: "comment", text: "# agent retries 4s later:" },
+            { type: "prompt",  text: "POST /actions  { action_id: 'act-f93a' }" },
+            { type: "blocked", text: "→ 409  receipt exists — BLOCKED" },
+        ],
         accent: "text-emerald-400",
         border: "border-emerald-500/20",
-        bg: "bg-emerald-500/5",
-        span: "lg:col-span-1",
+        bg: "bg-emerald-500/4",
+        dot: "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.7)]",
+        connector: "from-emerald-500/25",
     },
     {
         num: "05",
-        label: "Receipt Written",
         tag: "Ledger",
-        body: "SHA-256 tamper-evident receipt: action, rule version, approver, timestamp, result. Immutable. Auditor-ready. Forever.",
+        label: "Tamper-evident receipt. Forever.",
+        body: "SHA-256 hash of the action, rule version, approver, timestamp, and result — written atomically. Immutable. Proof, not logs.",
+        lines: [
+            { type: "prompt",  text: "GET /actions/act-f93a/receipt" },
+            { type: "code",    text: "{" },
+            { type: "code",    text: '  "receipt_id": "rct-8821",' },
+            { type: "code",    text: '  "rule_id": "churn_retention_v1",' },
+            { type: "code",    text: '  "rule_version": "1.0",' },
+            { type: "code",    text: '  "hash": "sha256:3f9a8b2c..."' },
+            { type: "code",    text: "}" },
+            { type: "success", text: "→ immutable  tamper-evident" },
+        ],
         accent: "text-amber-400",
         border: "border-amber-500/20",
-        bg: "bg-amber-500/5",
-        span: "lg:col-span-1",
+        bg: "bg-amber-500/4",
+        dot: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.7)]",
+        connector: null,
     },
 ];
 
 export function IntroducingStatisSection() {
+    const [activeStep, setActiveStep] = useState<number | null>(null);
+
     return (
-        <section className="relative py-32 bg-black overflow-hidden border-t border-white/10">
-            {/* Ambient glows */}
-            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-brand-accent/10 blur-[140px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-500/10 blur-[140px] rounded-full pointer-events-none" />
+        <section className="relative py-32 overflow-hidden section-divider">
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#00ffc8]/6 blur-[140px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-500/6 blur-[140px] rounded-full pointer-events-none" />
 
-            <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
-                {/* Header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="max-w-3xl mx-auto mb-20 text-center"
+                    className="max-w-2xl mx-auto mb-20 text-center"
                 >
-                    <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-brand-accent flex items-center justify-center gap-2">
-                        <Zap className="w-4 h-4" />
-                        The Solution
+                    <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#00ffc8]">
+                        How It Works
                     </p>
-                    <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-[3.5rem] font-serif mb-6 leading-[1.1] text-gradient">
-                        From shared truth
-                        <br className="hidden sm:block" />
-                        to governed action.
+                    <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
+                        Every action flows through
+                        <br />
+                        <span className="text-gradient">five governed stages.</span>
                     </h2>
-                    <p className="text-lg sm:text-xl text-brand-muted leading-relaxed max-w-2xl mx-auto mb-8">
-                        Statis closes the loop. Agents read from one authoritative state. When they act, every action is proposed, evaluated against policy, executed exactly once, and receipted — permanently.
+                    <p className="text-[#7a7a8a] text-lg leading-relaxed">
+                        Hover any step to see the live API. Every stage auditable. Every execution exactly once.
                     </p>
                 </motion.div>
 
-                {/* Bento grid — 3 cols, first card spans 2 */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
-                    {STEPS.map((step, i) => (
-                        <motion.div
-                            key={step.num}
-                            initial={{ opacity: 0, y: 24 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: i * 0.08 }}
-                            className={`flex flex-col p-7 sm:p-8 rounded-[2rem] border ${step.border} ${step.bg} hover:shadow-lg hover:shadow-${step.accent.split('-')[1]}-500/10 transition-all duration-300 backdrop-blur-md ${step.span}`}
-                        >
-                            {/* Step number + tag */}
-                            <div className="flex items-center gap-2.5 mb-4">
-                                <span className={`font-mono text-[11px] font-bold tracking-[0.2em] ${step.accent}`}>
-                                    {step.num}
-                                </span>
-                                <span className={`text-[10px] font-mono font-semibold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full border ${step.border} ${step.accent}`}>
-                                    {step.tag}
-                                </span>
-                            </div>
+                {/* Vertical timeline — hover to expand terminal */}
+                <div className="relative max-w-4xl mx-auto">
+                    {STEPS.map((step, i) => {
+                        const isActive = activeStep === i;
+                        return (
+                            <motion.div
+                                key={step.num}
+                                initial={{ opacity: 0, y: 24 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5, delay: i * 0.08 }}
+                                className="relative flex gap-6 md:gap-10"
+                                onMouseEnter={() => setActiveStep(i)}
+                                onMouseLeave={() => setActiveStep(null)}
+                            >
+                                {/* Left: dot + connector */}
+                                <div className="flex flex-col items-center flex-shrink-0 pt-5">
+                                    <motion.div
+                                        animate={{ scale: isActive ? 1.4 : 1 }}
+                                        transition={{ duration: 0.2 }}
+                                        className={`w-3 h-3 rounded-full ${step.dot} ring-4 ring-[#050508] flex-shrink-0`}
+                                    />
+                                    {step.connector && (
+                                        <motion.div
+                                            animate={{ opacity: isActive ? 0.7 : 0.2 }}
+                                            className={`flex-1 w-px bg-gradient-to-b ${step.connector} to-transparent mt-2 min-h-[40px]`}
+                                        />
+                                    )}
+                                </div>
 
-                            <h3 className="text-white font-bold text-lg sm:text-xl mb-3">
-                                {step.label}
-                            </h3>
-                            <p className="text-gray-300 text-sm sm:text-[15px] leading-relaxed flex-1">
-                                {step.body}
-                            </p>
-                        </motion.div>
-                    ))}
+                                {/* Right: card */}
+                                <div className="flex-1 pb-8">
+                                    <motion.div
+                                        animate={{
+                                            borderColor: isActive ? undefined : undefined,
+                                        }}
+                                        className={`rounded-2xl border ${step.border} ${isActive ? step.bg : "bg-white/[0.02]"} p-6 md:p-7 transition-colors duration-300 cursor-default`}
+                                    >
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className={`font-mono text-[10px] font-bold tracking-[0.2em] ${step.accent}`}>{step.num}</span>
+                                            <span className={`text-[10px] font-mono font-semibold tracking-[0.12em] uppercase px-2.5 py-0.5 rounded-full border ${step.border} ${step.accent}`}>
+                                                {step.tag}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-white font-bold text-lg mb-2">{step.label}</h3>
+                                        <p className="text-[#7a7a8a] text-sm leading-relaxed mb-4">{step.body}</p>
+
+                                        {/* Animated terminal — expands on hover */}
+                                        <AnimatePresence>
+                                            {isActive && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: "auto" }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    transition={{ duration: 0.25, ease: "easeInOut" }}
+                                                    className="overflow-hidden"
+                                                >
+                                                    <AnimatedTerminal
+                                                        lines={step.lines}
+                                                        title={`statis — step ${step.num}`}
+                                                        className="mt-2"
+                                                    />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </motion.div>
+                                </div>
+                            </motion.div>
+                        );
+                    })}
                 </div>
-
             </div>
         </section>
     );

@@ -1,126 +1,154 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { GitCompare } from "lucide-react";
+
+const COMPARISONS = [
+    {
+        category: "State",
+        without: { tool: "Vector DB / RAG", desc: "Semantic retrieval — agent remembers", tag: "approximate" },
+        with:    { tool: "Statis State Layer", desc: "Deterministic shared reality — agents agree", tag: "exact" },
+    },
+    {
+        category: "Audit",
+        without: { tool: "Logs / Langfuse", desc: "Reconstruct what happened after the fact", tag: "reconstructed" },
+        with:    { tool: "Statis Ledger", desc: "SHA-256 tamper-evident receipt at execution time", tag: "proof" },
+    },
+    {
+        category: "Approval",
+        without: { tool: "Human-in-the-loop", desc: "Pause for human review every time", tag: "manual" },
+        with:    { tool: "Statis Policy Engine", desc: "Deterministic rule — versioned, auditable, no ML", tag: "automated" },
+    },
+    {
+        category: "Execution",
+        without: { tool: "Retry logic in agent code", desc: "Hopes for idempotency from the adapter", tag: "fragile" },
+        with:    { tool: "Statis Execution Lock", desc: "Distributed lock — adapter called exactly once", tag: "guaranteed" },
+    },
+];
 
 const NOT_CARDS = [
     {
         label: "Not Orchestration",
-        body: "LangGraph, AutoGen, CrewAI handle how agents reason and sequence. Statis governs when they act.",
+        sublabel: "vs LangGraph, AutoGen, CrewAI",
+        body: "They handle how agents reason and sequence. Statis governs the moment they act.",
+        accent: "border-violet-500/15 bg-violet-500/4",
+        tag: "text-violet-400",
     },
     {
         label: "Not Observability",
-        body: "Langfuse, Arize tell you what happened. Statis creates tamper-evident proof of what was approved and why.",
+        sublabel: "vs Langfuse, Arize",
+        body: "They tell you what happened. Statis creates tamper-evident proof of what was approved and why — before it happened.",
+        accent: "border-sky-500/15 bg-sky-500/4",
+        tag: "text-sky-400",
     },
     {
         label: "Not a Workflow Engine",
-        body: "Temporal, Inngest manage long-running workflows. Statis governs individual agent actions with write-access to production.",
+        sublabel: "vs Temporal, Inngest",
+        body: "They manage long-running workflows. Statis governs individual agent actions that have write-access to production.",
+        accent: "border-emerald-500/15 bg-emerald-500/4",
+        tag: "text-emerald-400",
     },
     {
         label: "Not Authorization",
-        body: "Permit.io, OPA handle who can do what. Statis adds: under what conditions, with what receipts, and exactly once.",
-    },
-];
-
-const COMPARISONS = [
-    {
-        left: { label: "Memory", desc: "Vector DBs help agents remember." },
-        right: { label: "Reality", desc: "Statis helps agents agree." },
-        detail: "When an agent needs context, use RAG. When it needs to know what's true right now — it needs shared reality.",
-    },
-    {
-        left: { label: "Logs", desc: "Observability tells you what happened." },
-        right: { label: "Receipts", desc: "Statis proves it." },
-        detail: "Logs are reconstructed. Receipts are cryptographically signed at the moment of execution, with the rule version that approved it.",
-    },
-    {
-        left: { label: "Human-in-loop", desc: "LangSmith can pause for human approval." },
-        right: { label: "Policy", desc: "Statis adds a deterministic policy engine." },
-        detail: "Rules that evaluate entity state, version-controlled, auditable, with no ML involved.",
+        sublabel: "vs Permit.io, OPA",
+        body: "They answer: who can do what? Statis answers: given current entity state, should this happen now — and proves it.",
+        accent: "border-amber-500/15 bg-amber-500/4",
+        tag: "text-amber-400",
     },
 ];
 
 export function MemoryVsRealitySection() {
     return (
-        <section className="relative py-32 bg-gray-50 overflow-hidden border-t border-gray-100">
-            {/* Ambient glows */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-100/50 blur-[140px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-rose-100/30 blur-[140px] rounded-full pointer-events-none" />
+        <section className="relative py-32 overflow-hidden section-divider">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-500/4 blur-[140px] rounded-full pointer-events-none" />
 
-            <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
                 {/* Header */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6 }}
+                    className="max-w-2xl mx-auto mb-16 text-center"
+                >
+                    <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-violet-400">
+                        The Distinction
+                    </p>
+                    <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
+                        What Statis <span className="text-gradient">is not.</span>
+                    </h2>
+                    <p className="text-[#7a7a8a] text-lg leading-relaxed">
+                        The agent infrastructure category is being defined now. Precision matters.
+                    </p>
+                </motion.div>
+
+                {/* Comparison table */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6 }}
-                    className="max-w-3xl mx-auto mb-20 text-center"
+                    transition={{ duration: 0.6, delay: 0.1 }}
+                    className="rounded-2xl border border-white/8 bg-[#0a0a12] overflow-hidden mb-10"
                 >
-                    <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-violet-600 flex items-center justify-center gap-2">
-                        <GitCompare className="w-4 h-4" />
-                        The Distinction
-                    </p>
-                    <h2 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-[3.5rem] font-serif mb-6 leading-[1.1] text-gradient">
-                        What Statis is not.
-                    </h2>
-                    <p className="text-lg sm:text-xl text-gray-500 leading-relaxed max-w-2xl mx-auto">
-                        Precision matters. The agent infrastructure category is being defined now. Here&rsquo;s where Statis ends and others begin.
-                    </p>
-                </motion.div>
+                    {/* Table header */}
+                    <div className="grid grid-cols-3 border-b border-white/8 bg-white/[0.02]">
+                        <div className="px-5 py-3.5 text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-[#4a4a6a]">Capability</div>
+                        <div className="px-5 py-3.5 text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-rose-400 border-l border-white/6">Without Statis</div>
+                        <div className="px-5 py-3.5 text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-[#00ffc8] border-l border-white/6">With Statis</div>
+                    </div>
 
-                {/* "Not X" cards grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-20">
-                    {NOT_CARDS.map((card, i) => (
+                    {COMPARISONS.map((row, i) => (
                         <motion.div
-                            key={card.label}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
+                            key={row.category}
+                            initial={{ opacity: 0, x: -8 }}
+                            whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: i * 0.07 }}
-                            className="flex gap-4 p-6 sm:p-7 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 shadow-sm transition-all duration-300"
+                            transition={{ duration: 0.4, delay: i * 0.07 }}
+                            className={`grid grid-cols-3 ${i < COMPARISONS.length - 1 ? "border-b border-white/5" : ""}`}
                         >
-                            <div className="shrink-0 w-1.5 h-1.5 rounded-full bg-rose-500/60 mt-2" />
-                            <div>
-                                <h3 className="font-bold text-gray-900 mb-2">{card.label}</h3>
-                                <p className="text-gray-500 text-sm leading-relaxed">{card.body}</p>
+                            {/* Category */}
+                            <div className="px-5 py-4 flex items-start">
+                                <span className="text-[#5a5a7a] text-xs font-mono font-semibold uppercase tracking-widest">{row.category}</span>
+                            </div>
+
+                            {/* Without */}
+                            <div className="px-5 py-4 border-l border-white/5">
+                                <div className="text-xs font-mono text-[#5a5a7a] mb-1">{row.without.tool}</div>
+                                <div className="text-xs text-[#6a6a7a] leading-relaxed">{row.without.desc}</div>
+                                <span className="inline-block mt-2 text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border border-rose-500/20 text-rose-400/70">{row.without.tag}</span>
+                            </div>
+
+                            {/* With Statis */}
+                            <div className="px-5 py-4 border-l border-white/5 bg-[#00ffc8]/[0.015]">
+                                <div className="text-xs font-mono text-[#00ffc8] mb-1">{row.with.tool}</div>
+                                <div className="text-xs text-[#8a8a9a] leading-relaxed">{row.with.desc}</div>
+                                <span className="inline-block mt-2 text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border border-[#00ffc8]/20 text-[#00ffc8]/70">{row.with.tag}</span>
                             </div>
                         </motion.div>
                     ))}
-                </div>
+                </motion.div>
 
-                {/* Comparison pairs */}
-                <div className="space-y-5">
-                    {COMPARISONS.map((comp, i) => (
+                {/* Not X cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {NOT_CARDS.map((card, i) => (
                         <motion.div
-                            key={comp.left.label}
-                            initial={{ opacity: 0, y: 20 }}
+                            key={card.label}
+                            initial={{ opacity: 0, y: 16 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: i * 0.08 }}
-                            className="p-6 sm:p-8 rounded-2xl bg-white border border-gray-100 hover:border-gray-200 shadow-sm transition-all duration-300"
+                            transition={{ duration: 0.45, delay: i * 0.07 }}
+                            className={`flex gap-4 p-6 rounded-2xl border ${card.accent} cursor-default`}
                         >
-                            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 mb-4">
-                                {/* Left */}
-                                <div className="flex-1 text-center sm:text-right">
-                                    <p className="text-gray-400 text-xs font-mono uppercase tracking-widest mb-1">{comp.left.label}</p>
-                                    <p className="text-gray-500 text-sm">{comp.left.desc}</p>
-                                </div>
-
-                                {/* vs */}
-                                <div className="shrink-0 flex items-center justify-center">
-                                    <span className="text-gray-400 text-xs font-mono uppercase tracking-widest px-3 py-1 border border-gray-200 rounded-full">vs</span>
-                                </div>
-
-                                {/* Right */}
-                                <div className="flex-1 text-center sm:text-left">
-                                    <p className="text-indigo-600 text-xs font-mono uppercase tracking-widest mb-1">{comp.right.label}</p>
-                                    <p className="text-gray-900 font-semibold text-sm">{comp.right.desc}</p>
-                                </div>
+                            <div className="shrink-0 mt-1">
+                                <div className="w-1 h-1 rounded-full bg-rose-500/60 shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
                             </div>
-                            <p className="text-gray-500 text-sm leading-relaxed text-center border-t border-gray-100 pt-4">
-                                {comp.detail}
-                            </p>
+                            <div>
+                                <div className="flex items-baseline gap-2 mb-0.5">
+                                    <h3 className="font-bold text-white text-sm">{card.label}</h3>
+                                    <span className={`text-[10px] font-mono ${card.tag}`}>{card.sublabel}</span>
+                                </div>
+                                <p className="text-[#7a7a8a] text-sm leading-relaxed">{card.body}</p>
+                            </div>
                         </motion.div>
                     ))}
                 </div>

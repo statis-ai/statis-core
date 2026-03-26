@@ -1,139 +1,150 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { AlertTriangle } from "lucide-react";
+import { AnimatedTerminal, TerminalLine } from "@/components/ui/AnimatedTerminal";
 
-function Incident({ text }: { text: string }) {
-    return (
-        <div className="flex items-start gap-2.5">
-            <span className="mt-[6px] shrink-0 w-1.5 h-1.5 rounded-full bg-rose-400 shadow-[0_0_8px_rgba(251,113,133,0.5)]" />
-            <p className="text-sm text-gray-600 leading-snug">{text}</p>
-        </div>
-    );
-}
-
-const READ_INCIDENTS = [
-    "Support agent flags churn risk. Sales agent books an upsell call. No one told Sales.",
-    "State cached 6 minutes ago. Action taken now. Gap is invisible until it isn't.",
-    "No single \"moment in time\" you can query. You reconstruct — after the damage.",
+// Two agents reading divergent state of the same customer
+const AGENT_STATES = [
+    {
+        name: "Agent A",
+        color: "text-sky-400",
+        border: "border-sky-500/20",
+        bg: "bg-sky-500/5",
+        dot: "bg-sky-400",
+        fields: [
+            { key: "churn_risk", value: "HIGH",       accent: "text-rose-400" },
+            { key: "last_action", value: "email_sent", accent: "text-sky-400" },
+            { key: "cached_at",  value: "T−06:00",    accent: "text-amber-400" },
+        ],
+        action: "→ books upsell call",
+        actionColor: "text-sky-400",
+    },
+    {
+        name: "Agent B",
+        color: "text-violet-400",
+        border: "border-violet-500/20",
+        bg: "bg-violet-500/5",
+        dot: "bg-violet-400",
+        fields: [
+            { key: "churn_risk", value: "LOW",        accent: "text-emerald-400" },
+            { key: "last_action", value: "none",      accent: "text-[#5a5a7a]" },
+            { key: "cached_at",  value: "T−18:00",   accent: "text-rose-400" },
+        ],
+        action: "→ sends churn warning",
+        actionColor: "text-violet-400",
+    },
 ];
 
-const WRITE_INCIDENTS = [
-    "Retry logic fires twice. Stripe is charged twice. Customer is furious twice.",
-    "Agent applies a 40% discount. No rule said it could. No record says it happened.",
-    "Auditor asks: who approved this? What policy? You have logs. Not proof.",
+// Salesforce mass-update disaster
+const WRITE_LINES: TerminalLine[] = [
+    { type: "comment", text: "# Agent: mark trial_expired accounts as churned" },
+    { type: "prompt",  text: "salesforce.bulk_update(filter='status=trial_expired'," },
+    { type: "code",    text: "  fields={'status': 'churned'}, n=847)" },
+    { type: "success", text: "→ 200  updated 847 records  job_id: BJ-7821" },
+    { type: "spacer",  text: "" },
+    { type: "comment", text: "# network blip — agent retries 8s later" },
+    { type: "prompt",  text: "salesforce.bulk_update(filter='status=trial_expired'," },
+    { type: "code",    text: "  fields={'status': 'churned'}, n=847)" },
+    { type: "success", text: "→ 200  updated 847 records  job_id: BJ-7822" },
+    { type: "spacer",  text: "" },
+    { type: "blocked", text: "✗ 1,694 history entries. Timeline corrupted." },
+    { type: "blocked", text: "✗ No policy approved this. No receipt exists." },
+    { type: "blocked", text: "✗ Auditor: \"who ran this at 03:14?\"  You: \"...\"" },
 ];
 
 export function BentoFeaturesSection() {
     return (
-        <section className="relative py-24 bg-gray-50/50 overflow-hidden border-t border-gray-100">
-            {/* Ambient glows */}
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-rose-100/40 blur-[120px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-100/40 blur-[120px] rounded-full pointer-events-none" />
+        <section className="relative py-28 overflow-hidden section-divider">
+            <div className="absolute top-0 right-0 w-[700px] h-[400px] bg-rose-500/5 blur-[120px] rounded-full pointer-events-none" />
 
             <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
-                {/* Section header */}
                 <motion.div
-                    initial={{ opacity: 0, y: 15 }}
+                    initial={{ opacity: 0, y: 12 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5 }}
                     className="max-w-2xl mx-auto mb-16 text-center"
                 >
-                    <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-rose-500 flex items-center justify-center gap-1.5">
-                        <AlertTriangle className="w-3.5 h-3.5" />
+                    <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-rose-400">
                         The Problem
                     </p>
-                    <h2 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-[2.75rem] font-serif mb-4 leading-[1.1] text-gradient">
-                        Two ways autonomous systems
-                        <br className="hidden sm:block" />
-                        fail in production.
+                    <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
+                        Agents acting on
+                        <span className="text-rose-400"> different truths.</span>
                     </h2>
-                    <p className="text-base sm:text-lg text-gray-500 leading-relaxed mx-auto">
-                        Demos work. Then agents hit real systems, real state, real consequences — and the cracks appear.
+                    <p className="text-[#7a7a8a] text-lg leading-relaxed">
+                        Without a shared execution layer, every agent materialises its own version of reality — then acts on it, unsupervised.
                     </p>
                 </motion.div>
 
-                {/* Problem cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                    {/* Problem 01 — The Read Problem */}
+                    {/* Problem 1 — Fragmented State */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 24 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.1 }}
-                        className="group flex flex-col p-7 sm:p-8 rounded-[2rem] bg-white border border-gray-100 hover:border-gray-200 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
+                        className="rounded-2xl border border-white/8 bg-[#0b0b14] p-7 flex flex-col gap-6"
                     >
-                        {/* Card header */}
-                        <div className="mb-6">
-                            <span className="inline-block text-[10px] font-mono font-semibold tracking-[0.2em] text-rose-400 uppercase mb-2.5">
-                                Problem 01
-                            </span>
-                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 font-serif mb-3">
-                                The Read Problem
-                            </h3>
-                            <p className="text-sm text-gray-500 leading-relaxed">
-                                Agents fragment state. Each one materializes its own version of reality from slightly different data, at slightly different times. One agent thinks a customer is at risk. Another doesn&rsquo;t. Both act — on different truths.
+                        <div>
+                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-rose-400 uppercase">Problem 01</span>
+                            <h3 className="text-xl font-bold text-white mt-2 mb-1.5">Fragmented State</h3>
+                            <p className="text-sm text-[#7a7a8a] leading-relaxed">
+                                Two agents. Same customer. Cached at different times. Both act — on different truths. Customer receives both.
                             </p>
                         </div>
 
-                        {/* Incident log */}
-                        <div className="flex-1 space-y-3 mb-6 p-4 rounded-xl bg-gray-50/80 border border-gray-100">
-                            <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-3.5 flex items-center gap-2">
-                                <span className="w-2 h-[1px] bg-gray-300" /> incident log
-                            </p>
-                            {READ_INCIDENTS.map((text) => (
-                                <Incident key={text} text={text} />
+                        <div className="grid grid-cols-2 gap-3">
+                            {AGENT_STATES.map((agent) => (
+                                <div key={agent.name} className={`rounded-xl border ${agent.border} ${agent.bg} p-3.5`}>
+                                    <div className="flex items-center gap-1.5 mb-3">
+                                        <span className={`w-1.5 h-1.5 rounded-full ${agent.dot}`} />
+                                        <span className={`text-[10px] font-mono font-bold ${agent.color}`}>{agent.name}</span>
+                                    </div>
+                                    <div className="space-y-1.5 mb-3">
+                                        {agent.fields.map(f => (
+                                            <div key={f.key} className="flex justify-between gap-2">
+                                                <span className="font-mono text-[10px] text-[#4a4a6a]">{f.key}</span>
+                                                <span className={`font-mono text-[10px] font-bold ${f.accent}`}>{f.value}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className={`text-[10px] font-mono border-t border-white/6 pt-2 ${agent.actionColor}`}>
+                                        {agent.action}
+                                    </div>
+                                </div>
                             ))}
                         </div>
 
-                        {/* Closing statement */}
-                        <p className="text-sm sm:text-base font-serif text-gray-900 leading-snug">
-                            Today&rsquo;s AI systems coordinate messages.{" "}
-                            <span className="text-rose-500 italic font-medium">They don&rsquo;t coordinate state.</span>
+                        <p className="text-xs text-rose-400/80 font-mono border-t border-white/6 pt-4">
+                            ✗ No shared reality. Conflicting actions. Customer receives both.
                         </p>
                     </motion.div>
 
-                    {/* Problem 02 — The Write Problem */}
+                    {/* Problem 2 — Unguarded Execution: Salesforce mass-update */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 24 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="group flex flex-col p-7 sm:p-8 rounded-[2rem] bg-white border border-gray-100 hover:border-gray-200 transition-all duration-300 shadow-sm hover:shadow-md hover:-translate-y-1"
+                        className="rounded-2xl border border-white/8 bg-[#0b0b14] p-7 flex flex-col gap-5"
                     >
-                        {/* Card header */}
-                        <div className="mb-6">
-                            <span className="inline-block text-[10px] font-mono font-semibold tracking-[0.2em] text-rose-400 uppercase mb-2.5">
-                                Problem 02
-                            </span>
-                            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 font-serif mb-3">
-                                The Write Problem
-                            </h3>
-                            <p className="text-sm text-gray-500 leading-relaxed">
-                                Now agents act. They call Stripe. They update Salesforce. They send emails. Once state is shared and agents agree on what&rsquo;s true — what stops them from acting on it without oversight, twice, or forever?
+                        <div>
+                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-rose-400 uppercase">Problem 02</span>
+                            <h3 className="text-xl font-bold text-white mt-2 mb-1.5">Unguarded Execution</h3>
+                            <p className="text-sm text-[#7a7a8a] leading-relaxed">
+                                Agent bulk-updates 847 Salesforce records. Network blips. It retries. 1,694 history entries. No policy. No receipt. Auditor asks who approved this.
                             </p>
                         </div>
 
-                        {/* Incident log */}
-                        <div className="flex-1 space-y-3 mb-6 p-4 rounded-xl bg-gray-50/80 border border-gray-100">
-                            <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest mb-3.5 flex items-center gap-2">
-                                <span className="w-2 h-[1px] bg-gray-300" /> incident log
-                            </p>
-                            {WRITE_INCIDENTS.map((text) => (
-                                <Incident key={text} text={text} />
-                            ))}
-                        </div>
-
-                        {/* Closing statement */}
-                        <p className="text-sm sm:text-base font-serif text-gray-900 leading-snug">
-                            Shared state tells agents what&rsquo;s true.{" "}
-                            <span className="text-rose-500 italic font-medium">It doesn&rsquo;t govern what they can do about it.</span>
-                        </p>
+                        <AnimatedTerminal
+                            lines={WRITE_LINES}
+                            title="crm-agent — no policy engine"
+                            className="flex-1"
+                        />
                     </motion.div>
-
                 </div>
 
             </div>

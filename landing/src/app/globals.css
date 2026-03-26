@@ -3,44 +3,91 @@
 @tailwind utilities;
 
 :root {
-  --color-statist: #f9fafb;
-  --color-surface: #ffffff;
-  --color-border: #e5e7eb;
-  --color-accent: #4f46e5;
-  --color-accent-dim: rgba(79, 70, 229, 0.1);
-  --color-muted: #6b7280;
-  --color-success: #10b981;
+  --color-statist: #080810;
+  --color-surface: rgba(255, 255, 255, 0.04);
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-accent: #00ffc8;
+  --color-accent-dim: rgba(0, 255, 200, 0.12);
+  --color-muted: #8a8a9a;
+  --color-text: #e4e4f0;
+  --color-text-bright: #ffffff;
+  --color-success: #22c55e;
   --color-warn: #f59e0b;
   --color-flow-blue: #3b82f6;
   --color-alert-high: #ef4444;
   --color-alert-medium: #f59e0b;
 
-  --radius: 1rem;
+  --radius: 0.75rem;
   --duration-default: 300ms;
   --duration-slow: 600ms;
   --duration-fast: 150ms;
 
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Fira Code", monospace;
-  --font-serif: "Playfair Display", serif;
+  --font-serif: "Inter", system-ui, sans-serif;
 }
 
 body {
-  background: var(--color-statist);
-  color: #111827;
+  background-color: var(--color-statist);
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: 60px 60px;
+  color: var(--color-text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ── Aurora & Noise (Disabled for Light Theme) ─────────────────────────────────────── */
+/* ── Aurora ─────────────────────────────────────────────────── */
 
 .aurora {
-  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
 }
 
+.aurora::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(ellipse at center, rgba(0, 255, 200, 0.07) 0%, transparent 70%);
+  animation: auroraShift 12s ease-in-out infinite alternate;
+  border-radius: 50%;
+}
+
+.aurora::after {
+  content: "";
+  position: absolute;
+  bottom: -20%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+  animation: auroraShift 16s ease-in-out infinite alternate-reverse;
+  border-radius: 50%;
+}
+
+@keyframes auroraShift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(5%, 8%) scale(1.1); }
+}
+
+/* ── Noise Overlay ───────────────────────────────────────────── */
+
 .noise-overlay {
-  display: none;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
 }
 
 /* ── Animated border glow for cards ────────────────────────── */
@@ -86,23 +133,65 @@ body {
 
 @layer utilities {
   .glass-card {
-    background: #ffffff;
-    border: 1px solid var(--color-border);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: var(--radius);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    background: linear-gradient(135deg, #00ffc8 0%, #00d4ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .dot-pattern {
-    background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
-    background-size: 24px 24px;
+    background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 28px 28px;
   }
+
+  .accent-glow {
+    box-shadow: 0 0 24px rgba(0, 255, 200, 0.22), 0 0 60px rgba(0, 255, 200, 0.08);
+  }
+
+  .section-divider {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  /* Premium scanline grid — subtle depth texture */
+  .grid-texture {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.016) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.016) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Terminal chrome glow */
+  .terminal-glow {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.06),
+      0 24px 64px rgba(0,0,0,0.6),
+      0 0 80px rgba(0,255,200,0.04);
+  }
+}
+
+/* ── Global background orb drift ───────────────────────────── */
+
+@keyframes orb1Drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(4%, 6%) scale(1.08); }
+}
+
+@keyframes orb2Drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-5%, 8%) scale(1.12); }
+}
+
+@keyframes orb3Drift {
+  0%   { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(6%, -5%) scale(1.06); }
 }
 
 /* ── Nervous System Animations ─────────────────────────────── */

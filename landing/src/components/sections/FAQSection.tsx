@@ -33,7 +33,7 @@ const FAQS = [
 function ChevronIcon({ isOpen }: { isOpen: boolean }) {
     return (
         <svg
-            className={`w-4 h-4 text-slate-500 transform transition-transform duration-300 shrink-0 ${isOpen ? "rotate-180" : ""}`}
+            className={`w-4 h-4 text-[#5a5a6a] transform transition-transform duration-300 shrink-0 ${isOpen ? "rotate-180" : ""}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -49,7 +49,7 @@ export function FAQSection() {
     return (
         <>
             {/* FAQ */}
-            <section className="py-32 bg-gray-50 border-t border-gray-200">
+            <section className="py-32 section-divider">
                 <div className="mx-auto max-w-4xl px-6 lg:px-8">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
@@ -58,15 +58,15 @@ export function FAQSection() {
                         transition={{ duration: 0.6 }}
                         className="text-center mb-16"
                     >
-                        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-indigo-600">
+                        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#00ffc8]">
                             Questions
                         </p>
-                        <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl font-serif">
+                        <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
                             Frequently asked.
                         </h2>
                     </motion.div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                         {FAQS.map((faq, index) => {
                             const isOpen = openIndex === index;
                             return (
@@ -76,13 +76,13 @@ export function FAQSection() {
                                     whileInView={{ opacity: 1, y: 0 }}
                                     viewport={{ once: true }}
                                     transition={{ duration: 0.4, delay: index * 0.05 }}
-                                    className="border border-gray-200 bg-white rounded-2xl overflow-hidden transition-all duration-300 hover:border-indigo-200"
+                                    className={`rounded-2xl overflow-hidden transition-all duration-300 ${isOpen ? "glass-card border-white/14" : "glass-card hover:border-white/12"}`}
                                 >
                                     <button
                                         onClick={() => setOpenIndex(isOpen ? null : index)}
-                                        className="w-full flex justify-between items-center px-6 py-5 text-left focus:outline-none gap-4"
+                                        className="w-full flex justify-between items-center px-6 py-5 text-left focus:outline-none gap-4 cursor-pointer"
                                     >
-                                        <span className="font-semibold text-gray-900 text-sm sm:text-base">{faq.q}</span>
+                                        <span className="font-semibold text-white text-sm sm:text-base">{faq.q}</span>
                                         <ChevronIcon isOpen={isOpen} />
                                     </button>
                                     <AnimatePresence>
@@ -94,7 +94,7 @@ export function FAQSection() {
                                                 transition={{ duration: 0.28, ease: "easeInOut" }}
                                                 className="overflow-hidden"
                                             >
-                                                <div className="px-6 pb-5 text-gray-500 leading-relaxed text-sm">
+                                                <div className="px-6 pb-5 text-[#8a8a9a] leading-relaxed text-sm border-t border-white/6 pt-4">
                                                     {faq.a}
                                                 </div>
                                             </motion.div>
@@ -108,38 +108,69 @@ export function FAQSection() {
             </section>
 
             {/* CTA */}
-            <section className="relative py-32 bg-[#020617] overflow-hidden border-t border-white/5">
+            <section className="relative py-40 overflow-hidden section-divider grid-texture">
+                {/* Layered glows */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-[800px] h-[400px] bg-indigo-900/15 blur-[120px] rounded-full" />
+                    <div className="w-[900px] h-[500px] bg-[#00ffc8]/6 blur-[140px] rounded-full" />
                 </div>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[1px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-[500px] h-[300px] bg-violet-500/5 blur-[100px] rounded-full" />
+                </div>
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px bg-gradient-to-r from-transparent via-[#00ffc8]/25 to-transparent" />
 
-                <div className="relative z-10 mx-auto max-w-3xl px-6 lg:px-8 text-center">
+                <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 24 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.7 }}
                     >
-                        <h2 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-[3.25rem] font-serif mb-6 leading-[1.1]">
-                            Build agents that act
-                            <br className="hidden sm:block" />
-                            with authority.
+                        {/* Badge */}
+                        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#00ffc8]/20 bg-[#00ffc8]/6 px-4 py-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00ffc8] shadow-[0_0_6px_rgba(0,255,200,0.9)]" />
+                            <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-[#00ffc8]">
+                                Design Partner Program
+                            </span>
+                        </div>
+
+                        <h2 className="text-5xl sm:text-6xl md:text-[4rem] font-bold text-white mb-6 leading-[1.06]">
+                            Your agents are about
+                            <br />
+                            to do something real.
+                            <br />
+                            <span className="text-gradient">Make sure they&rsquo;re governed.</span>
                         </h2>
-                        <p className="text-lg sm:text-xl text-slate-400 leading-relaxed max-w-2xl mx-auto mb-10">
-                            Statis is looking for design partners — enterprise teams running AI agents with write-access to production systems. If your agents are about to do something real, let&rsquo;s talk.
+                        <p className="text-lg text-[#7a7a8a] leading-relaxed max-w-xl mx-auto mb-10">
+                            We&rsquo;re working with enterprise teams running AI agents with write-access to production systems. If that&rsquo;s you — let&rsquo;s talk.
                         </p>
-                        <a
-                            href="https://www.surveymonkey.com/r/GVKH2KR"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block rounded-full bg-indigo-600 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:scale-105 hover:bg-indigo-500 shadow-[0_0_30px_rgba(99,102,241,0.3)]"
-                        >
-                            Request Design Partner Access →
-                        </a>
-                        <p className="mt-6 text-xs text-slate-600 uppercase tracking-widest">
-                            Hosted today · VPC &amp; self-hosted options coming soon
-                        </p>
+
+                        <div className="flex flex-wrap justify-center gap-4 mb-8">
+                            <a
+                                href="https://www.surveymonkey.com/r/GVKH2KR"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 rounded-full bg-[#00ffc8] px-8 py-3.5 text-sm font-bold text-black transition-all hover:brightness-110 hover:scale-[1.02] shadow-[0_0_40px_rgba(0,255,200,0.3)] cursor-pointer"
+                            >
+                                Request Design Partner Access
+                                <span>→</span>
+                            </a>
+                            <a
+                                href="https://docs.statis.dev"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-8 py-3.5 text-sm font-medium text-[#c4c4d4] transition-all hover:bg-white/8 cursor-pointer"
+                            >
+                                Read the Docs
+                            </a>
+                        </div>
+
+                        <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-[11px] font-mono text-[#3a3a4a]">
+                            <span>api.statis.dev live</span>
+                            <span>·</span>
+                            <span>Python + TS SDKs on PyPI / npm</span>
+                            <span>·</span>
+                            <span>VPC options on roadmap</span>
+                        </div>
                     </motion.div>
                 </div>
             </section>

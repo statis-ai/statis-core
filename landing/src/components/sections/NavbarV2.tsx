@@ -5,44 +5,51 @@ import Image from "next/image";
 
 export function NavbarV2() {
     return (
-        <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-200 bg-white/80 backdrop-blur-xl">
-            <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
-                <Link href="/" className="flex items-center gap-2.5">
+        <header className="fixed inset-x-0 top-0 z-50 border-b border-white/6 bg-[#080810]/80 backdrop-blur-xl">
+            <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+                <Link href="/" className="flex items-center gap-2.5 cursor-pointer">
                     <Image
-                        src="/logomark-light.png"
+                        src="/logomark-transparent.png"
                         alt="Statis mark"
-                        width={32}
-                        height={32}
-                        className="shrink-0"
+                        width={28}
+                        height={28}
+                        className="shrink-0 rounded-md"
+                        style={{ filter: "drop-shadow(0 0 6px rgba(0,255,200,0.45))" }}
                         priority
                     />
-                    <span className="text-xl font-bold tracking-tight text-gray-900 font-serif">
+                    <span className="text-lg font-semibold tracking-tight text-gradient">
                         Statis
                     </span>
                 </Link>
 
-                <div className="flex items-center gap-8">
-                    <a href="https://docs.statis.dev" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-gray-500 hover:text-gray-900 sm:inline transition-colors">
+                <div className="flex items-center gap-6">
+                    <a href="https://docs.statis.dev" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer">
                         Docs
                     </a>
-                    <Link href="#demo" className="hidden text-sm text-gray-500 hover:text-gray-900 sm:inline transition-colors">
-                        Demo
-                    </Link>
-                    <Link href="#primitives" className="hidden text-sm text-gray-500 hover:text-gray-900 sm:inline transition-colors">
+                    <Link href="#primitives" className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer">
                         Primitives
                     </Link>
-                    <Link href="/blog" className="hidden text-sm text-gray-500 hover:text-gray-900 sm:inline transition-colors">
+                    <Link href="/blog" className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer">
                         Blog
                     </Link>
-                    <a href="https://github.com/statis-ai/statis-core" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-gray-500 hover:text-gray-900 sm:inline transition-colors">
+                    <a href="https://github.com/statis-ai/statis-sdk" target="_blank" rel="noopener noreferrer" className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer">
                         GitHub
                     </a>
                     <a
-                        href="https://www.surveymonkey.com/r/GVKH2KR"
-                        target="_blank" rel="noopener noreferrer"
-                        className="rounded-full bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition-all hover:bg-indigo-700 shadow-sm"
+                        href="https://console.statis.dev"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer"
                     >
-                        Request Design Partner Access
+                        Console
+                    </a>
+                    <a
+                        href="https://www.surveymonkey.com/r/GVKH2KR"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-full border border-[#00ffc8]/30 bg-[#00ffc8]/10 px-4 py-2 text-sm font-medium text-[#00ffc8] transition-all hover:bg-[#00ffc8]/18 hover:border-[#00ffc8]/50 cursor-pointer"
+                    >
+                        Get Access
                     </a>
                 </div>
             </nav>

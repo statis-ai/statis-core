@@ -9,102 +9,191 @@ const ParticleNetworkCanvas = dynamic(
     { ssr: false }
 );
 
+const API_LINES = [
+    { delay: 0,    text: "$ statis execute \\",                         color: "text-[#5a5a7a]" },
+    { delay: 0.05, text: '    --type apply_discount \\',                color: "text-[#5a5a7a]" },
+    { delay: 0.1,  text: '    --target acct-8821 \\',                   color: "text-[#5a5a7a]" },
+    { delay: 0.15, text: '    --context churn_risk=HIGH',               color: "text-[#5a5a7a]" },
+    { delay: 0.5,  text: "",                                             color: "" },
+    { delay: 0.6,  text: "→ 201 PROPOSED        act-f93a",              color: "text-[#8a8aaa]" },
+    { delay: 1.0,  text: "→ evaluating policy   churn_retention_v1",   color: "text-[#8a8aaa]" },
+    { delay: 1.5,  text: "→ APPROVED",                                  color: "text-[#00ffc8]" },
+    { delay: 2.0,  text: "→ lock acquired       act-f93a",              color: "text-sky-400" },
+    { delay: 2.4,  text: "→ stripe.discount(10%) executed",             color: "text-sky-400" },
+    { delay: 2.9,  text: "→ COMPLETED",                                 color: "text-emerald-400" },
+    { delay: 3.2,  text: "",                                             color: "" },
+    { delay: 3.4,  text: '→ receipt  sha256:3f9a8b2c…',                color: "text-amber-400" },
+    { delay: 3.7,  text: "→ rule     churn_retention_v1@1.0",           color: "text-amber-400" },
+    { delay: 4.0,  text: "→ idempotent  act-f93a already receipted",    color: "text-[#5a5a7a]" },
+];
+
+function ApiPreview() {
+    return (
+        <motion.div
+            initial={{ opacity: 0, x: 32 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="relative w-full max-w-[520px] mx-auto lg:mx-0"
+        >
+            {/* Glow behind the terminal */}
+            <div className="absolute -inset-4 bg-[#00ffc8]/6 blur-[60px] rounded-3xl pointer-events-none" />
+
+            {/* Terminal window */}
+            <div className="relative rounded-2xl border border-white/10 bg-[#07090f] overflow-hidden terminal-glow">
+                {/* Titlebar */}
+                <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/6 bg-white/[0.02]">
+                    <div className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
+                    <span className="ml-3 text-[11px] font-mono text-[#3a3a5a] tracking-wider">statis — agent execution</span>
+                    <div className="ml-auto flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#00ffc8] shadow-[0_0_6px_rgba(0,255,200,0.8)]" />
+                        <span className="text-[10px] font-mono text-[#00ffc8]">live</span>
+                    </div>
+                </div>
+
+                {/* Terminal body */}
+                <div className="p-5 font-mono text-[12px] leading-[1.9] min-h-[280px]">
+                    {API_LINES.map((line, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: line.delay + 0.8, duration: 0.3 }}
+                            className={line.color || "h-3"}
+                        >
+                            {line.text || "\u00A0"}
+                        </motion.div>
+                    ))}
+                    <motion.span
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: [0, 1, 0] }}
+                        transition={{ delay: 4.5, duration: 0.9, repeat: Infinity }}
+                        className="inline-block w-2 h-3.5 bg-[#00ffc8]/70 align-middle"
+                    />
+                </div>
+
+                {/* Bottom status bar */}
+                <div className="flex items-center justify-between px-5 py-2.5 border-t border-white/5 bg-white/[0.015]">
+                    <div className="flex items-center gap-4">
+                        <span className="text-[10px] font-mono text-[#3a3a5a]">api.statis.dev</span>
+                        <span className="text-[10px] font-mono text-[#3a3a5a]">v0.1.0</span>
+                    </div>
+                    <span className="text-[10px] font-mono text-emerald-500/70">exactly-once ✓</span>
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
 export function HeroV2() {
     return (
-        <section className="relative flex flex-col min-h-[92vh] items-center justify-center overflow-hidden pt-32 pb-20">
-            {/* Nervous System Background Animation */}
-            <div className="absolute inset-0 z-0 opacity-100">
+        <section className="relative flex flex-col min-h-screen items-center justify-center overflow-hidden grid-texture">
+            {/* Aurora ambient glow */}
+            <div className="aurora" />
+
+            {/* Particle network */}
+            <div className="absolute inset-0 z-0">
                 <ParticleNetworkCanvas />
             </div>
 
-            <div className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8 pb-10">
-                <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7 }}
-                    className="mx-auto max-w-4xl text-center"
-                >
-                    {/* Badge */}
+            {/* Vignette */}
+            <div className="absolute inset-0 z-[1] bg-[radial-gradient(ellipse_90%_70%_at_50%_50%,transparent_30%,#080810_100%)] pointer-events-none" />
+
+            <div className="relative z-10 mx-auto w-full max-w-7xl px-6 lg:px-8 pt-32 pb-20">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+                    {/* Left — copy */}
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
+                        initial={{ opacity: 0, y: 24 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
-                        className="mb-6 inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5"
+                        transition={{ duration: 0.7 }}
                     >
-                        <span className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">
-                            Agent Execution Infrastructure
-                        </span>
-                    </motion.div>
-
-                    {/* Headline */}
-                    <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl leading-[1.08] font-serif">
-                        Agents that read the truth.
-                        <br />
-                        <span className="text-gradient">Act on it safely.</span>
-                    </h1>
-
-                    {/* Sub-headline */}
-                    <p className="mx-auto mt-7 max-w-2xl text-lg text-gray-500 md:text-xl leading-relaxed">
-                        Statis is the execution layer between AI agents and production systems.
-                        Shared state in. Governed, receipted action out.
-                    </p>
-
-                    {/* Pill chain */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6, duration: 0.7 }}
-                        className="mt-10 flex flex-wrap items-center justify-center gap-2 text-sm font-medium cursor-default select-none"
-                    >
-                        {[
-                            "Shared State",
-                            "Policy Evaluation",
-                            "Exactly-Once Execution",
-                            "Tamper-Evident Receipt",
-                        ].map((label, i, arr) => (
-                            <span key={label} className="flex items-center gap-2">
-                                <span className="rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-1 text-indigo-700">
-                                    {label}
-                                </span>
-                                {i < arr.length - 1 && (
-                                    <span className="text-gray-300 font-light">→</span>
-                                )}
+                        {/* Badge */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: 0.1 }}
+                            className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#00ffc8]/20 bg-[#00ffc8]/6 px-4 py-1.5"
+                        >
+                            <span className="w-1.5 h-1.5 rounded-full bg-[#00ffc8] shadow-[0_0_6px_rgba(0,255,200,0.9)]" />
+                            <span className="text-xs font-mono font-semibold uppercase tracking-[0.2em] text-[#00ffc8]">
+                                Agent Execution Layer
                             </span>
-                        ))}
+                        </motion.div>
+
+                        {/* Headline */}
+                        <h1 className="text-[2.8rem] sm:text-5xl lg:text-[3.6rem] xl:text-[4rem] font-bold tracking-tight text-white leading-[1.08] mb-6">
+                            The layer between
+                            <br />
+                            AI agents and
+                            <br />
+                            <span className="text-gradient">production.</span>
+                        </h1>
+
+                        {/* Sub */}
+                        <p className="text-lg text-[#7a7a8a] leading-relaxed max-w-lg mb-8">
+                            Agents propose. Policy evaluates. Statis executes exactly once and writes a tamper-evident receipt. Every action. No exceptions.
+                        </p>
+
+                        {/* Primitive flow */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.6, duration: 0.7 }}
+                            className="flex flex-wrap items-center gap-1.5 mb-10 text-[11px] font-mono"
+                        >
+                            {[
+                                { label: "Propose", color: "text-[#00ffc8] border-[#00ffc8]/20 bg-[#00ffc8]/5" },
+                                { label: "Evaluate", color: "text-violet-400 border-violet-500/20 bg-violet-500/5" },
+                                { label: "Execute ×1", color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/5" },
+                                { label: "Receipt", color: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
+                            ].map(({ label, color }, i, arr) => (
+                                <span key={label} className="flex items-center gap-1.5">
+                                    <span className={`rounded-full border px-3 py-0.5 ${color}`}>{label}</span>
+                                    {i < arr.length - 1 && <span className="text-[#2a2a3a]">→</span>}
+                                </span>
+                            ))}
+                        </motion.div>
+
+                        {/* CTAs */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.75, duration: 0.6 }}
+                            className="flex flex-wrap items-center gap-3"
+                        >
+                            <a
+                                href="https://www.surveymonkey.com/r/GVKH2KR"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-full bg-[#00ffc8] px-7 py-3 text-sm font-semibold text-black transition-all hover:brightness-110 hover:scale-[1.02] shadow-[0_0_32px_rgba(0,255,200,0.25)] cursor-pointer"
+                            >
+                                Request Design Partner Access
+                            </a>
+                            <a
+                                href="https://docs.statis.dev"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-full border border-white/10 bg-white/[0.04] px-7 py-3 text-sm font-medium text-[#c4c4d4] transition-all hover:bg-white/8 hover:border-white/18 cursor-pointer"
+                            >
+                                Read the Docs →
+                            </a>
+                        </motion.div>
                     </motion.div>
 
-                    {/* CTAs */}
-                    <div className="mt-10 flex flex-wrap justify-center items-center gap-4">
-                        <a
-                            href="https://www.surveymonkey.com/r/GVKH2KR"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-full bg-indigo-600 px-8 py-3.5 text-sm font-semibold text-white transition-all hover:scale-105 hover:bg-indigo-700 shadow-sm"
-                        >
-                            Request Design Partner Access
-                        </a>
-                        <a
-                            href="https://docs.statis.dev"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded-full border border-gray-200 bg-white shadow-sm px-8 py-3.5 text-sm font-medium text-gray-900 transition-all hover:bg-gray-50"
-                        >
-                            Read the Docs →
-                        </a>
-                    </div>
-                </motion.div>
+                    {/* Right — API preview */}
+                    <ApiPreview />
+                </div>
 
-                {/* Bottom hint */}
+                {/* Scroll hint */}
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 1.2, duration: 1 }}
+                    transition={{ delay: 2, duration: 1 }}
                     className="mt-20 text-center"
                 >
-                    <p className="text-xs text-gray-400 uppercase tracking-widest">
-                        Scroll to see how it works
-                    </p>
-                    <div className="mx-auto mt-3 h-8 w-[1px] bg-gradient-to-b from-gray-300 to-transparent" />
+                    <div className="mx-auto h-10 w-px bg-gradient-to-b from-[#00ffc8]/20 to-transparent" />
                 </motion.div>
             </div>
         </section>

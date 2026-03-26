@@ -5,14 +5,14 @@ import { motion, useScroll, useTransform } from "framer-motion";
 
 function StaticFallback() {
     return (
-        <section className="py-24 bg-white border-t border-gray-100">
+        <section className="py-24 section-divider">
             <div className="mx-auto max-w-5xl px-6 text-center space-y-6">
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-gray-400 font-medium">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl text-[#4a4a5a] font-medium">
                     You wouldn&rsquo;t deploy code without CI/CD.
                 </h2>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl font-serif text-gray-900 font-bold leading-tight">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl text-white font-bold leading-tight">
                     You shouldn&rsquo;t deploy agents without{" "}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-500 text-[1.2em]">
+                    <span className="text-gradient">
                         Statis.
                     </span>
                 </h2>
@@ -52,17 +52,17 @@ export function ProblemBridgeSection() {
     return (
         <section
             ref={sectionRef}
-            className="relative bg-white border-t border-gray-100"
-            style={{ height: "200vh" }} // Provides plenty of scroll distance for the zoom
+            className="relative section-divider"
+            style={{ height: "200vh" }}
         >
             <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
 
-                {/* Subtle ambient glow in the background */}
+                {/* Ambient glow */}
                 <motion.div
                     className="absolute inset-0 pointer-events-none"
                     style={{
-                        background: "radial-gradient(ellipse at 50% 50%, rgba(99,102,241,0.08) 0%, transparent 60%)",
-                        opacity: useTransform(scrollYProgress, [0, 1], [0.4, 1])
+                        background: "radial-gradient(ellipse at 50% 50%, rgba(0,255,200,0.06) 0%, transparent 60%)",
+                        opacity: useTransform(scrollYProgress, [0, 1], [0.3, 1])
                     }}
                 />
 
@@ -70,13 +70,13 @@ export function ProblemBridgeSection() {
                     style={{ scale, opacity, filter }}
                     className="relative z-10 w-full max-w-6xl px-4 text-center flex flex-col items-center justify-center space-y-4 md:space-y-6"
                 >
-                    <h2 className="text-[clamp(1.2rem,2.5vw,2.5rem)] font-serif text-gray-400 font-medium leading-tight tracking-tight drop-shadow-sm">
+                    <h2 className="text-[clamp(1.2rem,2.5vw,2.5rem)] text-[#4a4a5a] font-medium leading-tight tracking-tight">
                         You wouldn&rsquo;t deploy code without CI/CD.
                     </h2>
 
-                    <h2 className="text-[clamp(1.8rem,4.5vw,4.5rem)] font-serif text-gray-900 font-extrabold leading-[1.1] tracking-tight">
+                    <h2 className="text-[clamp(1.8rem,4.5vw,4.5rem)] text-white font-bold leading-[1.1] tracking-tight">
                         You shouldn&rsquo;t deploy agents without<br className="hidden sm:block" />{" "}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-br from-indigo-500 to-violet-600 drop-shadow-sm text-[1.5em] tracking-tighter mix-blend-multiply">
+                        <span className="text-gradient">
                             Statis.
                         </span>
                     </h2>
