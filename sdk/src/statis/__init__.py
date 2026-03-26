@@ -1,6 +1,14 @@
 """Statis Python SDK."""
 
-from ._models import ActionDeniedError, ActionEscalatedError, ActionTimeoutError, Receipt, StatisError
+from ._models import (
+    ActionDeniedError,
+    ActionEscalatedError,
+    ActionTimeoutError,
+    Receipt,
+    StatisActionDenied,
+    StatisActionEscalated,
+    StatisError,
+)
 from .client import StatisClient
 
 __all__ = [
@@ -10,4 +18,6 @@ __all__ = [
     "ActionDeniedError",
     "ActionEscalatedError",
     "ActionTimeoutError",
+    "StatisActionDenied",
+    "StatisActionEscalated",
 ]

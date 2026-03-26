@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes.actions import router as actions_router
 from app.api.routes.events import router as events_router
+from app.api.routes.policy_rules import router as policy_rules_router
 from app.api.routes.receipts import router as receipts_router
 from app.api.routes.state import router as state_router
 from app.api.routes.subscriptions import router as subscriptions_router
@@ -30,6 +31,7 @@ app.add_middleware(
 )
 app.include_router(actions_router)
 app.include_router(events_router)
+app.include_router(policy_rules_router)
 app.include_router(receipts_router)
 app.include_router(state_router)
 app.include_router(subscriptions_router)

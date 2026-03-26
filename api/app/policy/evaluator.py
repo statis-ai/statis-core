@@ -203,5 +203,52 @@ class PolicyEvaluator:
             )
             return task_count >= int(value)
 
+        if key == "budget_remaining":
+            # value is a dict {category: limit_cents}.
+            # Passes when the budget's remaining amount for the action's category
+            # is at or above zero (i.e. budget has not been exhausted).
+            params: dict = {}
+            if action is not None:
+                params = (
+                    action.parameters
+                    if hasattr(action, "parameters")
+                    else action.get("parameters", {})
+                )
+            if not isinstance(value, dict):
+                return False
+            category: str = params.get("category", "")
+            budgets: dict = entity_state.get("budgets", {})
+            budget_entry: dict = budgets.get(category, {})
+            remaining = budget_entry.get("remaining", 0)
+            limit_cents = value.get(category, 0)
+            # Passes when remaining >= 0 and remaining >= limit_cents threshold
+            return float(remaining) >= float(limit_cents) and float(remaining) >= 0
+
+        if key == "max_trade_size":
+            # value is a number. Passes when action.parameters.notional <= value.
+            params = {}
+            if action is not None:
+                params = (
+                    action.parameters
+                    if hasattr(action, "parameters")
+                    else action.get("parameters", {})
+                )
+            notional = params.get("notional", 0)
+            return float(notional) <= float(value)
+
+        if key == "account_balance_min":
+            # value is a number (cents). Passes when
+            # entity_state.balance_cents - action.parameters.amount_cents >= value.
+            params = {}
+            if action is not None:
+                params = (
+                    action.parameters
+                    if hasattr(action, "parameters")
+                    else action.get("parameters", {})
+                )
+            balance = entity_state.get("balance_cents", 0)
+            amount = params.get("amount_cents", 0)
+            return float(balance) - float(amount) >= float(value)
+
         # Unknown condition key — fail closed (safe default).
         return False

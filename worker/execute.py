@@ -27,6 +27,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.adapters.airflow import AirflowAdapter
 from app.adapters.filesystem import FilesystemAdapter
+from app.adapters.generic import GenericAdapter
 from app.adapters.hubspot import HubSpotAdapter
 from app.adapters.salesforce import SalesforceAdapter
 from app.adapters.zendesk import ZendeskAdapter
@@ -43,6 +44,8 @@ BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10"))
 WORKER_ID = os.getenv("WORKER_ID", str(uuid.uuid4()))
 
 # Adapter registry: target_system → adapter instance
+_generic = GenericAdapter()
+
 ADAPTERS: dict[str, BaseAdapter] = {
     "stripe": MockStripeAdapter(),
     "airflow": AirflowAdapter(),
@@ -50,6 +53,11 @@ ADAPTERS: dict[str, BaseAdapter] = {
     "zendesk": ZendeskAdapter(),
     "hubspot": HubSpotAdapter(),
     "filesystem": FilesystemAdapter(),
+    # Keel action types — log-only via GenericAdapter
+    "log_expense": _generic,
+    "propose_trade": _generic,
+    "update_budget": _generic,
+    "log_tax_entry": _generic,
 }
 
 logging.basicConfig(

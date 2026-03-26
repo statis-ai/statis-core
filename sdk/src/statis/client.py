@@ -7,7 +7,15 @@ from typing import Any, Optional
 
 import httpx
 
-from ._models import ActionDeniedError, ActionEscalatedError, ActionTimeoutError, Receipt, StatisError
+from ._models import (
+    ActionDeniedError,
+    ActionEscalatedError,
+    ActionTimeoutError,
+    Receipt,
+    StatisActionDenied,
+    StatisActionEscalated,
+    StatisError,
+)
 
 
 class StatisClient:
@@ -124,6 +132,46 @@ class StatisClient:
         resp = self._http.get(f"/receipts/{action_id}")
         self._raise_for_status(resp)
         return self._parse_receipt(resp.json())
+
+    def wait_for_completion(
+        self,
+        action_id: str,
+        poll_interval: float = 2.0,
+        timeout: float = 60.0,
+    ) -> Receipt:
+        """Poll GET /actions/{action_id} until the action reaches a terminal state.
+
+        Returns the Receipt on COMPLETED.
+        Raises StatisActionDenied on DENIED.
+        Raises StatisActionEscalated on ESCALATED.
+        Raises ActionTimeoutError if timeout is reached before a terminal state.
+        """
+        deadline = time.monotonic() + timeout
+
+        while True:
+            resp = self._http.get(f"/actions/{action_id}")
+            self._raise_for_status(resp)
+            data = resp.json()
+            action_status: str = data["status"]
+
+            if action_status == "COMPLETED":
+                return self.get_receipt(action_id)
+
+            if action_status == "DENIED":
+                receipt = self.get_receipt(action_id)
+                raise StatisActionDenied(
+                    action_id=action_id,
+                    rule_id=receipt.rule_id,
+                    reason=f"Action denied by policy (rule={receipt.rule_id})",
+                )
+
+            if action_status == "ESCALATED":
+                raise StatisActionEscalated(action_id=action_id)
+
+            if time.monotonic() >= deadline:
+                raise ActionTimeoutError(action_id=action_id, timeout=timeout)
+
+            time.sleep(poll_interval)
 
     def close(self) -> None:
         self._http.close()
