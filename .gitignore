@@ -50,6 +50,7 @@ api/statis.db
 
 # Claude Code
 .claude/settings.local.json
+.claude/settings.json
 
 # Tests
 .pytest_cache/
