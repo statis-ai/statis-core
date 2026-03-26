@@ -28,26 +28,26 @@ export default function ReadyPage() {
   const router = useRouter();
   const { industry, actions, systems } = useOnboarding();
 
-  const rules = actions
-    .map((a) => RULE_MAP[a])
-    .filter(Boolean)
-    .slice(0, 3);
-
-  // Fallback rules
+  const rules = actions.map((a) => RULE_MAP[a]).filter(Boolean).slice(0, 3);
   const displayRules = rules.length > 0 ? rules : ["churn_retention_v1", "refund_eligibility_v1"];
-
   const adapters = systems.map((s) => ADAPTER_MAP[s]).filter(Boolean).slice(0, 4);
-
   const entities =
     industry === "fintech" ? ["acct-42", "cust-771", "acct-88"] :
     industry === "saas" ? ["acct-42", "acct-88", "tenant-9"] :
     ["entity-001", "entity-002", "entity-003"];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-10">
+    <div className="min-h-screen flex flex-col items-center justify-center p-10">
       <div className="w-full max-w-2xl">
         <div className="flex items-center gap-2.5 mb-10">
-          <Image src="/statis-mark.svg" alt="Statis" width={24} height={24} />
+          <Image
+            src="/logomark-transparent.png"
+            alt="Statis"
+            width={24}
+            height={24}
+            className="rounded-md"
+            style={{ filter: "drop-shadow(0 0 6px rgba(0,255,200,0.45))" }}
+          />
         </div>
 
         <motion.div
@@ -55,14 +55,14 @@ export default function ReadyPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-medium mb-4">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             Console ready
           </div>
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2 tracking-tight">
+          <h1 className="text-3xl font-semibold text-white mb-2 tracking-tight">
             Your Statis console is set up.
           </h1>
-          <p className="text-gray-500 text-sm mb-8">
+          <p className="text-[#6a6a8a] text-sm mb-8">
             Here&apos;s what was created for you. You can edit any of it from your console.
           </p>
         </motion.div>
@@ -73,15 +73,15 @@ export default function ReadyPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white rounded-xl border border-gray-200 p-5"
+            className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5"
           >
             <div className="flex items-center gap-2 mb-4">
-              <Shield size={15} className="text-indigo-500" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">Policies</span>
+              <Shield size={15} className="text-[#00ffc8]" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#5a5a7a]">Policies</span>
             </div>
             <ul className="flex flex-col gap-2">
               {displayRules.map((r) => (
-                <li key={r} className="font-mono text-xs text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-md">
+                <li key={r} className="font-mono text-xs text-[#00ffc8]/80 bg-[#00ffc8]/8 px-2.5 py-1.5 rounded-md border border-[#00ffc8]/15">
                   {r}
                 </li>
               ))}
@@ -93,15 +93,15 @@ export default function ReadyPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white rounded-xl border border-gray-200 p-5"
+            className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5"
           >
             <div className="flex items-center gap-2 mb-4">
-              <Database size={15} className="text-indigo-500" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">Entities</span>
+              <Database size={15} className="text-[#00ffc8]" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#5a5a7a]">Entities</span>
             </div>
             <ul className="flex flex-col gap-2">
               {entities.map((e) => (
-                <li key={e} className="font-mono text-xs text-gray-600 bg-gray-50 px-2.5 py-1.5 rounded-md">
+                <li key={e} className="font-mono text-xs text-[#8a8a9a] bg-white/4 px-2.5 py-1.5 rounded-md border border-white/8">
                   {e}
                 </li>
               ))}
@@ -113,20 +113,20 @@ export default function ReadyPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-white rounded-xl border border-gray-200 p-5"
+            className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5"
           >
             <div className="flex items-center gap-2 mb-4">
-              <Plug size={15} className="text-indigo-500" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-gray-400">Adapters</span>
+              <Plug size={15} className="text-[#00ffc8]" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#5a5a7a]">Adapters</span>
             </div>
             <ul className="flex flex-col gap-2">
               {(adapters.length > 0 ? adapters : [{ name: "Stripe", status: "connected" as const }]).map((a) => (
                 <li key={a.name} className="flex items-center justify-between">
-                  <span className="text-xs text-gray-700">{a.name}</span>
-                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                  <span className="text-xs text-[#c4c4d4]">{a.name}</span>
+                  <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
                     a.status === "connected"
-                      ? "bg-green-50 text-green-600"
-                      : "bg-blue-50 text-blue-600"
+                      ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"
+                      : "bg-sky-500/15 text-sky-400 border-sky-500/20"
                   }`}>
                     {a.status === "connected" ? "Connected" : "Ready"}
                   </span>
@@ -141,7 +141,7 @@ export default function ReadyPage() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
           onClick={() => router.push("/home")}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
+          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors"
         >
           Open my console
           <ArrowRight size={15} />

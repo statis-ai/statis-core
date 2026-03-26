@@ -15,10 +15,10 @@ const ACTIONS = [
 const FILTERS = ["All", "COMPLETED", "ESCALATED", "DENIED", "EXECUTING"];
 
 const STATUS_STYLES: Record<string, string> = {
-  COMPLETED: "bg-green-50 text-green-700 border-green-200",
-  ESCALATED: "bg-orange-50 text-orange-700 border-orange-200",
-  DENIED: "bg-red-50 text-red-700 border-red-200",
-  EXECUTING: "bg-blue-50 text-blue-700 border-blue-200",
+  COMPLETED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  ESCALATED: "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  DENIED: "bg-red-500/15 text-red-400 border-red-500/20",
+  EXECUTING: "bg-sky-500/15 text-sky-400 border-sky-500/20",
 };
 
 export default function ActionsPage() {
@@ -38,8 +38,8 @@ export default function ActionsPage() {
   return (
     <div className="p-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-[20px] font-semibold text-gray-900">Actions</h1>
-        <p className="text-xs text-gray-400 mt-0.5">{ACTIONS.length} total</p>
+        <h1 className="text-[20px] font-semibold text-white">Actions</h1>
+        <p className="text-xs text-[#5a5a7a] mt-0.5">{ACTIONS.length} total</p>
       </div>
 
       {/* Filters + Search */}
@@ -52,8 +52,8 @@ export default function ActionsPage() {
               className={cn(
                 "px-3 py-1.5 rounded-lg text-xs font-medium transition-colors",
                 filter === f
-                  ? "bg-indigo-600 text-white"
-                  : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  ? "bg-[#00ffc8]/15 text-[#00ffc8] border border-[#00ffc8]/30"
+                  : "bg-transparent border border-white/8 text-[#6a6a8a] hover:text-white hover:border-white/20"
               )}
             >
               {f}
@@ -61,21 +61,21 @@ export default function ActionsPage() {
           ))}
         </div>
         <div className="relative ml-auto">
-          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#4a4a6a]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search…"
-            className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48"
+            className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-white/8 bg-[#0a0a14] text-white placeholder:text-[#4a4a6a] focus:outline-none focus:ring-1 focus:ring-[#00ffc8]/40 w-48"
           />
         </div>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-[#0d0d1a] rounded-xl border border-white/8 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr className="text-[10px] uppercase tracking-widest text-gray-400">
+          <thead className="bg-[#0a0a14] border-b border-white/8">
+            <tr className="text-[10px] uppercase tracking-widest text-[#5a5a7a]">
               <th className="text-left px-5 py-3 font-semibold">Act ID</th>
               <th className="text-left px-5 py-3 font-semibold">Entity</th>
               <th className="text-left px-5 py-3 font-semibold">Action</th>
@@ -87,26 +87,26 @@ export default function ActionsPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((row, i) => (
-              <tr key={row.id} className={cn("border-b border-gray-100", i % 2 === 1 ? "bg-gray-50/30" : "bg-white")}>
-                <td className="px-5 py-3 font-mono text-xs text-indigo-600">{row.id}</td>
-                <td className="px-5 py-3 font-mono text-xs text-gray-700">{row.entity}</td>
-                <td className="px-5 py-3 font-mono text-xs text-gray-600">{row.action}</td>
-                <td className="px-5 py-3 font-mono text-xs text-gray-500">{row.param || "—"}</td>
+            {filtered.map((row) => (
+              <tr key={row.id} className="border-t border-white/5 hover:bg-white/[0.02] transition-colors">
+                <td className="px-5 py-3 font-mono text-xs text-[#00ffc8]">{row.id}</td>
+                <td className="px-5 py-3 font-mono text-xs text-[#c4c4d4]">{row.entity}</td>
+                <td className="px-5 py-3 font-mono text-xs text-[#8a8a9a]">{row.action}</td>
+                <td className="px-5 py-3 font-mono text-xs text-[#6a6a8a]">{row.param || "—"}</td>
                 <td className="px-5 py-3">
                   <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border", STATUS_STYLES[row.status])}>
                     {row.status}
                   </span>
                 </td>
-                <td className="px-5 py-3 font-mono text-[11px] text-gray-400">{row.rule}</td>
+                <td className="px-5 py-3 font-mono text-[11px] text-[#5a5a7a]">{row.rule}</td>
                 <td className="px-5 py-3">
                   {row.receipt ? (
-                    <span className="font-mono text-[11px] text-indigo-500">{row.receipt}</span>
+                    <span className="font-mono text-[11px] text-[#00ffc8]/70">{row.receipt}</span>
                   ) : (
-                    <span className="text-gray-300 text-xs">—</span>
+                    <span className="text-[#3a3a5a] text-xs">—</span>
                   )}
                 </td>
-                <td className="px-5 py-3 text-[11px] text-gray-400">
+                <td className="px-5 py-3 text-[11px] text-[#5a5a7a]">
                   {new Date(row.time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC
                 </td>
               </tr>

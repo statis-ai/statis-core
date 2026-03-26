@@ -36,48 +36,49 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left — brand panel */}
-      <div className="w-[480px] shrink-0 bg-indigo-600 flex flex-col justify-between p-12">
+      <div className="w-[480px] shrink-0 bg-[#050510] flex flex-col justify-between p-12 dot-pattern">
         <div>
           <div className="flex items-center gap-3 mb-14">
             <Image
-              src="/logomark-light.png"
+              src="/logomark-transparent.png"
               alt="Statis"
               width={32}
               height={32}
+              style={{ filter: "drop-shadow(0 0 6px rgba(0,255,200,0.45))" }}
             />
-            <span className="text-white text-lg font-semibold tracking-tight font-serif">Statis</span>
+            <span className="text-lg font-semibold tracking-tight font-serif text-gradient">Statis</span>
           </div>
 
           <h1 className="text-3xl font-semibold text-white leading-snug mb-3">
             Agent execution<br />
-            <span className="text-indigo-200">infrastructure.</span>
+            <span className="text-[#8a8a9a]">infrastructure.</span>
           </h1>
-          <p className="text-indigo-300 text-sm uppercase tracking-widest font-medium mb-10">
+          <p className="text-[#5a5a7a] text-sm uppercase tracking-widest font-medium mb-10">
             Governed · Receipted · Exactly-Once
           </p>
 
           <ul className="flex flex-col gap-4">
             {FEATURES.map((f) => (
               <li key={f} className="flex items-start gap-3">
-                <CheckCircle2 size={16} className="text-indigo-300 shrink-0 mt-0.5" />
-                <span className="text-indigo-100 text-sm">{f}</span>
+                <CheckCircle2 size={16} className="text-[#00ffc8] shrink-0 mt-0.5" />
+                <span className="text-[#8a8a9a] text-sm">{f}</span>
               </li>
             ))}
           </ul>
         </div>
 
-        <p className="text-indigo-400 text-xs">
+        <p className="text-[#3a3a5a] text-xs">
           &copy; {new Date().getFullYear()} Statis. Agent Execution Infrastructure.
         </p>
       </div>
 
       {/* Right — form */}
-      <div className="flex-1 flex items-center justify-center p-12 bg-white">
+      <div className="flex-1 flex items-center justify-center p-12 bg-[#080810]">
         <div className="w-full max-w-sm">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2 tracking-tight">
+          <h2 className="text-2xl font-semibold text-white mb-2 tracking-tight">
             Sign in to Statis
           </h2>
-          <p className="text-gray-500 text-sm mb-8">
+          <p className="text-[#8a8a9a] text-sm mb-8">
             Access your agent execution console.
           </p>
 
@@ -85,7 +86,7 @@ export default function AuthPage() {
           <button
             onClick={handleGoogle}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors mb-6 disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-white/10 bg-white/[0.03] text-[#c4c4d4] text-sm font-medium hover:bg-white/[0.06] hover:border-white/20 transition-colors mb-6 disabled:opacity-60"
           >
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
@@ -97,9 +98,9 @@ export default function AuthPage() {
           </button>
 
           <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-gray-100" />
-            <span className="text-xs text-gray-400">or</span>
-            <div className="flex-1 h-px bg-gray-100" />
+            <div className="flex-1 h-px bg-white/8" />
+            <span className="text-xs text-[#5a5a7a]">or</span>
+            <div className="flex-1 h-px bg-white/8" />
           </div>
 
           <form onSubmit={handleEmail} className="space-y-3">
@@ -108,22 +109,22 @@ export default function AuthPage() {
               placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 rounded-lg bg-[#0a0a16] border border-white/8 text-white text-sm placeholder:text-[#4a4a6a] focus:outline-none focus:ring-1 focus:ring-[#00ffc8]/40"
             />
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors"
             >
               Continue with email
               <ArrowRight size={15} />
             </button>
           </form>
 
-          <p className="text-xs text-gray-400 text-center mt-6">
+          <p className="text-xs text-[#5a5a7a] text-center mt-6">
             By continuing you agree to Statis&apos;s{" "}
-            <span className="text-indigo-500 cursor-pointer">Terms of Service</span>
+            <span className="text-[#00ffc8] cursor-pointer">Terms of Service</span>
             {" "}and{" "}
-            <span className="text-indigo-500 cursor-pointer">Privacy Policy</span>.
+            <span className="text-[#00ffc8] cursor-pointer">Privacy Policy</span>.
           </p>
         </div>
       </div>

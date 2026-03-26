@@ -28,11 +28,11 @@ function HashDisplay({ hash }: { hash: string }) {
   }
 
   return (
-    <div className="flex items-center gap-2 font-mono text-xs text-indigo-600 bg-gray-50 border border-brand-border rounded-lg p-3 overflow-x-auto">
+    <div className="flex items-center gap-2 font-mono text-xs text-[#00ffc8] bg-[#0a0a14] border border-brand-border rounded-lg p-3 overflow-x-auto">
       <span className="flex-1 break-all">{hash}</span>
       <button
         onClick={copy}
-        className="shrink-0 text-brand-muted hover:text-gray-900 transition-colors"
+        className="shrink-0 text-brand-muted hover:text-white transition-colors"
         title="Copy hash"
       >
         {copied ? <Check className="w-3.5 h-3.5 text-brand-success" /> : <Copy className="w-3.5 h-3.5" />}
@@ -104,7 +104,7 @@ export default function ReceiptTab({ actionId }: Props) {
         </div>
         <div className="ml-auto text-right">
           <p className="text-xs text-brand-muted uppercase tracking-widest">Evaluated at</p>
-          <p className="text-xs text-gray-900 font-mono">
+          <p className="text-xs text-white font-mono">
             {new Date(receipt.created_at).toLocaleString()}
           </p>
         </div>
@@ -126,31 +126,31 @@ export default function ReceiptTab({ actionId }: Props) {
         <Section title="Conditions Evaluated">
           <div className="divide-y divide-brand-border rounded-lg border border-brand-border overflow-hidden">
             {conditions.map(([key, cond]) => (
-              <div key={key} className="flex items-center gap-4 px-4 py-3 bg-white">
+              <div key={key} className="flex items-center gap-4 px-4 py-3 bg-[#0a0a14]">
                 <div className="shrink-0">
                   {cond.passed
                     ? <CheckCircle className="w-4 h-4 text-brand-success" />
                     : <XCircle className="w-4 h-4 text-brand-error" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">{cond.label}</p>
+                  <p className="text-sm font-medium text-white">{cond.label}</p>
                   <p className="text-xs font-mono text-brand-muted mt-0.5">{key}</p>
                 </div>
                 <div className="text-right shrink-0">
                   {"actual" in cond && (
                     <p className="text-xs text-brand-muted">
-                      actual: <span className="text-gray-900 font-mono">{String(cond.actual ?? "null")}</span>
+                      actual: <span className="text-white font-mono">{String(cond.actual ?? "null")}</span>
                     </p>
                   )}
                   {"threshold" in cond && (
                     <p className="text-xs text-brand-muted">
-                      required: <span className="text-gray-900 font-mono">≥ {cond.threshold}</span>
-                      {" · "}actual: <span className="text-gray-900 font-mono">{String(cond.actual ?? "null")}</span>
+                      required: <span className="text-white font-mono">≥ {cond.threshold}</span>
+                      {" · "}actual: <span className="text-white font-mono">{String(cond.actual ?? "null")}</span>
                     </p>
                   )}
                   {"days" in cond && (
                     <p className="text-xs text-brand-muted">
-                      last discount: <span className="text-gray-900 font-mono">{cond.actual_last_discount ?? "none"}</span>
+                      last discount: <span className="text-white font-mono">{cond.actual_last_discount ?? "none"}</span>
                     </p>
                   )}
                 </div>
@@ -168,7 +168,7 @@ export default function ReceiptTab({ actionId }: Props) {
         <Section title="Entity State at Evaluation">
           <div className="divide-y divide-brand-border rounded-lg border border-brand-border overflow-hidden">
             {Object.entries(receipt.entity_state_snapshot).map(([k, v]) => (
-              <div key={k} className="flex justify-between items-center px-4 py-2.5 bg-white">
+              <div key={k} className="flex justify-between items-center px-4 py-2.5 bg-[#0a0a14]">
                 <span className="font-mono text-xs text-brand-muted">{k}</span>
                 <span className="font-mono text-xs text-brand-accent">{JSON.stringify(v)}</span>
               </div>
@@ -183,7 +183,7 @@ export default function ReceiptTab({ actionId }: Props) {
           <div className="space-y-3">
             <KV label="Executed At" value={new Date(receipt.executed_at).toLocaleString()} />
             {receipt.execution_result && (
-              <pre className="rounded-lg border border-brand-border bg-gray-50 p-3 text-xs font-mono text-indigo-600 overflow-auto max-h-40">
+              <pre className="rounded-lg border border-brand-border bg-[#0a0a14] p-3 text-xs font-mono text-[#00ffc8] overflow-auto max-h-40">
                 {JSON.stringify(receipt.execution_result, null, 2)}
               </pre>
             )}
@@ -223,9 +223,9 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function KV({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
-    <div className="rounded-lg border border-brand-border bg-white px-3 py-2">
+    <div className="rounded-lg border border-brand-border bg-[#0a0a14] px-3 py-2">
       <p className="text-brand-muted text-xs uppercase tracking-wider">{label}</p>
-      <p className={`mt-0.5 text-gray-900 text-sm truncate ${mono ? "font-mono" : ""}`}>{value}</p>
+      <p className={`mt-0.5 text-white text-sm truncate ${mono ? "font-mono" : ""}`}>{value}</p>
     </div>
   );
 }

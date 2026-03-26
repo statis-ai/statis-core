@@ -25,10 +25,10 @@ export default function SystemsPage() {
       hint="Connected systems become adapters in Statis. Each one gets a pre-built connector with auth and retry logic."
     >
       <div className="max-w-xl">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2 tracking-tight">
+        <h1 className="text-2xl font-semibold text-white mb-2 tracking-tight">
           Which production systems do you use?
         </h1>
-        <p className="text-gray-500 text-sm mb-8">
+        <p className="text-[#6a6a8a] text-sm mb-8">
           These will appear as ready-to-connect adapters in your console.
         </p>
 
@@ -42,17 +42,14 @@ export default function SystemsPage() {
                 className={cn(
                   "flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all",
                   selected
-                    ? "border-indigo-600 bg-indigo-50"
-                    : "border-gray-200 bg-white hover:border-gray-300"
+                    ? "border-[#00ffc8] bg-[#00ffc8]/10"
+                    : "border-white/8 bg-white/[0.02] hover:border-white/20"
                 )}
               >
                 <span className="text-2xl">{sys.logo}</span>
                 <div>
-                  <p className={cn(
-                    "text-sm font-semibold",
-                    selected ? "text-indigo-700" : "text-gray-800"
-                  )}>{sys.label}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{sys.desc}</p>
+                  <p className={cn("text-sm font-semibold", selected ? "text-[#00ffc8]" : "text-white")}>{sys.label}</p>
+                  <p className="text-xs text-[#4a4a6a] mt-0.5">{sys.desc}</p>
                 </div>
               </button>
             );
@@ -62,7 +59,7 @@ export default function SystemsPage() {
         <button
           onClick={() => router.push("/onboarding/loading")}
           disabled={systems.length === 0}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Set up my console
           <ArrowRight size={15} />

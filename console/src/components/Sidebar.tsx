@@ -83,17 +83,18 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex flex-col w-[220px] min-h-screen bg-white border-r border-gray-200 shrink-0">
+    <aside className="flex flex-col w-[220px] min-h-screen bg-[#08080f] border-r border-white/[0.06] shrink-0">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-white/5">
         <Image
-          src="/logomark-light.png"
+          src="/logomark-transparent.png"
           alt="Statis"
           width={28}
           height={28}
           className="shrink-0"
+          style={{ filter: "drop-shadow(0 0 6px rgba(0,255,200,0.45))" }}
         />
-        <span className="text-[15px] font-semibold text-gray-900 tracking-tight font-serif">
+        <span className="text-[15px] font-semibold tracking-tight font-serif text-gradient">
           Statis
         </span>
       </div>
@@ -103,7 +104,7 @@ export default function Sidebar() {
         {NAV.map((section, i) => (
           <div key={i}>
             {section.group && (
-              <p className="px-2 mb-1 text-[10px] font-semibold tracking-widest text-gray-400 uppercase">
+              <p className="px-2 mb-1 text-[10px] font-semibold tracking-widest text-[#3a3a5a] uppercase">
                 {section.group}
               </p>
             )}
@@ -123,22 +124,22 @@ export default function Sidebar() {
                       className={cn(
                         "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors",
                         active
-                          ? "bg-indigo-50 text-indigo-600 font-medium"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                          ? "bg-[#00ffc8]/10 text-[#00ffc8] font-medium"
+                          : "text-[#6a6a8a] hover:bg-white/[0.04] hover:text-[#c4c4d4]"
                       )}
                     >
                       <Icon
                         size={15}
-                        className={active ? "text-indigo-500" : "text-gray-400"}
+                        className={active ? "text-[#00ffc8]" : "text-[#3a3a5a]"}
                       />
                       <span className="flex-1">{item.label}</span>
                       {"badge" in item && item.badge ? (
-                        <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-100 text-red-600 text-[10px] font-semibold">
+                        <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500/20 text-red-400 text-[10px] font-semibold">
                           {item.badge}
                         </span>
                       ) : null}
                       {isExternal && (
-                        <ExternalLink size={11} className="text-gray-300" />
+                        <ExternalLink size={11} className="text-[#3a3a5a]" />
                       )}
                     </Link>
                   </li>
@@ -150,20 +151,20 @@ export default function Sidebar() {
       </nav>
 
       {/* User footer */}
-      <div className="px-3 py-3 border-t border-gray-100">
+      <div className="px-3 py-3 border-t border-white/5">
         <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shrink-0">
-            <span className="text-white text-[11px] font-semibold">A</span>
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00ffc8] to-[#00a8ff] flex items-center justify-center shrink-0">
+            <span className="text-[#080810] text-[11px] font-semibold">A</span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-gray-900 truncate leading-tight">
+            <p className="text-xs font-medium text-[#c4c4d4] truncate leading-tight">
               aniket@statis.dev
             </p>
-            <p className="text-[10px] text-gray-400 leading-tight">Design Partner</p>
+            <p className="text-[10px] text-[#4a4a6a] leading-tight">Design Partner</p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-gray-400 hover:text-gray-600 transition-colors shrink-0"
+            className="text-[#3a3a5a] hover:text-[#8a8a9a] transition-colors shrink-0"
             title="Sign out"
           >
             <LogOut size={14} />

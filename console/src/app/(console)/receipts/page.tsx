@@ -7,22 +7,22 @@ const RECEIPTS = [
 ];
 
 const DECISION_STYLES: Record<string, string> = {
-  APPROVED: "bg-green-50 text-green-700 border-green-200",
-  DENIED: "bg-red-50 text-red-700 border-red-200",
+  APPROVED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  DENIED: "bg-red-500/15 text-red-400 border-red-500/20",
 };
 
 export default function ReceiptsPage() {
   return (
     <div className="p-8 max-w-5xl">
       <div className="mb-8">
-        <h1 className="text-[20px] font-semibold text-gray-900">Receipts</h1>
-        <p className="text-xs text-gray-400 mt-0.5">{RECEIPTS.length} tamper-evident receipts</p>
+        <h1 className="text-[20px] font-semibold text-white">Receipts</h1>
+        <p className="text-xs text-[#5a5a7a] mt-0.5">{RECEIPTS.length} tamper-evident receipts</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <div className="bg-[#0d0d1a] rounded-xl border border-white/8 overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr className="text-[10px] uppercase tracking-widest text-gray-400">
+          <thead className="bg-[#0a0a14] border-b border-white/8">
+            <tr className="text-[10px] uppercase tracking-widest text-[#5a5a7a]">
               <th className="text-left px-5 py-3 font-semibold">Receipt ID</th>
               <th className="text-left px-5 py-3 font-semibold">Action ID</th>
               <th className="text-left px-5 py-3 font-semibold">Entity</th>
@@ -33,19 +33,19 @@ export default function ReceiptsPage() {
             </tr>
           </thead>
           <tbody>
-            {RECEIPTS.map((r, i) => (
-              <tr key={r.id} className={`border-b border-gray-100 ${i % 2 === 1 ? "bg-gray-50/30" : "bg-white"}`}>
-                <td className="px-5 py-3 font-mono text-xs text-indigo-600 font-semibold">{r.id}</td>
-                <td className="px-5 py-3 font-mono text-xs text-gray-600">{r.action_id}</td>
-                <td className="px-5 py-3 font-mono text-xs text-gray-700">{r.entity}</td>
-                <td className="px-5 py-3 font-mono text-[11px] text-gray-500">{r.rule}</td>
+            {RECEIPTS.map((r) => (
+              <tr key={r.id} className="border-t border-white/5 hover:bg-white/[0.02] transition-colors">
+                <td className="px-5 py-3 font-mono text-xs text-[#00ffc8] font-semibold">{r.id}</td>
+                <td className="px-5 py-3 font-mono text-xs text-[#8a8a9a]">{r.action_id}</td>
+                <td className="px-5 py-3 font-mono text-xs text-[#c4c4d4]">{r.entity}</td>
+                <td className="px-5 py-3 font-mono text-[11px] text-[#6a6a8a]">{r.rule}</td>
                 <td className="px-5 py-3">
                   <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${DECISION_STYLES[r.decision] ?? ""}`}>
                     {r.decision}
                   </span>
                 </td>
-                <td className="px-5 py-3 font-mono text-[11px] text-gray-400">{r.hash}</td>
-                <td className="px-5 py-3 text-[11px] text-gray-400">
+                <td className="px-5 py-3 font-mono text-[11px] text-[#5a5a7a]">sha256:{r.hash}…</td>
+                <td className="px-5 py-3 text-[11px] text-[#5a5a7a]">
                   {new Date(r.executed_at).toLocaleString()}
                 </td>
               </tr>

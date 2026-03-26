@@ -9,8 +9,8 @@ const WEBHOOKS = [
 ];
 
 const STATUS_STYLES: Record<string, string> = {
-  active: "bg-green-50 text-green-700 border-green-200",
-  paused: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  active: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  paused: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
 };
 
 export default function WebhooksPage() {
@@ -18,10 +18,10 @@ export default function WebhooksPage() {
     <div className="p-8 max-w-3xl">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-[20px] font-semibold text-gray-900">Webhooks</h1>
-          <p className="text-xs text-gray-400 mt-0.5">{WEBHOOKS.length} subscriptions</p>
+          <h1 className="text-[20px] font-semibold text-white">Webhooks</h1>
+          <p className="text-xs text-[#5a5a7a] mt-0.5">{WEBHOOKS.length} subscriptions</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors">
+        <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors">
           <Plus size={14} />
           Add webhook
         </button>
@@ -29,29 +29,29 @@ export default function WebhooksPage() {
 
       <div className="flex flex-col gap-4">
         {WEBHOOKS.map((wh) => (
-          <div key={wh.id} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div key={wh.id} className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5 hover:border-white/12 transition-colors">
             <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                <Radio size={14} className="text-indigo-500" />
+              <div className="w-8 h-8 rounded-lg bg-[#00ffc8]/10 flex items-center justify-center shrink-0">
+                <Radio size={14} className="text-[#00ffc8]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="font-mono text-xs text-gray-700 truncate">{wh.url}</p>
+                  <p className="font-mono text-xs text-[#c4c4d4] truncate">{wh.url}</p>
                   <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0", STATUS_STYLES[wh.status])}>
                     {wh.status}
                   </span>
                 </div>
-                <p className="text-[10px] text-gray-400 font-mono mb-2">{wh.id}</p>
+                <p className="text-[10px] text-[#4a4a6a] font-mono mb-2">{wh.id}</p>
                 <div className="flex items-center gap-1.5 flex-wrap mb-2">
                   {wh.events.map((e) => (
-                    <span key={e} className="font-mono text-[10px] text-indigo-600 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded">
+                    <span key={e} className="font-mono text-[10px] text-[#00ffc8]/70 bg-[#00ffc8]/8 border border-[#00ffc8]/15 px-2 py-0.5 rounded">
                       {e}
                     </span>
                   ))}
                 </div>
-                <p className="text-[11px] text-gray-400">
+                <p className="text-[11px] text-[#5a5a7a]">
                   Last delivery: {new Date(wh.last_delivery).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC ·{" "}
-                  <span className="text-green-600 font-medium">{wh.success_rate} success rate</span>
+                  <span className="text-emerald-400 font-medium">{wh.success_rate} success rate</span>
                 </p>
               </div>
             </div>

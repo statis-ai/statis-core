@@ -28,8 +28,8 @@ export default function EntityLookup({ onInspect, loading }: Props) {
         <select
           value={entityType}
           onChange={(e) => setEntityType(e.target.value)}
-          className="h-10 rounded border border-brand-border bg-white px-3 text-sm
-                     text-gray-900 outline-none focus:border-brand-accent focus:ring-1
+          className="h-10 rounded border border-brand-border bg-[#0a0a14] px-3 text-sm
+                     text-white outline-none focus:border-brand-accent focus:ring-1
                      focus:ring-brand-accent/20 transition-colors"
         >
           {ENTITY_TYPES.map((t) => (
@@ -49,8 +49,8 @@ export default function EntityLookup({ onInspect, loading }: Props) {
           value={entityId}
           onChange={(e) => setEntityId(e.target.value)}
           placeholder="e.g. acct-001"
-          className="h-10 rounded border border-brand-border bg-white px-3 text-sm
-                     text-gray-900 placeholder:text-gray-400 outline-none
+          className="h-10 rounded border border-brand-border bg-[#0a0a14] px-3 text-sm
+                     text-white placeholder:text-[#4a4a6a] outline-none
                      focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20
                      transition-colors"
         />

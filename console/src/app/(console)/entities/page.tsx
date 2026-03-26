@@ -93,10 +93,10 @@ const ENTITIES = [
 ];
 
 const EVENT_TYPE_STYLES: Record<string, string> = {
-  "action.completed": "bg-green-50 text-green-700 border-green-200",
-  "action.escalated": "bg-violet-50 text-violet-700 border-violet-200",
-  "action.denied": "bg-red-50 text-red-700 border-red-200",
-  "state.updated": "bg-blue-50 text-blue-700 border-blue-200",
+  "action.completed": "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  "action.escalated": "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  "action.denied":    "bg-red-500/15 text-red-400 border-red-500/20",
+  "state.updated":    "bg-sky-500/15 text-sky-400 border-sky-500/20",
 };
 
 export default function EntitiesPage() {
@@ -106,9 +106,9 @@ export default function EntitiesPage() {
   return (
     <div className="flex h-[calc(100vh-0px)] overflow-hidden">
       {/* Entity list */}
-      <div className="w-[200px] shrink-0 border-r border-gray-200 overflow-y-auto bg-white">
-        <div className="px-4 py-3 border-b border-gray-100">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">Entities</p>
+      <div className="w-[200px] shrink-0 border-r border-white/6 overflow-y-auto bg-[#08080f]">
+        <div className="px-4 py-3 border-b border-white/5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#4a4a6a]">Entities</p>
         </div>
         <ul>
           {ENTITIES.map((e) => (
@@ -116,14 +116,16 @@ export default function EntitiesPage() {
               <button
                 onClick={() => setActiveId(e.id)}
                 className={cn(
-                  "w-full text-left px-4 py-3 border-b border-gray-50 transition-colors",
-                  activeId === e.id ? "bg-indigo-50" : "hover:bg-gray-50"
+                  "w-full text-left px-4 py-3 border-b border-white/[0.03] transition-colors",
+                  activeId === e.id
+                    ? "bg-[#00ffc8]/8 border-l-2 border-l-[#00ffc8]"
+                    : "hover:bg-white/[0.03]"
                 )}
               >
-                <p className={cn("font-mono text-xs font-semibold", activeId === e.id ? "text-indigo-700" : "text-gray-800")}>
+                <p className={cn("font-mono text-xs font-semibold", activeId === e.id ? "text-[#00ffc8]" : "text-[#c4c4d4]")}>
                   {e.id}
                 </p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{e.type} · rev {e.rev}</p>
+                <p className="text-[10px] text-[#4a4a6a] mt-0.5">{e.type} · rev {e.rev}</p>
               </button>
             </li>
           ))}
@@ -134,45 +136,45 @@ export default function EntitiesPage() {
       <div className="flex-1 overflow-y-auto p-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
-            <Database size={16} className="text-indigo-500" />
+          <div className="w-9 h-9 rounded-xl bg-[#00ffc8]/10 flex items-center justify-center">
+            <Database size={16} className="text-[#00ffc8]" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="font-mono text-base font-semibold text-gray-900">{entity.id}</h2>
-              <span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded">{entity.type}</span>
-              <span className="text-[10px] font-mono text-gray-400 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded">rev {entity.rev}</span>
+              <h2 className="font-mono text-base font-semibold text-white">{entity.id}</h2>
+              <span className="text-[10px] bg-white/5 text-[#5a5a7a] px-2 py-0.5 rounded border border-white/8">{entity.type}</span>
+              <span className="text-[10px] font-mono text-[#4a4a6a] bg-white/4 border border-white/8 px-2 py-0.5 rounded">rev {entity.rev}</span>
             </div>
-            <p className="text-[11px] text-gray-400 mt-0.5">
+            <p className="text-[11px] text-[#4a4a6a] mt-0.5">
               Last updated: {new Date(entity.updated).toLocaleString()}
             </p>
           </div>
         </div>
 
         {/* State grid */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-4">State</p>
+        <div className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5 mb-5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] mb-4">State</p>
           <dl className="grid grid-cols-3 gap-x-6 gap-y-4">
             {Object.entries(entity.state).map(([k, v]) => (
               <div key={k}>
-                <dt className="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">{k.replace(/_/g, " ")}</dt>
-                <dd className="font-mono text-xs text-gray-800">{v}</dd>
+                <dt className="text-[10px] text-[#4a4a6a] uppercase tracking-wider mb-0.5">{k.replace(/_/g, " ")}</dt>
+                <dd className="font-mono text-xs text-[#c4c4d4]">{v}</dd>
               </div>
             ))}
           </dl>
         </div>
 
         {/* Events timeline */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-4">Recent Events</p>
+        <div className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] mb-4">Recent Events</p>
           <ol className="flex flex-col gap-3">
             {entity.events.map((ev, i) => (
               <li key={i} className="flex items-start gap-3">
-                <span className="font-mono text-[11px] text-gray-400 shrink-0 mt-0.5">{ev.time}</span>
-                <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0", EVENT_TYPE_STYLES[ev.type] ?? "bg-gray-50 text-gray-500 border-gray-200")}>
+                <span className="font-mono text-[11px] text-[#4a4a6a] shrink-0 mt-0.5">{ev.time}</span>
+                <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0", EVENT_TYPE_STYLES[ev.type] ?? "bg-white/5 text-[#5a5a7a] border-white/8")}>
                   {ev.type}
                 </span>
-                <span className="text-xs text-gray-600">{ev.detail}</span>
+                <span className="text-xs text-[#8a8a9a]">{ev.detail}</span>
               </li>
             ))}
           </ol>

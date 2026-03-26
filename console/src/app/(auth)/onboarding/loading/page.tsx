@@ -72,21 +72,28 @@ export default function LoadingPage() {
   }, [done]);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+    <div className="min-h-screen flex flex-col items-center justify-center">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-10">
-          <Image src="/statis-mark.svg" alt="Statis" width={24} height={24} />
-          <span className="text-gray-400 text-sm">Setting up your console…</span>
+          <Image
+            src="/logomark-transparent.png"
+            alt="Statis"
+            width={24}
+            height={24}
+            className="rounded-md"
+            style={{ filter: "drop-shadow(0 0 6px rgba(0,255,200,0.45))" }}
+          />
+          <span className="text-[#5a5a7a] text-sm font-mono">Setting up your console…</span>
         </div>
 
         {/* Terminal log */}
-        <div className="bg-gray-900 rounded-xl overflow-hidden shadow-lg">
-          <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/5">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-400/60" />
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/60" />
-            <span className="w-2.5 h-2.5 rounded-full bg-green-400/60" />
-            <span className="ml-2 text-[11px] text-gray-500 font-mono">statis bootstrap</span>
+        <div className="bg-[#0a0a14] rounded-xl overflow-hidden border border-white/8 shadow-2xl">
+          <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/6">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-400/40" />
+            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/40" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/40" />
+            <span className="ml-2 text-[11px] text-[#4a4a6a] font-mono">statis bootstrap</span>
           </div>
 
           <div className="p-5 font-mono text-[13px] min-h-[220px] space-y-2">
@@ -100,12 +107,12 @@ export default function LoadingPage() {
                     transition={{ duration: 0.3 }}
                     className="flex items-center gap-3"
                   >
-                    <span className="text-indigo-400">$</span>
-                    <span className={i === steps.length - 1 ? "text-green-400 font-medium" : "text-gray-300"}>
+                    <span className="text-[#00ffc8]">$</span>
+                    <span className={i === steps.length - 1 ? "text-[#00ffc8] font-medium" : "text-[#8a8a9a]"}>
                       {step}
                     </span>
                     {i < steps.length - 1 && (
-                      <CheckCircle2 size={12} className="text-green-500 shrink-0 ml-auto" />
+                      <CheckCircle2 size={12} className="text-emerald-400 shrink-0 ml-auto" />
                     )}
                   </motion.div>
                 ) : null
@@ -116,7 +123,7 @@ export default function LoadingPage() {
               <motion.span
                 animate={{ opacity: [1, 0] }}
                 transition={{ duration: 0.6, repeat: Infinity }}
-                className="inline-block w-1.5 h-4 bg-gray-500 rounded-sm ml-4"
+                className="inline-block w-1.5 h-4 bg-[#3a3a5a] rounded-sm ml-4"
               />
             )}
           </div>
@@ -126,7 +133,7 @@ export default function LoadingPage() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center text-sm text-gray-500 mt-6"
+            className="text-center text-sm text-[#4a4a6a] mt-6"
           >
             Redirecting to your console…
           </motion.p>

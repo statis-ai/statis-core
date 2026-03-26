@@ -83,13 +83,13 @@ export default function ActionsTab({ entityType, entityId, selectedActionId, onS
                 className={`cursor-pointer transition-colors ${
                   isSelected
                     ? "bg-brand-accent/10 border-l-2 border-brand-accent"
-                    : "hover:bg-gray-50"
+                    : "hover:bg-white/[0.02]"
                 }`}
               >
                 <td className="px-4 py-3 font-mono text-xs text-brand-accent truncate max-w-[12rem]">
                   {a.action_id}
                 </td>
-                <td className="px-4 py-3 text-gray-900 text-xs font-medium">{a.action_type}</td>
+                <td className="px-4 py-3 text-white text-xs font-medium">{a.action_type}</td>
                 <td className="px-4 py-3">
                   <StatusBadge status={a.status} />
                 </td>

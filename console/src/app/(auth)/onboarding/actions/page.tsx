@@ -28,10 +28,10 @@ export default function ActionsPage() {
       hint="Each action type maps to a pre-built governance rule. You can customise conditions after setup."
     >
       <div className="max-w-xl">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-2 tracking-tight">
+        <h1 className="text-2xl font-semibold text-white mb-2 tracking-tight">
           What actions will your agents take?
         </h1>
-        <p className="text-gray-500 text-sm mb-8">
+        <p className="text-[#6a6a8a] text-sm mb-8">
           Select all that apply. We&apos;ll create rules for each one.
         </p>
 
@@ -45,16 +45,11 @@ export default function ActionsPage() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all",
                   selected
-                    ? "border-indigo-600 bg-indigo-50 text-indigo-700"
-                    : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                    ? "border-[#00ffc8] bg-[#00ffc8]/10 text-[#00ffc8]"
+                    : "border-white/8 bg-transparent text-[#6a6a8a] hover:border-white/20 hover:text-white"
                 )}
               >
-                <span
-                  className={cn(
-                    "w-1.5 h-1.5 rounded-full shrink-0",
-                    selected ? "bg-indigo-500" : "bg-gray-300"
-                  )}
-                />
+                <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", selected ? "bg-[#00ffc8]" : "bg-[#3a3a5a]")} />
                 {action.label}
               </button>
             );
@@ -62,18 +57,15 @@ export default function ActionsPage() {
         </div>
 
         {actions.length > 0 && (
-          <div className="mb-8 p-4 bg-gray-100 rounded-lg">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 mb-2">
+          <div className="mb-8 p-4 bg-[#00ffc8]/5 border border-[#00ffc8]/15 rounded-lg">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-[#00ffc8]/70 mb-2">
               Rules to be created
             </p>
             <div className="flex flex-wrap gap-1.5">
               {actions.map((a) => {
                 const found = ACTIONS.find((x) => x.id === a);
                 return found ? (
-                  <span
-                    key={a}
-                    className="font-mono text-[11px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded"
-                  >
+                  <span key={a} className="font-mono text-[11px] text-[#00ffc8]/80 bg-[#00ffc8]/8 px-2 py-0.5 rounded border border-[#00ffc8]/15">
                     {found.rule}
                   </span>
                 ) : null;
@@ -85,7 +77,7 @@ export default function ActionsPage() {
         <button
           onClick={() => router.push("/onboarding/systems")}
           disabled={actions.length === 0}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Continue
           <ArrowRight size={15} />

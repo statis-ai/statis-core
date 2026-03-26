@@ -12,35 +12,35 @@ export default function AgentsPage() {
   return (
     <div className="p-8 max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-[20px] font-semibold text-gray-900">Agents</h1>
-        <p className="text-xs text-gray-400 mt-0.5">{AGENTS.length} registered agents</p>
+        <h1 className="text-[20px] font-semibold text-white">Agents</h1>
+        <p className="text-xs text-[#5a5a7a] mt-0.5">{AGENTS.length} registered agents</p>
       </div>
 
       <div className="flex flex-col gap-4">
         {AGENTS.map((agent) => (
-          <div key={agent.id} className="bg-white rounded-xl border border-gray-200 p-5">
+          <div key={agent.id} className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5 hover:border-white/12 transition-colors">
             <div className="flex items-start gap-4">
-              <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-                <Cpu size={16} className="text-indigo-500" />
+              <div className="w-9 h-9 rounded-xl bg-[#00ffc8]/10 flex items-center justify-center shrink-0">
+                <Cpu size={16} className="text-[#00ffc8]" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-semibold text-gray-900">{agent.name}</h3>
-                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-600 border border-green-200">
+                  <h3 className="text-sm font-semibold text-white">{agent.name}</h3>
+                  <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
                     Active
                   </span>
                 </div>
-                <p className="font-mono text-[11px] text-gray-400 mb-2">{agent.id}</p>
-                <p className="text-xs text-gray-500 mb-3">{agent.description}</p>
+                <p className="font-mono text-[11px] text-[#4a4a6a] mb-2">{agent.id}</p>
+                <p className="text-xs text-[#6a6a8a] mb-3">{agent.description}</p>
                 <div className="flex items-center gap-2 flex-wrap">
                   {agent.actions.map((a) => (
-                    <span key={a} className="font-mono text-[11px] text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
+                    <span key={a} className="font-mono text-[11px] text-[#00ffc8]/80 bg-[#00ffc8]/8 px-2 py-0.5 rounded border border-[#00ffc8]/15">
                       {a}
                     </span>
                   ))}
                 </div>
               </div>
-              <p className="text-[11px] text-gray-400 shrink-0">
+              <p className="text-[11px] text-[#4a4a6a] shrink-0">
                 Last seen {new Date(agent.last_seen).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC
               </p>
             </div>

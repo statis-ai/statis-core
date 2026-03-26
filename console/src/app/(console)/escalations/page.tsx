@@ -58,44 +58,44 @@ function EscalationCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.97 }}
       transition={{ duration: 0.25 }}
-      className={`bg-white rounded-xl border p-6 ${
+      className={`bg-[#0d0d1a] rounded-xl border p-6 transition-colors ${
         esc.status === "approved"
-          ? "border-green-200"
+          ? "border-emerald-500/25"
           : esc.status === "denied"
-          ? "border-gray-200 opacity-60"
-          : "border-gray-200"
+          ? "border-white/5 opacity-50"
+          : "border-white/8"
       }`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-sm font-semibold text-gray-900">{esc.entity}</span>
-            <span className="text-gray-300">·</span>
-            <span className="font-mono text-sm text-gray-600">{esc.action}</span>
-            <span className="font-mono text-sm font-semibold text-indigo-600">{esc.param}</span>
+            <span className="font-mono text-sm font-semibold text-white">{esc.entity}</span>
+            <span className="text-[#3a3a5a]">·</span>
+            <span className="font-mono text-sm text-[#8a8a9a]">{esc.action}</span>
+            <span className="font-mono text-sm font-semibold text-[#00ffc8]">{esc.param}</span>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-gray-400">
+          <div className="flex items-center gap-2 text-[11px] text-[#4a4a6a]">
             <span className="font-mono">{esc.action_id}</span>
-            <span className="text-gray-200">·</span>
+            <span className="text-[#2a2a4a]">·</span>
             <span className="font-mono">{esc.rule}</span>
-            <span className="text-gray-200">·</span>
+            <span className="text-[#2a2a4a]">·</span>
             <span>{new Date(esc.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC</span>
           </div>
         </div>
 
         {esc.status === "pending" ? (
-          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
             <AlertTriangle size={10} />
             Pending review
           </span>
         ) : esc.status === "approved" ? (
-          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
+          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
             <CheckCircle2 size={10} />
             Approved
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-gray-50 text-gray-500 border border-gray-200">
+          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-white/5 text-[#5a5a7a] border border-white/8">
             <XCircle size={10} />
             Denied
           </span>
@@ -103,9 +103,9 @@ function EscalationCard({
       </div>
 
       {/* Reason */}
-      <div className="bg-violet-50 border border-violet-100 rounded-lg px-4 py-3 mb-4">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-violet-400 mb-1">Escalation reason</p>
-        <p className="text-xs text-violet-800 leading-relaxed">{esc.reason}</p>
+      <div className="bg-orange-500/8 border border-orange-500/15 rounded-lg px-4 py-3 mb-4">
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-400 mb-1">Escalation reason</p>
+        <p className="text-xs text-[#c4c4d4] leading-relaxed">{esc.reason}</p>
       </div>
 
       {/* Approved receipt */}
@@ -113,13 +113,13 @@ function EscalationCard({
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: "auto" }}
-          className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 mb-4 font-mono text-xs"
+          className="bg-emerald-500/8 border border-emerald-500/15 rounded-lg px-4 py-3 mb-4 font-mono text-xs"
         >
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-green-500 mb-1">Override receipt</p>
-          <div className="grid grid-cols-2 gap-1 text-green-800">
-            <span>reviewer_id:</span><span>{esc.reviewer_id}</span>
-            <span>decision:</span><span>APPROVED</span>
-            <span>action_id:</span><span>{esc.action_id}</span>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400 mb-1">Override receipt</p>
+          <div className="grid grid-cols-2 gap-1 text-[#8a8a9a]">
+            <span>reviewer_id:</span><span className="text-emerald-400">{esc.reviewer_id}</span>
+            <span>decision:</span><span className="text-emerald-400">APPROVED</span>
+            <span>action_id:</span><span className="text-emerald-400">{esc.action_id}</span>
           </div>
         </motion.div>
       )}
@@ -129,14 +129,14 @@ function EscalationCard({
         <div className="flex items-center gap-3">
           <button
             onClick={onApprove}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 border border-emerald-500/20 transition-colors"
           >
             <CheckCircle2 size={14} />
             Approve
           </button>
           <button
             onClick={onDeny}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/8 text-[#6a6a8a] text-sm font-medium hover:text-white hover:border-white/20 transition-colors"
           >
             <XCircle size={14} />
             Deny
@@ -172,14 +172,14 @@ export default function EscalationsPage() {
     <div className="p-8 max-w-3xl">
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-[20px] font-semibold text-gray-900">Escalations</h1>
+          <h1 className="text-[20px] font-semibold text-white">Escalations</h1>
           {pending > 0 && (
-            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold">
+            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-500/20 text-red-400 text-[10px] font-bold border border-red-500/20">
               {pending}
             </span>
           )}
         </div>
-        <p className="text-xs text-gray-400">{pending} awaiting review · {escalations.length} total</p>
+        <p className="text-xs text-[#5a5a7a]">{pending} awaiting review · {escalations.length} total</p>
       </div>
 
       <AnimatePresence mode="popLayout">
@@ -196,7 +196,7 @@ export default function EscalationsPage() {
       </AnimatePresence>
 
       {escalations.every((e) => e.status !== "pending") && (
-        <div className="mt-8 text-center py-12 text-gray-400 text-sm">
+        <div className="mt-8 text-center py-12 text-[#3a3a5a] text-sm">
           All escalations resolved.
         </div>
       )}

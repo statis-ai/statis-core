@@ -74,7 +74,7 @@ export default function DiffTab({ entityType, entityId }: Props) {
             Changes (rev {fromRev} → {toRev})
           </h3>
           <div
-            className="rounded border border-brand-border bg-gray-50 p-4
+            className="rounded border border-brand-border bg-[#0a0a14] p-4
                        text-xs font-mono overflow-auto max-h-[28rem]"
             dangerouslySetInnerHTML={{ __html: result.html }}
           />
@@ -103,8 +103,8 @@ function RevInput({
         min={1}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-24 rounded border border-brand-border bg-white px-3 text-sm
-                   text-gray-900 outline-none focus:border-brand-accent focus:ring-1
+        className="h-10 w-24 rounded border border-brand-border bg-[#0a0a14] px-3 text-sm
+                   text-white outline-none focus:border-brand-accent focus:ring-1
                    focus:ring-brand-accent/20 transition-colors"
       />
     </div>

@@ -72,14 +72,14 @@ export default function DevelopersTab() {
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
             <div>
-                <h2 className="text-xl font-semibold text-gray-900">API Keys</h2>
+                <h2 className="text-xl font-semibold text-white">API Keys</h2>
                 <p className="text-sm text-brand-muted mt-1">
                     Manage your API keys to authenticate with the Statis platform. Keep these secret.
                 </p>
             </div>
 
             {newKey && (
-                <div className="bg-white border border-emerald-500/30 rounded-lg p-6 backdrop-blur-md">
+                <div className="bg-[#0d0d1a] border border-emerald-500/30 rounded-lg p-6 backdrop-blur-md">
                     <div className="flex items-center gap-3 text-emerald-400 mb-2">
                         <KeyRound className="w-5 h-5" />
                         <h3 className="font-semibold">New API Key Generated</h3>
@@ -88,7 +88,7 @@ export default function DevelopersTab() {
                         Please copy this key immediately. You will not be able to see it again.
                     </p>
                     <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-gray-100 border border-brand-border px-4 py-2 text-gray-900 font-mono rounded">
+                        <code className="flex-1 bg-[#080810] border border-brand-border px-4 py-2 text-[#00ffc8] font-mono rounded">
                             {newKey}
                         </code>
                         <button
@@ -101,19 +101,19 @@ export default function DevelopersTab() {
                     </div>
                     <button
                         onClick={() => setNewKey(null)}
-                        className="mt-4 text-sm text-brand-muted hover:text-gray-900 transition-colors"
+                        className="mt-4 text-sm text-brand-muted hover:text-white transition-colors"
                     >
                         I have saved this key securely
                     </button>
                 </div>
             )}
 
-            <div className="bg-white border border-brand-border rounded-lg overflow-hidden backdrop-blur-md">
+            <div className="bg-[#0d0d1a] border border-brand-border rounded-lg overflow-hidden backdrop-blur-md">
                 <div className="p-4 border-b border-brand-border flex items-center justify-between">
-                    <h3 className="font-medium text-gray-900">Active Keys</h3>
+                    <h3 className="font-medium text-white">Active Keys</h3>
                     <button
                         onClick={generateKey}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-brand-accent hover:bg-brand-accent/90 text-white text-sm font-medium rounded transition-colors shadow-[0_0_15px_rgba(var(--brand-accent),0.5)]"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-[#00ffc8] hover:bg-[#00ffc8]/90 text-[#080810] text-sm font-medium rounded transition-colors"
                     >
                         <Plus className="w-4 h-4" />
                         Generate New Key
@@ -128,7 +128,7 @@ export default function DevelopersTab() {
                     <div className="p-8 text-center text-brand-muted">No API keys found.</div>
                 ) : (
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50 text-brand-muted">
+                        <thead className="bg-[#0a0a14] text-brand-muted">
                             <tr>
                                 <th className="px-4 py-3 font-medium">NAME</th>
                                 <th className="px-4 py-3 font-medium">KEY PREVIEW</th>
@@ -137,8 +137,8 @@ export default function DevelopersTab() {
                         </thead>
                         <tbody className="divide-y divide-brand-border">
                             {keys.map((k) => (
-                                <tr key={k.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-4 py-3 text-gray-900 font-medium">{k.label}</td>
+                                <tr key={k.id} className="hover:bg-white/[0.02] transition-colors">
+                                    <td className="px-4 py-3 text-white font-medium">{k.label}</td>
                                     <td className="px-4 py-3 font-mono text-brand-muted">{k.key_preview}</td>
                                     <td className="px-4 py-3 text-brand-muted">
                                         {new Date(k.created_at).toLocaleDateString()}

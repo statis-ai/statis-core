@@ -37,7 +37,7 @@ export default function DeliveriesTab({ entityType, entityId }: Props) {
     <div className="overflow-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-brand-border bg-gray-50 text-left text-xs font-medium text-brand-muted uppercase tracking-wider">
+          <tr className="border-b border-brand-border bg-[#0a0a14] text-left text-xs font-medium text-brand-muted uppercase tracking-wider">
             <th className="px-4 py-3">Subscription</th>
             <th className="px-4 py-3">Version</th>
             <th className="px-4 py-3">Status</th>
@@ -48,11 +48,11 @@ export default function DeliveriesTab({ entityType, entityId }: Props) {
         </thead>
         <tbody className="divide-y divide-brand-border">
           {rows.map((d) => (
-            <tr key={d.delivery_id} className="hover:bg-gray-50 transition-colors">
+            <tr key={d.delivery_id} className="hover:bg-white/[0.02] transition-colors">
               <td className="px-4 py-3 font-mono text-xs text-brand-muted truncate max-w-[10rem]">{d.subscription_id}</td>
-              <td className="px-4 py-3 text-gray-900">{d.state_version}</td>
-              <td className={`px-4 py-3 font-semibold ${STATUS_COLORS[d.status] ?? "text-gray-900"}`}>{d.status}</td>
-              <td className="px-4 py-3 text-gray-900">{d.attempt_count}</td>
+              <td className="px-4 py-3 text-white">{d.state_version}</td>
+              <td className={`px-4 py-3 font-semibold ${STATUS_COLORS[d.status] ?? "text-white"}`}>{d.status}</td>
+              <td className="px-4 py-3 text-white">{d.attempt_count}</td>
               <td className="px-4 py-3 text-xs text-brand-muted">{d.sent_at ? new Date(d.sent_at).toLocaleString() : "—"}</td>
               <td className="px-4 py-3 text-xs text-brand-error truncate max-w-[14rem]">{d.last_error ?? "—"}</td>
             </tr>

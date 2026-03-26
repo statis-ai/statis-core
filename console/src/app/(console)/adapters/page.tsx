@@ -13,17 +13,17 @@ const ADAPTERS = [
 ];
 
 const STATUS_META: Record<string, { label: string; pill: string; dot: string }> = {
-  connected: { label: "Connected", pill: "bg-green-50 text-green-700 border-green-200", dot: "bg-green-500" },
-  ready: { label: "Ready to connect", pill: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-400" },
-  not_connected: { label: "Not connected", pill: "bg-gray-50 text-gray-500 border-gray-200", dot: "bg-gray-300" },
+  connected:     { label: "Connected",        pill: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20", dot: "bg-emerald-500" },
+  ready:         { label: "Ready to connect", pill: "bg-sky-500/15 text-sky-400 border-sky-500/20",            dot: "bg-sky-400" },
+  not_connected: { label: "Not connected",    pill: "bg-white/5 text-[#5a5a7a] border-white/8",               dot: "bg-[#3a3a5a]" },
 };
 
 export default function AdaptersPage() {
   return (
     <div className="p-8 max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-[20px] font-semibold text-gray-900">Adapters</h1>
-        <p className="text-xs text-gray-400 mt-0.5">
+        <h1 className="text-[20px] font-semibold text-white">Adapters</h1>
+        <p className="text-xs text-[#5a5a7a] mt-0.5">
           {ADAPTERS.filter((a) => a.status === "connected").length} connected ·{" "}
           {ADAPTERS.filter((a) => a.status === "ready").length} ready
         </p>
@@ -33,15 +33,15 @@ export default function AdaptersPage() {
         {ADAPTERS.map((adapter) => {
           const meta = STATUS_META[adapter.status];
           return (
-            <div key={adapter.id} className="bg-white rounded-xl border border-gray-200 p-5">
+            <div key={adapter.id} className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5 hover:border-white/12 transition-colors">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-200 flex items-center justify-center">
-                    <Plug size={14} className="text-gray-400" />
+                  <div className="w-8 h-8 rounded-lg bg-white/4 border border-white/8 flex items-center justify-center">
+                    <Plug size={14} className="text-[#5a5a7a]" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900">{adapter.name}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">{adapter.desc}</p>
+                    <h3 className="text-sm font-semibold text-white">{adapter.name}</h3>
+                    <p className="text-xs text-[#5a5a7a] mt-0.5">{adapter.desc}</p>
                   </div>
                 </div>
               </div>
@@ -56,7 +56,7 @@ export default function AdaptersPage() {
               {adapter.actions.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 mb-3">
                   {adapter.actions.map((a) => (
-                    <span key={a} className="font-mono text-[10px] text-gray-500 bg-gray-50 border border-gray-200 px-2 py-0.5 rounded">
+                    <span key={a} className="font-mono text-[10px] text-[#6a6a8a] bg-white/4 border border-white/8 px-2 py-0.5 rounded">
                       {a}
                     </span>
                   ))}
@@ -64,13 +64,13 @@ export default function AdaptersPage() {
               )}
 
               {adapter.last_call && (
-                <p className="text-[10px] text-gray-400 mb-3">
+                <p className="text-[10px] text-[#4a4a6a] mb-3">
                   Last call: {new Date(adapter.last_call).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC
                 </p>
               )}
 
               {adapter.status !== "connected" && (
-                <button className="flex items-center gap-1.5 text-xs text-indigo-600 font-medium hover:text-indigo-700">
+                <button className="flex items-center gap-1.5 text-xs text-[#00ffc8] font-medium hover:text-[#00ffc8]/80 transition-colors">
                   {adapter.status === "ready" ? "Connect" : "Configure"}
                   <ExternalLink size={11} />
                 </button>

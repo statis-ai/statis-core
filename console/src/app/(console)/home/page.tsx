@@ -8,37 +8,37 @@ const METRICS = [
     label: "Actions Today",
     value: "148",
     delta: "+12 vs yesterday",
-    deltaColor: "text-green-600",
+    deltaColor: "text-emerald-400",
     icon: Zap,
-    iconBg: "bg-indigo-50",
-    iconColor: "text-indigo-500",
+    iconBg: "bg-[#00ffc8]/10",
+    iconColor: "text-[#00ffc8]",
   },
   {
     label: "Execution Rate",
     value: "99.3%",
     delta: "of committed actions",
-    deltaColor: "text-gray-400",
+    deltaColor: "text-[#5a5a7a]",
     icon: CheckCircle2,
-    iconBg: "bg-green-50",
-    iconColor: "text-green-500",
+    iconBg: "bg-emerald-500/10",
+    iconColor: "text-emerald-400",
   },
   {
     label: "Escalations",
     value: "2",
     delta: "2 awaiting review",
-    deltaColor: "text-orange-500",
+    deltaColor: "text-orange-400",
     icon: AlertTriangle,
-    iconBg: "bg-orange-50",
+    iconBg: "bg-orange-500/10",
     iconColor: "text-orange-400",
   },
   {
     label: "Receipts Minted",
     value: "1,204",
     delta: "all time",
-    deltaColor: "text-gray-400",
+    deltaColor: "text-[#5a5a7a]",
     icon: FileText,
-    iconBg: "bg-violet-50",
-    iconColor: "text-violet-500",
+    iconBg: "bg-sky-500/10",
+    iconColor: "text-sky-400",
   },
 ];
 
@@ -51,10 +51,10 @@ const RECENT_ACTIONS = [
 ];
 
 const STATUS_STYLES: Record<string, { pill: string }> = {
-  COMPLETED: { pill: "bg-green-50 text-green-700 border-green-200" },
-  ESCALATED: { pill: "bg-orange-50 text-orange-700 border-orange-200" },
-  DENIED: { pill: "bg-red-50 text-red-700 border-red-200" },
-  EXECUTING: { pill: "bg-blue-50 text-blue-700 border-blue-200" },
+  COMPLETED: { pill: "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20" },
+  ESCALATED: { pill: "bg-orange-500/15 text-orange-400 border border-orange-500/20" },
+  DENIED: { pill: "bg-red-500/15 text-red-400 border border-red-500/20" },
+  EXECUTING: { pill: "bg-sky-500/15 text-sky-400 border border-sky-500/20" },
 };
 
 const SYSTEM_HEALTH = [
@@ -71,12 +71,12 @@ export default function HomePage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-[20px] font-semibold text-gray-900">Home</h1>
-          <p className="text-xs text-gray-400 mt-0.5">Last updated 30 seconds ago</p>
+          <h1 className="text-[20px] font-semibold text-white">Home</h1>
+          <p className="text-xs text-[#5a5a7a] mt-0.5">Last updated 30 seconds ago</p>
         </div>
         <Link
           href="/demo"
-          className="flex items-center gap-1.5 text-sm text-indigo-600 font-medium hover:text-indigo-700"
+          className="flex items-center gap-1.5 text-sm text-[#00ffc8] font-medium hover:text-[#00ffc8]/80"
         >
           View demo <ArrowUpRight size={14} />
         </Link>
@@ -89,17 +89,17 @@ export default function HomePage() {
           return (
             <div
               key={m.label}
-              className="bg-white rounded-xl border border-gray-200 p-5"
+              className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5"
             >
               <div className="flex items-center justify-between mb-4">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a]">
                   {m.label}
                 </p>
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${m.iconBg}`}>
                   <Icon size={14} className={m.iconColor} />
                 </div>
               </div>
-              <p className="text-3xl font-bold text-gray-900">{m.value}</p>
+              <p className="text-3xl font-bold text-white">{m.value}</p>
               <p className={`text-xs mt-1 ${m.deltaColor}`}>{m.delta}</p>
             </div>
           );
@@ -109,18 +109,18 @@ export default function HomePage() {
       {/* Bottom row */}
       <div className="flex gap-5">
         {/* Recent Actions */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 flex-[3]">
+        <div className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5 flex-[3]">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a]">
               Recent Actions
             </p>
-            <Link href="/actions" className="text-xs text-indigo-500 hover:text-indigo-700">
+            <Link href="/actions" className="text-xs text-[#00ffc8] hover:text-[#00ffc8]/80">
               View all →
             </Link>
           </div>
           <table className="w-full">
             <thead>
-              <tr className="text-[10px] uppercase tracking-widest text-gray-400">
+              <tr className="text-[10px] uppercase tracking-widest text-[#5a5a7a]">
                 <th className="text-left pb-3 font-semibold">Act ID</th>
                 <th className="text-left pb-3 font-semibold">Entity</th>
                 <th className="text-left pb-3 font-semibold">Action</th>
@@ -133,21 +133,21 @@ export default function HomePage() {
               {RECENT_ACTIONS.map((row) => {
                 const s = STATUS_STYLES[row.status] ?? STATUS_STYLES.COMPLETED;
                 return (
-                  <tr key={row.id} className="border-t border-gray-100">
+                  <tr key={row.id} className="border-t border-white/5">
                     <td className="py-2.5 pr-4">
-                      <span className="font-mono text-xs text-indigo-600">{row.id}</span>
+                      <span className="font-mono text-xs text-[#00ffc8]">{row.id}</span>
                     </td>
-                    <td className="py-2.5 pr-4 text-xs text-gray-700">{row.entity}</td>
-                    <td className="py-2.5 pr-4 font-mono text-xs text-gray-500">{row.action}</td>
+                    <td className="py-2.5 pr-4 text-xs text-[#c4c4d4]">{row.entity}</td>
+                    <td className="py-2.5 pr-4 font-mono text-xs text-[#8a8a9a]">{row.action}</td>
                     <td className="py-2.5 pr-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border ${s.pill}`}>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${s.pill}`}>
                         {row.status}
                       </span>
                     </td>
                     <td className="py-2.5 pr-4">
-                      <span className="font-mono text-[11px] text-gray-400">{row.rule}</span>
+                      <span className="font-mono text-[11px] text-[#5a5a7a]">{row.rule}</span>
                     </td>
-                    <td className="py-2.5 text-xs text-gray-400">{row.time}</td>
+                    <td className="py-2.5 text-xs text-[#5a5a7a]">{row.time}</td>
                   </tr>
                 );
               })}
@@ -156,18 +156,18 @@ export default function HomePage() {
         </div>
 
         {/* System Health */}
-        <div className="bg-white rounded-xl border border-gray-200 p-5 flex-[1.5]">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-4">
+        <div className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5 flex-[1.5]">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] mb-4">
             System Health
           </p>
           <div className="flex flex-col gap-3">
             {SYSTEM_HEALTH.map((service) => (
               <div key={service} className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
-                  <span className="text-sm text-gray-700">{service}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-sm text-[#c4c4d4]">{service}</span>
                 </div>
-                <span className="text-[11px] font-medium text-green-600">Operational</span>
+                <span className="text-[11px] font-medium text-emerald-400">Operational</span>
               </div>
             ))}
           </div>

@@ -15,41 +15,41 @@ const EVENTS = [
 ];
 
 const TYPE_STYLES: Record<string, string> = {
-  "receipt.minted": "bg-green-50 text-green-700 border-green-200",
-  "adapter.ok": "bg-blue-50 text-blue-700 border-blue-200",
-  "policy.approved": "bg-indigo-50 text-indigo-700 border-indigo-200",
-  "policy.denied": "bg-red-50 text-red-700 border-red-200",
-  "action.received": "bg-gray-50 text-gray-600 border-gray-200",
-  "action.escalated": "bg-violet-50 text-violet-700 border-violet-200",
-  "action.denied": "bg-red-50 text-red-700 border-red-200",
-  "action.completed": "bg-green-50 text-green-700 border-green-200",
+  "receipt.minted":   "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  "adapter.ok":       "bg-sky-500/15 text-sky-400 border-sky-500/20",
+  "policy.approved":  "bg-[#00ffc8]/10 text-[#00ffc8] border-[#00ffc8]/20",
+  "policy.denied":    "bg-red-500/15 text-red-400 border-red-500/20",
+  "action.received":  "bg-white/5 text-[#6a6a8a] border-white/8",
+  "action.escalated": "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  "action.denied":    "bg-red-500/15 text-red-400 border-red-500/20",
+  "action.completed": "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
 };
 
 export default function EventsPage() {
   return (
     <div className="p-8 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-[20px] font-semibold text-gray-900">Events</h1>
-        <p className="text-xs text-gray-400 mt-0.5">Raw event log · live stream</p>
+        <h1 className="text-[20px] font-semibold text-white">Events</h1>
+        <p className="text-xs text-[#5a5a7a] mt-0.5">Raw event log · live stream</p>
       </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="bg-gray-50 border-b border-gray-200 px-5 py-3 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          <span className="text-xs text-gray-500">Live</span>
+      <div className="bg-[#0d0d1a] rounded-xl border border-white/8 overflow-hidden">
+        <div className="bg-[#0a0a14] border-b border-white/8 px-5 py-3 flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
+          <span className="text-xs text-[#5a5a7a] font-mono">Live</span>
         </div>
-        <div className="divide-y divide-gray-100">
+        <div className="divide-y divide-white/5">
           {EVENTS.map((ev, i) => (
-            <div key={i} className="flex items-start gap-4 px-5 py-3 hover:bg-gray-50/50 transition-colors">
-              <span className="font-mono text-[11px] text-gray-400 shrink-0 mt-0.5 w-20">
+            <div key={i} className="flex items-start gap-4 px-5 py-3 hover:bg-white/[0.02] transition-colors">
+              <span className="font-mono text-[11px] text-[#4a4a6a] shrink-0 mt-0.5 w-20">
                 {new Date(ev.time).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
               </span>
-              <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0 self-start mt-0.5", TYPE_STYLES[ev.type] ?? "bg-gray-50 text-gray-500 border-gray-200")}>
+              <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0 self-start mt-0.5", TYPE_STYLES[ev.type] ?? "bg-white/5 text-[#6a6a8a] border-white/8")}>
                 {ev.type}
               </span>
-              <span className="font-mono text-[11px] text-indigo-500 shrink-0 mt-0.5">{ev.entity}</span>
-              <span className="text-xs text-gray-600 mt-0.5">{ev.detail}</span>
-              <span className="font-mono text-[10px] text-gray-300 ml-auto shrink-0 mt-0.5">{ev.action_id}</span>
+              <span className="font-mono text-[11px] text-[#00ffc8]/70 shrink-0 mt-0.5">{ev.entity}</span>
+              <span className="text-xs text-[#8a8a9a] mt-0.5">{ev.detail}</span>
+              <span className="font-mono text-[10px] text-[#3a3a5a] ml-auto shrink-0 mt-0.5">{ev.action_id}</span>
             </div>
           ))}
         </div>
