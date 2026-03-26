@@ -26,6 +26,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.adapters.airflow import AirflowAdapter
+from app.adapters.filesystem import FilesystemAdapter
 from app.adapters.hubspot import HubSpotAdapter
 from app.adapters.salesforce import SalesforceAdapter
 from app.adapters.zendesk import ZendeskAdapter
@@ -48,6 +49,7 @@ ADAPTERS: dict[str, BaseAdapter] = {
     "salesforce": SalesforceAdapter(),
     "zendesk": ZendeskAdapter(),
     "hubspot": HubSpotAdapter(),
+    "filesystem": FilesystemAdapter(),
 }
 
 logging.basicConfig(

@@ -147,5 +147,61 @@ class PolicyEvaluator:
                         return False
             return True
 
+        # ── initiative brief condition handlers ────────────────────────────
+
+        if key == "required_fields":
+            # value is a list of parameter field names that must be present and non-empty.
+            params: dict = {}
+            if action is not None:
+                params = (
+                    action.parameters
+                    if hasattr(action, "parameters")
+                    else action.get("parameters", {})
+                )
+            if not isinstance(value, list):
+                return False
+            for field in value:
+                if not params.get(field):
+                    return False
+            return True
+
+        if key == "slug_format":
+            # value is a regex pattern; the action's parameters.slug must match.
+            import re as _re
+
+            params = {}
+            if action is not None:
+                params = (
+                    action.parameters
+                    if hasattr(action, "parameters")
+                    else action.get("parameters", {})
+                )
+            slug: str = params.get("slug", "")
+            try:
+                return bool(_re.fullmatch(value, slug))
+            except _re.error:
+                return False
+
+        if key == "min_tasks":
+            # value is an int; action.parameters.tasks must have at least that many
+            # workstream keys, each with a non-empty list.
+            params = {}
+            if action is not None:
+                params = (
+                    action.parameters
+                    if hasattr(action, "parameters")
+                    else action.get("parameters", {})
+                )
+            tasks = params.get("tasks", {})
+            if not isinstance(tasks, dict):
+                return False
+            task_count = sum(
+                1
+                for task_list in tasks.values()
+                if (isinstance(task_list, list) and len(task_list) > 0)
+                or (isinstance(task_list, str) and task_list.strip())
+            )
+            return task_count >= int(value)
+
         # Unknown condition key — fail closed (safe default).
         return False
