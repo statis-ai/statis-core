@@ -49,8 +49,7 @@ api/statis.db
 *.swo
 
 # Claude Code
-.claude/settings.local.json
-.claude/settings.json
+.claude/
 
 # Tests
 .pytest_cache/
