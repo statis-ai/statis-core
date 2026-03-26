@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useOnboarding, ActionType } from "@/components/OnboardingContext";
 import OnboardingShell from "@/components/OnboardingShell";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const ACTIONS: { id: ActionType; label: string; rule: string }[] = [
@@ -74,14 +74,23 @@ export default function ActionsPage() {
           </div>
         )}
 
-        <button
-          onClick={() => router.push("/onboarding/systems")}
-          disabled={actions.length === 0}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          Continue
-          <ArrowRight size={15} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => router.push("/onboarding/industry")}
+            className="flex items-center gap-1.5 text-sm text-[#5a5a7a] hover:text-white transition-colors"
+          >
+            <ArrowLeft size={14} />
+            Back
+          </button>
+          <button
+            onClick={() => router.push("/onboarding/systems")}
+            disabled={actions.length === 0}
+            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Continue
+            <ArrowRight size={15} />
+          </button>
+        </div>
       </div>
     </OnboardingShell>
   );

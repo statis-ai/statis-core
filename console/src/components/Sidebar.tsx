@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -75,10 +75,18 @@ const NAV: NavSection[] = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    const stored = localStorage.getItem("statis_user_email");
+    if (stored) setEmail(stored);
+  }, []);
 
   function handleLogout() {
     localStorage.removeItem("statis_user_email");
     localStorage.removeItem("statis_api_key");
+    localStorage.removeItem("statis_onboarding_complete");
+    localStorage.removeItem("statis_onboarding_state");
     router.push("/auth");
   }
 
@@ -154,13 +162,15 @@ export default function Sidebar() {
       <div className="px-3 py-3 border-t border-white/5">
         <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md">
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00ffc8] to-[#00a8ff] flex items-center justify-center shrink-0">
-            <span className="text-[#080810] text-[11px] font-semibold">A</span>
+            <span className="text-[#080810] text-[11px] font-semibold">
+              {email ? email[0].toUpperCase() : "?"}
+            </span>
           </div>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium text-[#c4c4d4] truncate leading-tight">
-              aniket@statis.dev
+              {email || ""}
             </p>
-            <p className="text-[10px] text-[#4a4a6a] leading-tight">Design Partner</p>
+            <p className="text-[10px] text-[#4a4a6a] leading-tight">Workspace</p>
           </div>
           <button
             onClick={handleLogout}

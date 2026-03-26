@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 export type Industry =
   | "fintech"
@@ -44,11 +44,19 @@ interface OnboardingContextValue extends OnboardingState {
 const OnboardingContext = createContext<OnboardingContextValue | null>(null);
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-  const [state, setState] = useState<OnboardingState>({
-    industry: null,
-    actions: [],
-    systems: [],
+  const [state, setState] = useState<OnboardingState>(() => {
+    if (typeof window === "undefined") return { industry: null, actions: [], systems: [] };
+    try {
+      const saved = localStorage.getItem("statis_onboarding_state");
+      return saved ? JSON.parse(saved) : { industry: null, actions: [], systems: [] };
+    } catch {
+      return { industry: null, actions: [], systems: [] };
+    }
   });
+
+  useEffect(() => {
+    localStorage.setItem("statis_onboarding_state", JSON.stringify(state));
+  }, [state]);
 
   const setIndustry = (industry: Industry) =>
     setState((s) => ({ ...s, industry }));

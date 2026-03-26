@@ -140,7 +140,10 @@ export default function ReadyPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          onClick={() => router.push("/home")}
+          onClick={() => {
+            localStorage.setItem("statis_onboarding_complete", "true");
+            router.push("/home");
+          }}
           className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors"
         >
           Open my console

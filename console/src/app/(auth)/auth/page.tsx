@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowRight, Shield, Zap, FileText, Lock } from "lucide-react";
@@ -34,6 +34,18 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [projectName, setProjectName] = useState("");
+
+  useEffect(() => {
+    const apiKey = localStorage.getItem("statis_api_key");
+    if (apiKey) {
+      const onboarded = localStorage.getItem("statis_onboarding_complete");
+      if (onboarded) {
+        router.replace("/home");
+      } else {
+        router.replace("/onboarding/industry");
+      }
+    }
+  }, [router]);
 
   function handleGoogle() {
     setLoading(true);
