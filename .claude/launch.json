@@ -1,0 +1,33 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "console",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "/home/aniket/statis/statis-core/console",
+      "port": 3001
+    },
+    {
+      "name": "landing",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "/home/aniket/statis/statis-core/landing",
+      "port": 3000
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"],
+      "cwd": "/home/aniket/statis/statis-core/api",
+      "port": 8000
+    },
+    {
+      "name": "worker",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["worker/main.py"],
+      "cwd": "/home/aniket/statis/statis-core",
+      "port": null
+    }
+  ]
+}

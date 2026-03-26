@@ -48,6 +48,9 @@ api/statis.db
 *.swp
 *.swo
 
+# Claude Code
+.claude/settings.local.json
+
 # Tests
 .pytest_cache/
 coverage/
