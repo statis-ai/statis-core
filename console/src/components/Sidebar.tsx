@@ -19,6 +19,7 @@ import {
   Users,
   ExternalLink,
   LogOut,
+  KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -61,6 +62,7 @@ const NAV: NavSection[] = [
     group: "Account",
     items: [
       { label: "Settings", href: "/settings", icon: Settings },
+      { label: "Developers", href: "/developers", icon: KeyRound },
       { label: "Team", href: "/team", icon: Users },
       {
         label: "Docs",
