@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowRight, Shield, Zap, FileText, Lock } from "lucide-react";
 
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 const FEATURES = [
   {
     icon: Shield,
@@ -31,9 +33,11 @@ const FEATURES = [
 export default function AuthPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [projectName, setProjectName] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const apiKey = localStorage.getItem("statis_api_key");
@@ -47,19 +51,39 @@ export default function AuthPage() {
     }
   }, [router]);
 
-  function handleGoogle() {
-    setLoading(true);
-    localStorage.setItem("statis_user_email", "aniket@statis.dev");
-    localStorage.setItem("statis_api_key", "sk_demo_xxxxxxxx");
-    setTimeout(() => router.push("/onboarding/industry"), 800);
-  }
-
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
     if (!email) return;
-    localStorage.setItem("statis_user_email", email);
-    localStorage.setItem("statis_api_key", "sk_demo_xxxxxxxx");
-    router.push("/onboarding/industry");
+
+    if (mode === "signin") {
+      setLoading(true);
+      try {
+        const res = await fetch(`${BASE}/admin/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.detail ?? "Sign in failed.");
+          return;
+        }
+        localStorage.setItem("statis_api_key", data.api_key);
+        localStorage.setItem("statis_tenant_id", data.tenant_id);
+        router.push("/home");
+      } catch {
+        setError("Network error. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      localStorage.setItem(
+        "statis_pending_signup",
+        JSON.stringify({ email, password, projectName })
+      );
+      router.push("/onboarding/industry");
+    }
   }
 
   return (
@@ -189,27 +213,6 @@ export default function AuthPage() {
             </p>
           </div>
 
-          {/* Google SSO */}
-          <button
-            onClick={handleGoogle}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-lg border border-white/[0.1] bg-white/[0.03] text-[#c4c4d4] text-[13px] font-medium hover:bg-white/[0.05] hover:border-white/[0.16] transition-all duration-150 mb-5 disabled:opacity-50"
-          >
-            <svg width="16" height="16" viewBox="0 0 18 18" fill="none">
-              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
-              <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
-              <path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
-              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
-            </svg>
-            {loading ? "Signing in…" : "Continue with Google"}
-          </button>
-
-          <div className="flex items-center gap-3 mb-5">
-            <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-[11px] text-[#3a3a5a] uppercase tracking-wider">or</span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className="block text-[11px] font-medium text-[#4a4a6a] uppercase tracking-wider mb-1.5">
@@ -220,6 +223,20 @@ export default function AuthPage() {
                 placeholder="you@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white text-[13px] placeholder:text-[#2a2a4a] focus:outline-none focus:border-[#00ffc8]/40 focus:ring-1 focus:ring-[#00ffc8]/20 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-medium text-[#4a4a6a] uppercase tracking-wider mb-1.5">
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full px-3.5 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white text-[13px] placeholder:text-[#2a2a4a] focus:outline-none focus:border-[#00ffc8]/40 focus:ring-1 focus:ring-[#00ffc8]/20 transition-colors"
               />
@@ -242,11 +259,16 @@ export default function AuthPage() {
 
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-[#00ffc8] text-[#080810] text-[13px] font-semibold hover:bg-[#00ffc8]/90 active:scale-[0.99] transition-all duration-150 mt-1"
+              disabled={loading}
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-[#00ffc8] text-[#080810] text-[13px] font-semibold hover:bg-[#00ffc8]/90 active:scale-[0.99] transition-all duration-150 mt-1 disabled:opacity-50"
             >
-              {mode === "signin" ? "Sign in" : "Create workspace"}
+              {loading ? "Signing in…" : mode === "signin" ? "Sign in" : "Create workspace"}
               <ArrowRight size={14} />
             </button>
+
+            {error && (
+              <p className="text-[12px] text-red-400 text-center mt-1">{error}</p>
+            )}
           </form>
 
           <p className="text-[12px] text-[#3a3a5a] text-center mt-6">

@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOnboarding } from "@/components/OnboardingContext";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield, Database, Plug } from "lucide-react";
+
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const RULE_MAP: Record<string, string> = {
   issue_refund: "refund_eligibility_v1",
@@ -27,6 +30,8 @@ const ADAPTER_MAP: Record<string, { name: string; status: "connected" | "ready" 
 export default function ReadyPage() {
   const router = useRouter();
   const { industry, actions, systems } = useOnboarding();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const rules = actions.map((a) => RULE_MAP[a]).filter(Boolean).slice(0, 3);
   const displayRules = rules.length > 0 ? rules : ["churn_retention_v1", "refund_eligibility_v1"];
@@ -35,6 +40,44 @@ export default function ReadyPage() {
     industry === "fintech" ? ["acct-42", "cust-771", "acct-88"] :
     industry === "saas" ? ["acct-42", "acct-88", "tenant-9"] :
     ["entity-001", "entity-002", "entity-003"];
+
+  async function handleOpenConsole() {
+    setError(null);
+    const raw = localStorage.getItem("statis_pending_signup");
+    if (!raw) {
+      localStorage.setItem("statis_onboarding_complete", "true");
+      router.push("/home");
+      return;
+    }
+
+    const pending = JSON.parse(raw);
+    setLoading(true);
+    try {
+      const res = await fetch(`${BASE}/admin/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: pending.email,
+          password: pending.password,
+          project_name: pending.projectName,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.detail ?? "Signup failed. Please try again.");
+        return;
+      }
+      localStorage.setItem("statis_api_key", data.api_key);
+      localStorage.setItem("statis_tenant_id", data.tenant_id);
+      localStorage.setItem("statis_onboarding_complete", "true");
+      localStorage.removeItem("statis_pending_signup");
+      router.push("/home");
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-10">
@@ -136,19 +179,23 @@ export default function ReadyPage() {
           </motion.div>
         </div>
 
-        <motion.button
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          onClick={() => {
-            localStorage.setItem("statis_onboarding_complete", "true");
-            router.push("/home");
-          }}
-          className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors"
         >
-          Open my console
-          <ArrowRight size={15} />
-        </motion.button>
+          <button
+            onClick={handleOpenConsole}
+            disabled={loading}
+            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-50"
+          >
+            {loading ? "Setting up…" : "Open my console"}
+            <ArrowRight size={15} />
+          </button>
+          {error && (
+            <p className="text-[12px] text-red-400 mt-3">{error}</p>
+          )}
+        </motion.div>
       </div>
     </div>
   );

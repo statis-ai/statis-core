@@ -35,6 +35,7 @@ def _generate_api_key(
 ) -> tuple[str, ApiKey]:
     raw_key = f"st_{secrets.token_urlsafe(32)}"
     hashed_key = hashlib.sha256(raw_key.encode()).hexdigest()
+    key_prefix = raw_key[:10]
     key_id = str(uuid.uuid4())
     api_key_record = ApiKey(
         id=key_id,
@@ -43,6 +44,7 @@ def _generate_api_key(
         label=label,
         role=role,
         agent_id=agent_id,
+        key_prefix=key_prefix,
     )
     db.add(api_key_record)
     db.commit()
@@ -158,7 +160,7 @@ def list_api_keys(auth: AuthContext = Depends(get_auth_context), db: Session = D
             role=k.role,
             agent_id=k.agent_id,
             created_at=k.created_at,
-            key_preview="st_••••••••••••••••",
+            key_preview=f"{k.key_prefix}••••" if k.key_prefix else "st_••••••••••••••••",
         )
         for k in keys
     ]

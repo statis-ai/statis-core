@@ -16,6 +16,7 @@ class ApiKey(Base):
     label: Mapped[str] = mapped_column(String, nullable=True)
     role: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     agent_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    key_prefix: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

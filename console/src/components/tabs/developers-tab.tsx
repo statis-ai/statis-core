@@ -21,6 +21,8 @@ export default function DevelopersTab() {
     const [newKey, setNewKey] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
+    const [newKeyLabel, setNewKeyLabel] = useState("");
+
     useEffect(() => {
         fetchKeys();
     }, []);
@@ -32,7 +34,10 @@ export default function DevelopersTab() {
             const res = await fetch(`${BASE}/admin/api-keys`, {
                 headers: { "X-API-Key": apiKey },
             });
-            if (!res.ok) throw new Error("Failed to fetch API keys");
+            if (!res.ok) {
+                const body = await res.text();
+                throw new Error(`Failed to load keys (${res.status}): ${body}`);
+            }
             const data = await res.json();
             setKeys(data);
         } catch (err: any) {
@@ -45,7 +50,7 @@ export default function DevelopersTab() {
     async function generateKey() {
         try {
             const apiKey = localStorage.getItem("statis_api_key") || process.env.NEXT_PUBLIC_API_KEY || "";
-            const label = prompt("Enter a label for this API key:") || "New API Key";
+            const label = newKeyLabel.trim() || "New API Key";
             const res = await fetch(`${BASE}/admin/api-keys`, {
                 method: "POST",
                 headers: {
@@ -54,12 +59,16 @@ export default function DevelopersTab() {
                 },
                 body: JSON.stringify({ label }),
             });
-            if (!res.ok) throw new Error("Failed to generate API key");
+            if (!res.ok) {
+                const body = await res.text();
+                throw new Error(`Failed to generate key (${res.status}): ${body}`);
+            }
             const data = await res.json();
             setNewKey(data.raw_key);
+            setNewKeyLabel("");
             fetchKeys();
         } catch (err: any) {
-            alert(err.message);
+            setError(err.message);
         }
     }
 
@@ -111,21 +120,32 @@ export default function DevelopersTab() {
             )}
 
             <div className="bg-[#0d0d1a] border border-brand-border rounded-lg overflow-hidden backdrop-blur-md">
-                <div className="p-4 border-b border-brand-border flex items-center justify-between">
+                <div className="p-4 border-b border-brand-border">
+                    <div className="flex items-center gap-2 mb-3">
+                        <input
+                            type="text"
+                            placeholder="Key label (optional)"
+                            value={newKeyLabel}
+                            onChange={(e) => setNewKeyLabel(e.target.value)}
+                            className="flex-1 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white text-[13px] placeholder:text-[#3a3a5a] focus:outline-none focus:border-[#00ffc8]/40 focus:ring-1 focus:ring-[#00ffc8]/20 transition-colors"
+                        />
+                        <button
+                            onClick={generateKey}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-[#00ffc8] hover:bg-[#00ffc8]/90 text-[#080810] text-sm font-medium rounded transition-colors"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Generate New Key
+                        </button>
+                    </div>
                     <h3 className="font-medium text-white">Active Keys</h3>
-                    <button
-                        onClick={generateKey}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-[#00ffc8] hover:bg-[#00ffc8]/90 text-[#080810] text-sm font-medium rounded transition-colors"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Generate New Key
-                    </button>
                 </div>
+
+                {error && (
+                    <div className="px-4 py-2 text-sm text-red-400 border-b border-brand-border">{error}</div>
+                )}
 
                 {loading ? (
                     <div className="p-8 text-center text-brand-muted">Loading keys...</div>
-                ) : error ? (
-                    <div className="p-8 text-center text-red-400">{error}</div>
                 ) : keys.length === 0 ? (
                     <div className="p-8 text-center text-brand-muted">No API keys found.</div>
                 ) : (
