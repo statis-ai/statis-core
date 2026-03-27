@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Copy, Plus, KeyRound } from "lucide-react";
 
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
 interface ApiKeyResponse {
     id: string;
     tenant_id: string;
@@ -27,7 +29,7 @@ export default function DevelopersTab() {
         try {
             setLoading(true);
             const apiKey = localStorage.getItem("statis_api_key") || process.env.NEXT_PUBLIC_API_KEY || "";
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/api-keys`, {
+            const res = await fetch(`${BASE}/admin/api-keys`, {
                 headers: { "X-API-Key": apiKey },
             });
             if (!res.ok) throw new Error("Failed to fetch API keys");
@@ -44,7 +46,7 @@ export default function DevelopersTab() {
         try {
             const apiKey = localStorage.getItem("statis_api_key") || process.env.NEXT_PUBLIC_API_KEY || "";
             const label = prompt("Enter a label for this API key:") || "New API Key";
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/admin/api-keys`, {
+            const res = await fetch(`${BASE}/admin/api-keys`, {
                 method: "POST",
                 headers: {
                     "X-API-Key": apiKey,
