@@ -26,6 +26,17 @@ memory/people.md       — team, collaborators, external contacts (if any)
 - Keep responses short and direct. No filler, no summaries of what was just done.
 - When referencing files or code, use markdown links with line numbers.
 
+## Browser Testing Rule
+
+**Before reporting any console or landing page feature as complete, verify it end-to-end in a real browser using Playwright.**
+
+- Use the Playwright MCP plugin or the project's Playwright node_modules directly.
+- Chromium binary: `/home/aniket/.cache/ms-playwright/chromium-1208/chrome-linux64/chrome`
+- Run with: `PLAYWRIGHT_BROWSERS_PATH=/home/aniket/.cache/ms-playwright node <script>.js` from `console/`
+- Test the full user flow, not just individual API calls.
+- Allow up to 90 seconds for Render cold starts on first request.
+- Do not report success to Aniket until the browser test passes end-to-end.
+
 ---
 
 ## Project Overview
