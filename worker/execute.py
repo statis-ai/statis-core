@@ -362,6 +362,14 @@ def _finalize(
     except Exception:
         logger.exception("Webhook delivery error for action %s (non-fatal)", action.action_id)
 
+    # SIEM export — fire-and-forget, never raises
+    if receipt is not None:
+        try:
+            from app.security.siem_exporter import SIEMExporter
+            SIEMExporter().export(action, receipt)
+        except Exception:
+            logger.exception("SIEM export error for action %s (non-fatal)", action.action_id)
+
 
 def run_once(session_factory: sessionmaker) -> int:
     """Run one poll cycle. Returns number of actions processed."""

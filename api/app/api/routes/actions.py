@@ -19,11 +19,13 @@ from app.policy.evaluator import PolicyEvaluator, RuleSpec
 from app.schemas.actions import ActionAccepted, ActionCompleteIn, ActionIn, ActionOut, ActionStatus
 from app.schemas.escalation import EscalatedActionOut, EscalationReviewIn, EscalationReviewOut
 from app.schemas.policy import EvaluateResponse
+from app.security.pii_masker import PIIMasker
 from app.security.threat_detector import ThreatDetector
 from app.utils.hashing import canonical_state_hash
 
 router = APIRouter(tags=["actions"])
 _threat_detector = ThreatDetector()
+_pii_masker = PIIMasker()
 
 
 @router.post("/actions", response_model=ActionAccepted, status_code=status.HTTP_201_CREATED)
@@ -76,6 +78,9 @@ def propose_action(
             )
         # low/medium: log and proceed — policy engine makes the final call
 
+    # Mask PII/sensitive fields before persisting — raw payload is never stored
+    masked_parameters = _pii_masker.mask(action_in.parameters)
+
     contract = ActionContract(
         action_id=action_in.action_id,
         tenant_id=auth.tenant_id,
@@ -83,7 +88,7 @@ def propose_action(
         action_type=action_in.action_type,
         target_entity=action_in.target_entity,
         target_system=action_in.target_system,
-        parameters=action_in.parameters,
+        parameters=masked_parameters,
         context=action_in.context,
         status=ActionStatus.PROPOSED,
         mode=action_in.mode,

@@ -115,6 +115,36 @@ To run the sandbox environment with a daily reset, add a cron job on the host:
 0 0 * * * docker compose -f /path/to/statis-core/docker-compose.yml exec -T api python scripts/seed_sandbox.py --reset
 ```
 
+## SIEM Integration
+
+Statis can forward receipt events to Datadog and Splunk on action completion. Both exporters are disabled by default and fire-and-forget — failures are logged but never block execution.
+
+### Datadog
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SIEM_DATADOG_ENABLED` | Enable Datadog log export | `false` |
+| `SIEM_DATADOG_API_KEY` | Datadog API key | _(empty)_ |
+| `SIEM_DATADOG_HOST` | Datadog HTTP intake host | `https://http-intake.logs.datadoghq.com` |
+
+Logs are sent to `{SIEM_DATADOG_HOST}/api/v2/logs` with source `statis` and service `statis-receipts`.
+
+### Splunk HEC
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `SIEM_SPLUNK_ENABLED` | Enable Splunk HEC export | `false` |
+| `SIEM_SPLUNK_HEC_URL` | Splunk HEC endpoint (e.g. `https://splunk.corp.com:8088`) | _(empty)_ |
+| `SIEM_SPLUNK_HEC_TOKEN` | Splunk HEC token | _(empty)_ |
+
+Events are sent to `{SIEM_SPLUNK_HEC_URL}/services/collector/event` with sourcetype `statis:receipt`.
+
+### Event payload
+
+Each SIEM event contains: `timestamp`, `service`, `tenant_id`, `action_id`, `action_type`, `target_system`, `decision`, `status`, `receipt_id`, `receipt_hash`, `mode`.
+
+---
+
 ## Updating
 
 ```bash
