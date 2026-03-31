@@ -7,6 +7,12 @@ const FOOTER_LINKS = {
         { label: "Docs", href: "https://docs.statis.dev", external: true },
         { label: "Primitives", href: "#primitives", external: false },
     ],
+    Adapters: [
+        { label: "Stripe", href: "https://docs.statis.dev", external: true },
+        { label: "Salesforce", href: "https://docs.statis.dev", external: true },
+        { label: "HubSpot", href: "https://docs.statis.dev", external: true },
+        { label: "Zendesk", href: "https://docs.statis.dev", external: true },
+    ],
     Developers: [
         { label: "GitHub", href: "https://github.com/statis-ai/statis-sdk", external: true },
         { label: "Python SDK", href: "https://pypi.org/project/statis-ai/", external: true },
@@ -23,7 +29,7 @@ export function FooterV2() {
         <footer className="bg-[#050508] section-divider">
             <div className="mx-auto max-w-7xl px-6 pt-16 pb-10 lg:px-8">
 
-                <div className="grid grid-cols-2 gap-10 md:grid-cols-4 lg:gap-16">
+                <div className="grid grid-cols-2 gap-10 md:grid-cols-5 lg:gap-16">
                     {/* Brand column */}
                     <div className="col-span-2 md:col-span-1 space-y-5">
                         <Link href="/" className="flex items-center gap-2.5 cursor-pointer">
@@ -81,7 +87,11 @@ export function FooterV2() {
                     ))}
                 </div>
 
-                <div className="mt-12 border-t border-white/6 pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="mt-12 border-t border-white/6 pt-8">
+                <p className="text-[10px] font-mono text-[#2a2a3a] text-center mb-4">
+                    Built for AI teams in regulated environments · EU AI Act compliance · Python + TypeScript
+                </p>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <p className="text-xs text-[#3a3a4a]">
                         &copy; 2026 Statis Inc.
                     </p>
@@ -89,6 +99,7 @@ export function FooterV2() {
                         <a href="#" className="text-xs text-[#3a3a4a] hover:text-[#8a8a9a] transition-colors cursor-pointer">Terms</a>
                         <a href="#" className="text-xs text-[#3a3a4a] hover:text-[#8a8a9a] transition-colors cursor-pointer">Privacy</a>
                     </div>
+                </div>
                 </div>
             </div>
         </footer>

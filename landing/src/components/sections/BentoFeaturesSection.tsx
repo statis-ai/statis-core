@@ -7,31 +7,31 @@ import { AnimatedTerminal, TerminalLine } from "@/components/ui/AnimatedTerminal
 const AGENT_STATES = [
     {
         name: "Agent A",
-        color: "text-sky-400",
-        border: "border-sky-500/20",
-        bg: "bg-sky-500/5",
-        dot: "bg-sky-400",
+        color: "text-[#8a8aaa]",
+        border: "border-white/10",
+        bg: "bg-white/[0.03]",
+        dot: "bg-[#6a6aaa]",
         fields: [
-            { key: "churn_risk", value: "HIGH",       accent: "text-rose-400" },
-            { key: "last_action", value: "email_sent", accent: "text-sky-400" },
-            { key: "cached_at",  value: "T−06:00",    accent: "text-amber-400" },
+            { key: "churn_risk", value: "HIGH",       accent: "text-[#a06060]" },
+            { key: "last_action", value: "email_sent", accent: "text-[#6a8a9a]" },
+            { key: "cached_at",  value: "T−06:00",    accent: "text-[#8a7040]" },
         ],
         action: "→ books upsell call",
-        actionColor: "text-sky-400",
+        actionColor: "text-[#6a8a9a]",
     },
     {
         name: "Agent B",
-        color: "text-violet-400",
-        border: "border-violet-500/20",
-        bg: "bg-violet-500/5",
-        dot: "bg-violet-400",
+        color: "text-[#7a7a9a]",
+        border: "border-white/8",
+        bg: "bg-white/[0.02]",
+        dot: "bg-[#5a5a8a]",
         fields: [
-            { key: "churn_risk", value: "LOW",        accent: "text-emerald-400" },
+            { key: "churn_risk", value: "LOW",        accent: "text-[#406a50]" },
             { key: "last_action", value: "none",      accent: "text-[#5a5a7a]" },
-            { key: "cached_at",  value: "T−18:00",   accent: "text-rose-400" },
+            { key: "cached_at",  value: "T−18:00",   accent: "text-[#a06060]" },
         ],
         action: "→ sends churn warning",
-        actionColor: "text-violet-400",
+        actionColor: "text-[#7a7a9a]",
     },
 ];
 
@@ -55,7 +55,7 @@ const WRITE_LINES: TerminalLine[] = [
 export function BentoFeaturesSection() {
     return (
         <section className="relative py-28 overflow-hidden section-divider">
-            <div className="absolute top-0 right-0 w-[700px] h-[400px] bg-rose-500/5 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[700px] h-[400px] bg-rose-500/[0.025] blur-[120px] rounded-full pointer-events-none" />
 
             <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
@@ -66,7 +66,7 @@ export function BentoFeaturesSection() {
                     transition={{ duration: 0.5 }}
                     className="max-w-2xl mx-auto mb-16 text-center"
                 >
-                    <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-rose-400">
+                    <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#7a4040]">
                         The Problem
                     </p>
                     <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
@@ -86,10 +86,11 @@ export function BentoFeaturesSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.1 }}
-                        className="rounded-3xl border border-t-2 border-white/8 border-t-rose-500/30 bg-[#0b0b14] p-7 flex flex-col gap-6"
+                        className="rounded-3xl border border-t-2 border-white/8 border-t-[#2d1a1a] p-7 flex flex-col gap-6"
+                        style={{ background: 'linear-gradient(135deg, rgba(30,15,15,0.6) 0%, #0c0b0d 100%)' }}
                     >
                         <div>
-                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-rose-400 uppercase">Problem 01</span>
+                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-[#7a4040] uppercase">Problem 01</span>
                             <h3 className="text-xl font-bold text-white mt-2 mb-1.5">Fragmented State</h3>
                             <p className="text-sm text-[#7a7a8a] leading-relaxed">
                                 Two agents. Same customer. Cached at different times. Both act — on different truths. Customer receives both.
@@ -118,7 +119,7 @@ export function BentoFeaturesSection() {
                             ))}
                         </div>
 
-                        <p className="text-xs text-rose-400/80 font-mono border-t border-white/6 pt-4">
+                        <p className="text-xs text-[#6a3030] font-mono border-t border-white/6 pt-4">
                             ✗ No shared reality. Conflicting actions. Customer receives both.
                         </p>
                     </motion.div>
@@ -129,10 +130,11 @@ export function BentoFeaturesSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="rounded-3xl border border-t-2 border-white/8 border-t-rose-500/30 bg-[#0b0b14] p-7 flex flex-col gap-5"
+                        className="rounded-3xl border border-t-2 border-white/8 border-t-[#2d1a1a] p-7 flex flex-col gap-5"
+                        style={{ background: 'linear-gradient(135deg, rgba(15,15,25,0.6) 0%, #0c0b0d 100%)' }}
                     >
                         <div>
-                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-rose-400 uppercase">Problem 02</span>
+                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-[#7a4040] uppercase">Problem 02</span>
                             <h3 className="text-xl font-bold text-white mt-2 mb-1.5">Unguarded Execution</h3>
                             <p className="text-sm text-[#7a7a8a] leading-relaxed">
                                 Agent bulk-updates 847 Salesforce records. Network blips. It retries. 1,694 history entries. No policy. No receipt. Auditor asks who approved this.
@@ -141,7 +143,7 @@ export function BentoFeaturesSection() {
 
                         <AnimatedTerminal
                             lines={WRITE_LINES}
-                            title="crm-agent — no policy engine"
+                            title="crm-agent"
                             className="flex-1"
                         />
                     </motion.div>
@@ -152,10 +154,11 @@ export function BentoFeaturesSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.3 }}
-                        className="rounded-3xl border border-t-2 border-white/8 border-t-rose-500/30 bg-[#0b0b14] p-7 flex flex-col gap-5"
+                        className="rounded-3xl border border-t-2 border-white/8 border-t-[#2d1a1a] p-7 flex flex-col gap-5"
+                        style={{ background: 'linear-gradient(135deg, rgba(15,20,15,0.6) 0%, #0c0b0d 100%)' }}
                     >
                         <div>
-                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-rose-400 uppercase">Problem 03</span>
+                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-[#7a4040] uppercase">Problem 03</span>
                             <h3 className="text-xl font-bold text-white mt-2 mb-1.5">No Audit Trail</h3>
                             <p className="text-sm text-[#7a7a8a] leading-relaxed">
                                 Agent ran at 03:14. Bulk-updated 847 records. No policy approved it. No receipt exists. The timestamp in your logs is what the agent told you — not what actually happened.

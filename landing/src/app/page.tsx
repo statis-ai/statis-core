@@ -1,11 +1,16 @@
 import { NavbarV2 } from "@/components/sections/NavbarV2";
 import { HeroV2 } from "@/components/hero/HeroV2";
-import { ProblemBridgeSection } from "@/components/sections/ProblemBridgeSection";
+import { TrustBarSection } from "@/components/sections/TrustBarSection";
 import { BentoFeaturesSection } from "@/components/sections/BentoFeaturesSection";
+import { ProblemBridgeSection } from "@/components/sections/ProblemBridgeSection";
 import { IntroducingStatisSection } from "@/components/sections/IntroducingStatisSection";
+import { BeforeAfterSection } from "@/components/sections/BeforeAfterSection";
+import { SDKQuickstartSection } from "@/components/sections/SDKQuickstartSection";
+import { AIStackSection } from "@/components/sections/AIStackSection";
+import { ComplianceStripSection } from "@/components/sections/ComplianceStripSection";
 import { UseCasesSection } from "@/components/sections/UseCasesSection";
 import { MemoryVsRealitySection } from "@/components/sections/MemoryVsRealitySection";
-import { AIStackSection } from "@/components/sections/AIStackSection";
+import { BlogSection } from "@/components/sections/BlogSection";
 import { FAQSection } from "@/components/sections/FAQSection";
 import { FooterV2 } from "@/components/sections/FooterV2";
 import { GlobalBackground } from "@/components/ui/GlobalBackground";
@@ -18,16 +23,20 @@ export default function Home() {
       <div className="noise-overlay" />
       <main className="relative z-10 min-h-screen bg-transparent">
         <HeroV2 />
+        <TrustBarSection />
         <BentoFeaturesSection />
         <ProblemBridgeSection />
         <IntroducingStatisSection />
-        <UseCasesSection />
+        <BeforeAfterSection />
+        <SDKQuickstartSection />
         <AIStackSection />
+        <ComplianceStripSection />
+        <UseCasesSection />
         <MemoryVsRealitySection />
+        <BlogSection />
         <FAQSection />
         <FooterV2 />
       </main>
     </>
   );
-
 }

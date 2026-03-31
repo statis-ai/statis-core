@@ -275,3 +275,16 @@ body {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }
+
+@keyframes marqueeScrollReverse {
+  0%   { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+.marquee-track-reverse {
+  display: flex;
+  gap: 0.75rem;
+  animation: marqueeScrollReverse 45s linear infinite;
+}
+.marquee-track-reverse:hover {
+  animation-play-state: paused;
+}

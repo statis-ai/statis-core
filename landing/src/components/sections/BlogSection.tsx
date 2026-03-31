@@ -1,65 +1,105 @@
-export function BlogSection() {
-    const posts = [
-        {
-            title: "Why AI Agents Need Materialized State",
-            description: "Polling APIs is the leading cause of agent hallucinations and workflow corruption. Explore why state materialization is the missing primitive in agentic architecture.",
-            date: "Oct 12, 2024",
-            category: "Architecture",
-            href: "#",
-        },
-        {
-            title: "Building Deterministic Support Swarms",
-            description: "How to orchestrate 5+ independent customer support agents without race conditions using Statis deterministic webhooks.",
-            date: "Oct 05, 2024",
-            category: "Case Study",
-            href: "#",
-        },
-        {
-            title: "The Problem with Vector Databases for State",
-            description: "Vector DBs are excellent for semantic retrieval, but terrible for tracking if a user paid their invoice. Here is how to combine both.",
-            date: "Sep 28, 2024",
-            category: "Engineering",
-            href: "#",
-        },
-    ];
+"use client";
 
-    return (
-        <section className="py-24 sm:py-32 bg-gray-50 border-t border-gray-200">
-            <div className="mx-auto max-w-7xl px-6 lg:px-8">
-                <div className="mx-auto max-w-2xl text-center mb-16">
-                    <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl font-serif">
-                        Latest from the Blog
-                    </h2>
-                    <p className="mt-4 text-lg text-gray-500">
-                        Insights and architecture patterns for building deterministic AI swarms.
-                    </p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {posts.map((post, i) => (
-                        <a key={i} href={post.href} className="flex flex-col rounded-3xl bg-white border border-gray-200 p-8 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all duration-300 group">
-                            <div className="flex items-center gap-x-4 text-xs mb-6">
-                                <time dateTime={post.date} className="text-gray-500">
-                                    {post.date}
-                                </time>
-                                <span className="relative z-10 rounded-full bg-gray-50 px-3 py-1.5 font-medium text-indigo-600 hover:bg-gray-100">
-                                    {post.category}
-                                </span>
-                            </div>
-                            <div className="group relative">
-                                <h3 className="mt-3 text-xl font-bold leading-6 text-gray-900 group-hover:text-indigo-600 transition-colors">
-                                    {post.title}
-                                </h3>
-                                <p className="mt-4 line-clamp-3 text-sm leading-relaxed text-gray-500">
-                                    {post.description}
-                                </p>
-                            </div>
-                            <div className="mt-auto pt-8 flex items-center text-sm font-semibold text-indigo-600 group-hover:text-indigo-700">
-                                Read article <span aria-hidden="true" className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
-                            </div>
-                        </a>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
+import { motion } from "framer-motion";
+import Link from "next/link";
+
+const POSTS = [
+  {
+    title: "Exactly-Once Execution for AI Agents",
+    description: "Agents retry blindly. Retry logic in agent code hopes for idempotency. Here's why exactly-once execution needs to be infrastructure — not application code.",
+    date: "2026-04",
+    category: "Architecture",
+    accent: "text-[#00ffc8]",
+    border: "border-[#00ffc8]/15",
+    href: "/blog",
+  },
+  {
+    title: "The Multi-Agent Coordination Problem",
+    description: "Two agents. Same customer. Conflicting decisions. The coordination layer that prevents this doesn't exist yet — here's what it needs to look like.",
+    date: "2026-05",
+    category: "Research",
+    accent: "text-violet-400",
+    border: "border-violet-500/15",
+    href: "/blog",
+  },
+  {
+    title: "EU AI Act Article 12 and AI Agents",
+    description: "Article 12 requires logging. Article 14 requires human oversight. Here's how tamper-evident receipts and HITL escalation map to both requirements.",
+    date: "2026-05",
+    category: "Compliance",
+    accent: "text-amber-400",
+    border: "border-amber-500/15",
+    href: "/blog",
+  },
+];
+
+export function BlogSection() {
+  return (
+    <section className="relative py-32 overflow-hidden section-divider">
+      <div className="absolute top-0 right-0 w-[500px] h-[400px] bg-violet-500/4 blur-[140px] rounded-full pointer-events-none" />
+
+      <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="flex items-end justify-between mb-12 gap-6"
+        >
+          <div>
+            <p className="mb-3 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-violet-400">
+              Writing
+            </p>
+            <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1]">
+              From the team.
+            </h2>
+          </div>
+          <Link
+            href="/blog"
+            className="hidden sm:inline-flex text-sm font-medium text-[#5a5a7a] hover:text-white transition-colors duration-150 whitespace-nowrap cursor-pointer"
+          >
+            All posts →
+          </Link>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {POSTS.map((post, i) => (
+            <motion.a
+              key={post.title}
+              href={post.href}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className={`group flex flex-col rounded-3xl border ${post.border} bg-[#0a0a12] p-7 hover:bg-white/[0.03] transition-all duration-300 cursor-pointer`}
+            >
+              <div className="flex items-center gap-3 mb-5">
+                <span className={`text-[10px] font-mono font-semibold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full border ${post.border} ${post.accent}`}>
+                  {post.category}
+                </span>
+                <span className="text-[10px] font-mono text-[#3a3a4a]">{post.date}</span>
+              </div>
+              <h3 className="text-white font-bold text-base leading-snug mb-3 group-hover:text-[#e4e4f0] transition-colors">
+                {post.title}
+              </h3>
+              <p className="text-sm text-[#6a6a7a] leading-relaxed flex-1">
+                {post.description}
+              </p>
+              <div className={`mt-5 pt-4 border-t border-white/6 text-[11px] font-mono ${post.accent} group-hover:opacity-100 opacity-60 transition-opacity`}>
+                Read article →
+              </div>
+            </motion.a>
+          ))}
+        </div>
+
+        <div className="mt-8 text-center sm:hidden">
+          <Link href="/blog" className="text-sm text-[#5a5a7a] hover:text-white transition-colors cursor-pointer">
+            All posts →
+          </Link>
+        </div>
+
+      </div>
+    </section>
+  );
 }

@@ -5,6 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const FAQS = [
     {
+        q: "What is Shadow Mode?",
+        a: "Shadow mode lets you run Statis alongside your existing agents without changing a single line of agent code. Statis observes every action proposal, evaluates it against your policy rules, and flags what would have been DENIED or DUPLICATE — without blocking any execution. Zero production risk. Zero integration work. Purpose-built for design partners evaluating Statis before full adoption.",
+    },
+    {
         q: "How is Statis different from a vector database?",
         a: "Vector databases are for semantic retrieval — memory. Statis is for deterministic structured state and governed execution — reality. If an agent needs context, use RAG. If it needs to know what's true right now and act on it safely, it needs Statis.",
     },
@@ -141,7 +145,7 @@ export function FAQSection() {
                             <span className="text-gradient">Make sure they&rsquo;re governed.</span>
                         </h2>
                         <p className="text-lg text-[#7a7a8a] leading-relaxed max-w-xl mx-auto mb-10">
-                            We&rsquo;re working with enterprise teams running AI agents with write-access to production systems. If that&rsquo;s you — let&rsquo;s talk.
+                            We&rsquo;re working with enterprise teams running production agents. Start with Shadow Mode — no code change, no production risk. See exactly which of your agent actions would have been blocked.
                         </p>
 
                         <div className="flex flex-wrap justify-center gap-4 mb-8">
