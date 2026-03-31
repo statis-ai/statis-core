@@ -54,6 +54,13 @@ const NOT_CARDS = [
         accent: "border-amber-500/15 bg-amber-500/4",
         tag: "text-amber-400",
     },
+    {
+        label: "Not Threat Detection",
+        sublabel: "vs Runlayer, AWS AgentCore",
+        body: "They govern which tools an agent can call. Statis governs what happens when the agent actually executes — exactly-once lock, policy evaluation, tamper-evident proof.",
+        accent: "border-[#00ffc8]/15 bg-[#00ffc8]/4",
+        tag: "text-[#00ffc8]",
+    },
 ];
 
 export function MemoryVsRealitySection() {
@@ -75,10 +82,12 @@ export function MemoryVsRealitySection() {
                         The Distinction
                     </p>
                     <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
-                        What Statis <span className="text-gradient">is not.</span>
+                        Agent Execution Infrastructure.
+                        <br />
+                        <span className="text-gradient">A new layer.</span>
                     </h2>
                     <p className="text-[#7a7a8a] text-lg leading-relaxed">
-                        The agent infrastructure category is being defined now. Precision matters.
+                        The agent infrastructure category is being defined now. Precision matters — here&rsquo;s exactly where Statis sits.
                     </p>
                 </motion.div>
 
@@ -129,7 +138,7 @@ export function MemoryVsRealitySection() {
                 </motion.div>
 
                 {/* Not X cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {NOT_CARDS.map((card, i) => (
                         <motion.div
                             key={card.label}

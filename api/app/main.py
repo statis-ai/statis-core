@@ -13,6 +13,7 @@ from app.api.routes.subscriptions import router as subscriptions_router
 from app.api.routes.deliveries import router as deliveries_router
 from app.api.routes.replay import router as replay_router
 from app.api.routes.admin import router as admin_router
+from app.api.routes.kill_switch import router as kill_switch_router
 
 import os
 
@@ -69,6 +70,7 @@ app.include_router(subscriptions_router)
 app.include_router(deliveries_router)
 app.include_router(replay_router)
 app.include_router(admin_router)
+app.include_router(kill_switch_router)
 
 
 @app.get("/health")

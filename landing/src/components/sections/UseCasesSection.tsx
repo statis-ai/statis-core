@@ -57,12 +57,12 @@ export function UseCasesSection() {
                         Demo Scenario
                     </p>
                     <h2 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-[3.5rem] mb-6 leading-[1.1] text-white">
-                        Churn retention,
+                        From proposal to receipt.
                         <br className="hidden sm:block" />
-                        <span className="text-gradient">end to end.</span>
+                        <span className="text-gradient">Every stage, visible.</span>
                     </h2>
                     <p className="text-lg sm:text-xl text-[#8a8a9a] leading-relaxed max-w-2xl mx-auto">
-                        Customer acct-42 is at risk. An agent reads shared state, decides to act, and proposes a discount. Here&rsquo;s what happens when Statis is in the loop.
+                        An at-risk customer. A retention agent. A policy. Here&rsquo;s what happens when Statis is in the execution path — and what happens when the agent retries.
                     </p>
                 </motion.div>
 
@@ -80,7 +80,13 @@ export function UseCasesSection() {
                         {/* Entity state */}
                         <div className="flex-1 p-6 sm:p-7 rounded-2xl glass-card">
                             <p className="text-[11px] font-mono font-semibold tracking-[0.2em] uppercase text-[#5a5a6a] mb-4">Entity State</p>
-                            <p className="font-mono text-sm text-[#00ffc8] font-bold mb-5">acct-42</p>
+                            <div className="flex items-center gap-2 mb-5">
+                                <p className="font-mono text-sm text-[#00ffc8] font-bold">acct-42</p>
+                                <span className="flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-[#00ffc8] animate-pulse" />
+                                    <span className="text-[9px] font-mono text-[#00ffc8]/50">observing</span>
+                                </span>
+                            </div>
                             <div className="space-y-3">
                                 {STATE_FIELDS.map((f) => (
                                     <div key={f.key} className="flex justify-between items-center">
@@ -102,6 +108,22 @@ export function UseCasesSection() {
                                 <p className="text-emerald-400 pt-1">→ ALLOW 10% discount</p>
                             </div>
                         </div>
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 8 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.5, delay: 0.6 }}
+                            className="p-5 rounded-2xl border border-amber-500/20 bg-amber-500/4"
+                        >
+                            <p className="text-[11px] font-mono font-semibold tracking-[0.2em] uppercase text-[#5a5a6a] mb-3">Receipt Written</p>
+                            <div className="space-y-1.5 font-mono text-[11px]">
+                                <div className="flex justify-between"><span className="text-[#4a4a6a]">receipt_id</span><span className="text-amber-400">rct-8821</span></div>
+                                <div className="flex justify-between"><span className="text-[#4a4a6a]">rule</span><span className="text-amber-400">churn_retention_v1@1.0</span></div>
+                                <div className="flex justify-between gap-4"><span className="text-[#4a4a6a]">hash</span><span className="text-amber-400 truncate">sha256:3f9a8b2c…</span></div>
+                                <div className="flex justify-between"><span className="text-[#4a4a6a]">status</span><span className="text-emerald-400 font-bold">IMMUTABLE</span></div>
+                            </div>
+                        </motion.div>
                     </motion.div>
 
                     {/* Right: animated terminal */}

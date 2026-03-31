@@ -16,6 +16,7 @@ client.propose(
   context={"churn_risk": "HIGH"}
 )
 # → PROPOSED  act-f93a`,
+        lang: "python",
         accent: "text-[#00ffc8]",
         border: "border-[#00ffc8]/18",
         bg: "bg-[#00ffc8]/4",
@@ -33,6 +34,7 @@ client.propose(
   AND ltv > 1000
   AND no_discount_in_30_days
   → APPROVED`,
+        lang: "yaml",
         accent: "text-violet-400",
         border: "border-violet-500/18",
         bg: "bg-violet-500/4",
@@ -52,6 +54,7 @@ client.propose(
 # agent retries 4s later:
 → 409 receipt exists — BLOCKED
 # Stripe never charged twice`,
+        lang: "terminal",
         accent: "text-emerald-400",
         border: "border-emerald-500/18",
         bg: "bg-emerald-500/4",
@@ -72,6 +75,7 @@ client.propose(
   "executed_at": "2026-03-24T…",
   "hash": "sha256:3f9a8b2c…"
 }`,
+        lang: "json",
         accent: "text-amber-400",
         border: "border-amber-500/18",
         bg: "bg-amber-500/4",
@@ -137,8 +141,13 @@ export function BeforeAfterSection() {
                             </p>
 
                             {/* Code block */}
-                            <div className={`mt-auto font-mono text-[11px] leading-[1.85] p-4 rounded-xl border ${p.codeBorder} bg-[#06070e] whitespace-pre overflow-x-auto ${p.accent} flex-1`}>
-                                {p.code}
+                            <div className={`mt-auto rounded-xl border ${p.codeBorder} bg-[#06070e] overflow-hidden flex-1`}>
+                                <div className="flex items-center px-3 py-1.5 border-b border-white/6 bg-white/[0.02] rounded-t-xl">
+                                    <span className="text-[10px] font-mono text-[#3a3a4a]">{p.lang}</span>
+                                </div>
+                                <div className={`font-mono text-[11px] leading-[1.85] p-4 whitespace-pre overflow-x-auto ${p.accent}`}>
+                                    {p.code}
+                                </div>
                             </div>
                         </motion.div>
                     ))}
