@@ -95,8 +95,20 @@ class StatisClient:
         # Trigger evaluation
         resp = self._http.post(f"/actions/{aid}/evaluate")
         self._raise_for_status(resp)
+        eval_data = resp.json()
 
-        # Poll until terminal status
+        # Fast-path: evaluate response carries receipt_id and decision.
+        # Terminal decisions are resolved immediately — no polling needed.
+        eval_decision: str = eval_data.get("decision", "")
+        if eval_decision == "DENIED":
+            receipt = self.get_receipt(aid)
+            raise ActionDeniedError(reason="Action denied by policy", receipt=receipt)
+        if eval_decision == "ESCALATED":
+            raise ActionEscalatedError(action_id=aid)
+        if eval_decision == "APPROVED":
+            return self.get_receipt(aid)
+
+        # Fallback: poll until terminal status (handles unexpected states)
         deadline = time.monotonic() + (timeout or float("inf"))
         interval = poll_interval if poll_interval is not None else self._poll_interval
 
