@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from app.api.routes.actions import router as actions_router
 from app.api.routes.events import router as events_router
@@ -13,14 +16,42 @@ from app.api.routes.admin import router as admin_router
 
 import os
 
-app = FastAPI(title="Statis API")
+# ---------------------------------------------------------------------------
+# Rate limiting
+# Read limits from env vars so they can be tuned per environment.
+# Default: 100 requests/minute per IP globally.
+# Auth endpoints (signup/login): 10 requests/minute per IP.
+# ---------------------------------------------------------------------------
+_rate_limit_default = os.getenv("RATE_LIMIT_DEFAULT", "100/minute")
+_rate_limit_auth = os.getenv("RATE_LIMIT_AUTH", "10/minute")
 
-# CORS: FRONTEND_URL can be a single URL or comma-separated list (e.g. Console + Landing on Vercel)
-_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3001")
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[_rate_limit_default],
+)
+
+app = FastAPI(title="Statis API")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ---------------------------------------------------------------------------
+# CORS
+# FRONTEND_URL can be a single URL or comma-separated list (e.g. Console +
+# Landing on Vercel).  Localhost origins are only appended in non-production
+# environments so that the wider wildcard is never active in prod.
+# ---------------------------------------------------------------------------
+_frontend_url = os.getenv("FRONTEND_URL", "")
+_app_env = os.getenv("APP_ENV", "development")
 _origins = [u.strip() for u in _frontend_url.split(",") if u.strip()]
-# Always allow localhost for local dev
-_defaults = ["http://localhost:3000", "http://localhost:3001"]
-allow_origins = list(dict.fromkeys(_origins + _defaults))
+
+if _app_env != "production" or not _origins:
+    # Development / staging: include localhost defaults so local UIs work
+    # without requiring FRONTEND_URL to be set.
+    _defaults = ["http://localhost:3000", "http://localhost:3001"]
+    allow_origins = list(dict.fromkeys(_origins + _defaults))
+else:
+    # Production: use only the explicitly configured FRONTEND_URL values.
+    allow_origins = _origins
 
 app.add_middleware(
     CORSMiddleware,
