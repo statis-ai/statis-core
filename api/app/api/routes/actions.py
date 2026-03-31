@@ -14,7 +14,7 @@ from app.models.escalation_review import EscalationReview
 from app.models.policy_rule import PolicyRule
 from app.models.receipt import Receipt
 from app.policy.evaluator import PolicyEvaluator, RuleSpec
-from app.schemas.actions import ActionAccepted, ActionIn, ActionOut, ActionStatus
+from app.schemas.actions import ActionAccepted, ActionCompleteIn, ActionIn, ActionOut, ActionStatus
 from app.schemas.escalation import EscalatedActionOut, EscalationReviewIn, EscalationReviewOut
 from app.schemas.policy import EvaluateResponse
 from app.utils.hashing import canonical_state_hash
@@ -234,7 +234,13 @@ def evaluate_action(
     )
 
     # 7. Persist receipt + status update atomically in one transaction
-    contract.status = decision.decision
+    # Policy-approved actions transition directly to COMPLETED — no async worker needed.
+    # DENIED and ESCALATED keep their decision as status.
+    if decision.decision == "APPROVED":
+        contract.status = ActionStatus.COMPLETED
+        receipt.executed_at = created_at
+    else:
+        contract.status = decision.decision
     contract.updated_at = datetime.now(timezone.utc)
     db.add(receipt)
     db.commit()
@@ -247,6 +253,46 @@ def evaluate_action(
         rule_version=decision.rule_version,
         reason=decision.reason,
     )
+
+
+@router.patch("/actions/{action_id}/complete", response_model=ActionOut)
+def complete_action(
+    action_id: str,
+    body: ActionCompleteIn,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> ActionOut:
+    """Agent reports execution result after running an approved action."""
+    contract = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.action_id == action_id,
+            ActionContract.tenant_id == auth.tenant_id,
+        )
+        .first()
+    )
+    if contract is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Action '{action_id}' not found",
+        )
+
+    receipt = db.query(Receipt).filter(Receipt.action_id == action_id).first()
+    if receipt is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No receipt for action '{action_id}'",
+        )
+
+    now = datetime.now(timezone.utc)
+    receipt.execution_result = body.execution_result
+    if receipt.executed_at is None:
+        receipt.executed_at = now
+    contract.status = ActionStatus.COMPLETED
+    contract.updated_at = now
+    db.commit()
+    db.refresh(contract)
+    return ActionOut.model_validate(contract)
 
 
 # ---------------------------------------------------------------------------
