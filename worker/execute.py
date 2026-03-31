@@ -52,7 +52,7 @@ ADAPTERS: dict[str, BaseAdapter] = {
     "salesforce": SalesforceAdapter(),
     "zendesk": ZendeskAdapter(),
     "hubspot": HubSpotAdapter(),
-    "filesystem": FilesystemAdapter(),
+    "filesystem": FilesystemAdapter(allowed_prefix=os.getenv("FILESYSTEM_ADAPTER_ALLOWED_PREFIX")),
     # Keel action types — log-only via GenericAdapter
     "log_expense": _generic,
     "propose_trade": _generic,
