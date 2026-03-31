@@ -12,6 +12,7 @@ class PolicyRuleIn(BaseModel):
     decision: str = "APPROVED"
     priority: int = 0
     active: bool = True
+    description: Optional[str] = None
 
 
 class PolicyRuleUpdate(BaseModel):
@@ -21,6 +22,7 @@ class PolicyRuleUpdate(BaseModel):
     decision: Optional[str] = None
     priority: Optional[int] = None
     active: Optional[bool] = None
+    description: Optional[str] = None
 
 
 class PolicyRuleOut(PolicyRuleIn):

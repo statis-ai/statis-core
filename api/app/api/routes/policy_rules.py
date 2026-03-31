@@ -40,6 +40,7 @@ def create_policy_rule(
         decision=rule_in.decision,
         priority=rule_in.priority,
         active=rule_in.active,
+        description=rule_in.description,
     )
     db.add(rule)
     try:

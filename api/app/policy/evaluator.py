@@ -72,7 +72,10 @@ class PolicyEvaluator:
             decision="DENIED",
             rule_id=None,
             rule_version=None,
-            reason="No matching policy rule found for action type '{}'".format(action_type),
+            reason=(
+                "No policy rules configured for action type '{}'. "
+                "Add rules via POST /policy-rules.".format(action_type)
+            ),
         )
 
     # ── condition handlers ─────────────────────────────────────────────────
