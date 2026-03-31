@@ -50,7 +50,6 @@ export function SDKQuickstartSection() {
 
   return (
     <section className="relative py-32 overflow-hidden section-divider" id="quickstart">
-      <div className="absolute top-0 left-0 w-[600px] h-[400px] bg-[#00ffc8]/4 blur-[140px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
@@ -62,13 +61,12 @@ export function SDKQuickstartSection() {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#00ffc8]">
+            <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#7a756e]">
               Developer First
             </p>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
-              Five lines.
-              <br />
-              <span className="text-gradient">Any agent framework.</span>
+            <h2 className="text-4xl sm:text-5xl font-bold text-[#e8e5de] leading-[1.1] mb-5">
+              Five lines.<br />
+              <span className="font-display text-gradient" style={{ fontStyle: "italic" }}>Any agent framework.</span>
             </h2>
             <p className="text-[#7a7a8a] text-lg leading-relaxed mb-8">
               Statis wraps your existing agent calls. No rearchitecture. Propose, evaluate, execute exactly once, receipt. Works with CrewAI, LangGraph, AutoGen, and any Python or TypeScript agent.
@@ -77,9 +75,9 @@ export function SDKQuickstartSection() {
             {/* Install block */}
             <div className="rounded-2xl border border-white/8 bg-[#07090f] overflow-hidden">
               <div className="flex items-center gap-2 px-4 py-3 border-b border-white/6 bg-white/[0.02]">
-                <div className="w-2 h-2 rounded-full bg-rose-500/60" />
-                <div className="w-2 h-2 rounded-full bg-amber-500/60" />
-                <div className="w-2 h-2 rounded-full bg-emerald-500/60" />
+                <div className="w-2 h-2 rounded-full bg-[#4a4540]/60" />
+                <div className="w-2 h-2 rounded-full bg-[#4a4540]/45" />
+                <div className="w-2 h-2 rounded-full bg-[#4a4540]/35" />
                 <span className="ml-2 text-[10px] font-mono text-[#3a3a4a]">terminal</span>
               </div>
               <div className="p-4 space-y-1.5">
@@ -117,9 +115,9 @@ export function SDKQuickstartSection() {
           >
             {/* Chrome bar with tabs */}
             <div className="flex items-center gap-2 px-4 py-3.5 border-b border-white/6 bg-white/[0.02]">
-              <div className="w-2.5 h-2.5 rounded-full bg-rose-500/60" />
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-500/60" />
-              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/60" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/60" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/45" />
+              <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/35" />
               <div className="ml-4 flex gap-1">
                 {TABS.map((tab, i) => (
                   <button

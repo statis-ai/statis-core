@@ -10,7 +10,7 @@ function StaticFallback() {
                 <h2 className="text-4xl md:text-5xl lg:text-6xl text-[#5a5a7a] font-medium">
                     You wouldn&rsquo;t deploy code without CI/CD.
                 </h2>
-                <h2 className="text-4xl md:text-5xl lg:text-6xl text-white font-bold leading-tight">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl text-[#e8e5de] font-bold leading-tight">
                     You shouldn&rsquo;t deploy agents without{" "}
                     <span className="text-gradient">
                         Statis.
@@ -57,24 +57,16 @@ export function ProblemBridgeSection() {
         >
             <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center">
 
-                {/* Ambient glow */}
-                <motion.div
-                    className="absolute inset-0 pointer-events-none"
-                    style={{
-                        background: "radial-gradient(ellipse at 50% 50%, rgba(0,255,200,0.06) 0%, transparent 60%)",
-                        opacity: useTransform(scrollYProgress, [0, 1], [0.3, 1])
-                    }}
-                />
 
                 <motion.div
                     style={{ scale, opacity, filter }}
                     className="relative z-10 w-full max-w-6xl px-4 text-center flex flex-col items-center justify-center space-y-4 md:space-y-6"
                 >
-                    <h2 className="text-[clamp(1.2rem,2.5vw,2.5rem)] text-[#5a5a7a] font-medium leading-tight tracking-tight">
+                    <h2 className="text-[clamp(1.4rem,3vw,3rem)] text-[#5a5a7a] font-medium leading-tight tracking-tight">
                         You wouldn&rsquo;t deploy code without CI/CD.
                     </h2>
 
-                    <h2 className="text-[clamp(1.8rem,4.5vw,4.5rem)] text-white font-bold leading-[1.1] tracking-tight">
+                    <h2 className="text-[clamp(2.2rem,5.5vw,5.5rem)] text-[#e8e5de] font-bold leading-[1.1] tracking-tight">
                         You shouldn&rsquo;t deploy agents without<br className="hidden sm:block" />{" "}
                         <span className="text-gradient">
                             Statis.

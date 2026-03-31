@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --color-statist: #080810;
+  --color-statist: #0d0b09;
   --color-surface: rgba(255, 255, 255, 0.04);
   --color-border: rgba(255, 255, 255, 0.08);
   --color-accent: #00ffc8;
@@ -30,8 +30,8 @@
 body {
   background-color: var(--color-statist);
   background-image:
-    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+    linear-gradient(rgba(255,220,180,0.012) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,220,180,0.012) 1px, transparent 1px);
   background-size: 60px 60px;
   color: var(--color-text);
   font-family: var(--font-sans);
@@ -56,7 +56,7 @@ body {
   left: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(ellipse at center, rgba(0, 255, 200, 0.07) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(0, 255, 200, 0.05) 0%, transparent 70%);
   animation: auroraShift 12s ease-in-out infinite alternate;
   border-radius: 50%;
 }
@@ -68,7 +68,7 @@ body {
   right: -10%;
   width: 50%;
   height: 50%;
-  background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.06) 0%, transparent 70%);
+  background: radial-gradient(ellipse at center, rgba(180, 120, 60, 0.04) 0%, transparent 70%);
   animation: auroraShift 16s ease-in-out infinite alternate-reverse;
   border-radius: 50%;
 }
@@ -141,7 +141,7 @@ body {
   }
 
   .text-gradient {
-    background: linear-gradient(135deg, #00ffc8 0%, #00d4ff 100%);
+    background: linear-gradient(135deg, #00ffc8 0%, #7affea 50%, #00d4ff 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -180,9 +180,20 @@ body {
   /* Terminal chrome glow */
   .terminal-glow {
     box-shadow:
-      0 0 0 1px rgba(255,255,255,0.06),
-      0 24px 64px rgba(0,0,0,0.6),
-      0 0 80px rgba(0,255,200,0.04);
+      0 0 0 1px rgba(255,240,220,0.06),
+      0 32px 80px rgba(0,0,0,0.7),
+      inset 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  .font-display {
+    font-family: var(--font-display), "Georgia", serif;
+  }
+
+  .text-gradient-warm {
+    background: linear-gradient(135deg, #e8e5de 0%, #7a756e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }
 
@@ -271,6 +282,23 @@ body {
   font-style: italic;
 }
 
+@keyframes scanLine {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 0.4; }
+  90%  { opacity: 0.4; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 @keyframes marqueeScroll {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }
@@ -287,4 +315,79 @@ body {
 }
 .marquee-track-reverse:hover {
   animation-play-state: paused;
+}
+
+/* ── Cursor glow ─────────────────────────────────────────────── */
+.cursor-glow {
+  pointer-events: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,200,0.055) 0%, transparent 65%);
+  transform: translate(-50%, -50%);
+  z-index: 9998;
+  transition: opacity 0.3s ease;
+  will-change: transform;
+}
+
+/* ── Card 3D tilt ─────────────────────────────────────────────── */
+.tilt-card {
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* ── Hover lift ───────────────────────────────────────────────── */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+
+/* ── Magnetic button shimmer ──────────────────────────────────── */
+@keyframes shimmerSlide {
+  0%   { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(200%) skewX(-15deg); }
+}
+.btn-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  transform: translateX(-100%) skewX(-15deg);
+}
+.btn-shimmer:hover::after {
+  animation: shimmerSlide 0.6s ease forwards;
+}
+
+/* ── Section surface alternation ─────────────────────────────── */
+.surface-raised {
+  background: rgba(255,255,255,0.018);
+}
+
+/* ── Stat number gradient ─────────────────────────────────────── */
+.stat-gradient {
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0b0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Scroll progress bar ──────────────────────────────────────── */
+#scroll-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #00ffc8, #00d4ff);
+  z-index: 9999;
+  transform-origin: left;
+  transition: width 0.1s linear;
 }

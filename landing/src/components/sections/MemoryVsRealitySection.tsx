@@ -30,29 +30,29 @@ const NOT_CARDS = [
         label: "Not Orchestration",
         sublabel: "vs LangGraph, AutoGen, CrewAI",
         body: "They handle how agents reason and sequence. Statis governs the moment they act.",
-        accent: "border-violet-500/15 bg-violet-500/4",
-        tag: "text-violet-400",
+        accent: "border-[#7a756e]/15 bg-[#7a756e]/4",
+        tag: "text-[#7a756e]",
     },
     {
         label: "Not Observability",
         sublabel: "vs Langfuse, Arize",
         body: "They tell you what happened. Statis creates tamper-evident proof of what was approved and why — before it happened.",
-        accent: "border-sky-500/15 bg-sky-500/4",
-        tag: "text-sky-400",
+        accent: "border-[#7a756e]/15 bg-[#7a756e]/4",
+        tag: "text-[#7a756e]",
     },
     {
         label: "Not a Workflow Engine",
         sublabel: "vs Temporal, Inngest",
         body: "They manage long-running workflows. Statis governs individual agent actions that have write-access to production.",
-        accent: "border-emerald-500/15 bg-emerald-500/4",
-        tag: "text-emerald-400",
+        accent: "border-[#7a756e]/15 bg-[#7a756e]/4",
+        tag: "text-[#7a756e]",
     },
     {
         label: "Not Authorization",
         sublabel: "vs Permit.io, OPA",
         body: "They answer: who can do what? Statis answers: given current entity state, should this happen now — and proves it.",
-        accent: "border-amber-500/15 bg-amber-500/4",
-        tag: "text-amber-400",
+        accent: "border-[#7a756e]/15 bg-[#7a756e]/4",
+        tag: "text-[#7a756e]",
     },
     {
         label: "Not Threat Detection",
@@ -66,7 +66,6 @@ const NOT_CARDS = [
 export function MemoryVsRealitySection() {
     return (
         <section className="relative py-32 overflow-hidden section-divider">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-500/4 blur-[140px] rounded-full pointer-events-none" />
 
             <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
@@ -78,13 +77,13 @@ export function MemoryVsRealitySection() {
                     transition={{ duration: 0.6 }}
                     className="max-w-2xl mx-auto mb-16 text-center"
                 >
-                    <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-violet-400">
+                    <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#7a756e]">
                         The Distinction
                     </p>
-                    <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
+                    <h2 className="text-4xl sm:text-5xl font-bold text-[#e8e5de] leading-[1.1] mb-5">
                         Agent Execution Infrastructure.
                         <br />
-                        <span className="text-gradient">A new layer.</span>
+                        <span className="font-display text-gradient" style={{ fontStyle: "italic" }}>A new layer.</span>
                     </h2>
                     <p className="text-[#7a7a8a] text-lg leading-relaxed">
                         The agent infrastructure category is being defined now. Precision matters — here&rsquo;s exactly where Statis sits.
@@ -97,12 +96,12 @@ export function MemoryVsRealitySection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.1 }}
-                    className="rounded-2xl border border-white/8 bg-[#0a0a12] overflow-hidden mb-10"
+                    className="rounded-2xl border border-white/8 bg-[#0a0a12] overflow-hidden mb-10 hover-lift"
                 >
                     {/* Table header */}
                     <div className="grid grid-cols-3 border-b border-white/8 bg-white/[0.02]">
                         <div className="px-5 py-3.5 text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-[#4a4a6a]">Capability</div>
-                        <div className="px-5 py-3.5 text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-rose-400 border-l border-white/6">Without Statis</div>
+                        <div className="px-5 py-3.5 text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-[#7a756e] border-l border-white/6">Without Statis</div>
                         <div className="px-5 py-3.5 text-[10px] font-mono font-semibold uppercase tracking-[0.2em] text-[#00ffc8] border-l border-white/6">With Statis</div>
                     </div>
 
@@ -124,7 +123,7 @@ export function MemoryVsRealitySection() {
                             <div className="px-5 py-4 border-l border-white/5">
                                 <div className="text-xs font-mono text-[#5a5a7a] mb-1">{row.without.tool}</div>
                                 <div className="text-xs text-[#6a6a7a] leading-relaxed">{row.without.desc}</div>
-                                <span className="inline-block mt-2 text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border border-rose-500/20 text-rose-400/70">{row.without.tag}</span>
+                                <span className="inline-block mt-2 text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border border-[#7a756e]/20 text-[#7a756e]/70">{row.without.tag}</span>
                             </div>
 
                             {/* With Statis */}
@@ -146,7 +145,7 @@ export function MemoryVsRealitySection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.45, delay: i * 0.07 }}
-                            className={`flex gap-4 p-6 rounded-2xl border ${card.accent} cursor-default`}
+                            className={`flex gap-4 p-6 rounded-2xl border ${card.accent} cursor-default hover-lift`}
                         >
                             <div className="shrink-0 mt-1">
                                 <div className="w-1 h-1 rounded-full bg-rose-500/60 shadow-[0_0_5px_rgba(239,68,68,0.5)]" />

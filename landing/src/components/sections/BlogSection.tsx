@@ -18,8 +18,8 @@ const POSTS = [
     description: "Two agents. Same customer. Conflicting decisions. The coordination layer that prevents this doesn't exist yet — here's what it needs to look like.",
     date: "2026-05",
     category: "Research",
-    accent: "text-violet-400",
-    border: "border-violet-500/15",
+    accent: "text-[#7a756e]",
+    border: "border-[#7a756e]/15",
     href: "/blog",
   },
   {
@@ -27,8 +27,8 @@ const POSTS = [
     description: "Article 12 requires logging. Article 14 requires human oversight. Here's how tamper-evident receipts and HITL escalation map to both requirements.",
     date: "2026-05",
     category: "Compliance",
-    accent: "text-amber-400",
-    border: "border-amber-500/15",
+    accent: "text-[#7a756e]",
+    border: "border-[#7a756e]/15",
     href: "/blog",
   },
 ];
@@ -36,7 +36,6 @@ const POSTS = [
 export function BlogSection() {
   return (
     <section className="relative py-32 overflow-hidden section-divider">
-      <div className="absolute top-0 right-0 w-[500px] h-[400px] bg-violet-500/4 blur-[140px] rounded-full pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
@@ -48,10 +47,10 @@ export function BlogSection() {
           className="flex items-end justify-between mb-12 gap-6"
         >
           <div>
-            <p className="mb-3 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-violet-400">
+            <p className="mb-3 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#7a756e]">
               Writing
             </p>
-            <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1]">
+            <h2 className="text-4xl sm:text-5xl font-bold text-[#e8e5de] leading-[1.1]">
               From the team.
             </h2>
           </div>
@@ -80,7 +79,7 @@ export function BlogSection() {
                 </span>
                 <span className="text-[10px] font-mono text-[#3a3a4a]">{post.date}</span>
               </div>
-              <h3 className="text-white font-bold text-base leading-snug mb-3 group-hover:text-[#e4e4f0] transition-colors">
+              <h3 className="text-[#e8e5de] font-bold text-base leading-snug mb-3 group-hover:text-white transition-colors">
                 {post.title}
               </h3>
               <p className="text-sm text-[#6a6a7a] leading-relaxed flex-1">

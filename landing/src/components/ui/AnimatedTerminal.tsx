@@ -10,11 +10,11 @@ export interface TerminalLine {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-    comment:  "text-[#4a4a6a]",
-    code:     "text-[#9a9ab0]",
-    success:  "text-emerald-400",
-    info:     "text-sky-400",
-    blocked:  "text-rose-400",
+    comment:  "text-[#4a4540]",
+    code:     "text-[#4a4540]",
+    success:  "text-[#00ffc8]",
+    info:     "text-[#4a4540]",
+    blocked:  "text-[#4a4540]",
     spacer:   "",
     prompt:   "text-[#00ffc8]",
 };
@@ -89,9 +89,9 @@ export function AnimatedTerminal({ lines, title = "statis", className = "", auto
         >
             {/* Titlebar */}
             <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/6 bg-white/[0.02]">
-                <div className="w-2.5 h-2.5 rounded-full bg-rose-500/70" />
-                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/70" />
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/70" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/70" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/50" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/40" />
                 <span className="ml-3 text-[11px] font-mono text-[#3a3a5a] tracking-wider">{title}</span>
                 <div className="ml-auto flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <span className="text-[10px] font-mono text-[#3a3a5a] cursor-default" onClick={(e) => { e.stopPropagation(); play(); }}>

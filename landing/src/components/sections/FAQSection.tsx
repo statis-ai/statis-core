@@ -65,7 +65,7 @@ export function FAQSection() {
                         <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#00ffc8]">
                             Questions
                         </p>
-                        <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                        <h2 className="text-3xl font-bold tracking-tight text-[#e8e5de] sm:text-4xl">
                             Frequently asked.
                         </h2>
                     </motion.div>
@@ -86,7 +86,7 @@ export function FAQSection() {
                                         onClick={() => setOpenIndex(isOpen ? null : index)}
                                         className="w-full flex justify-between items-center px-6 py-5 text-left focus:outline-none gap-4 cursor-pointer"
                                     >
-                                        <span className="font-semibold text-white text-sm sm:text-base">{faq.q}</span>
+                                        <span className="font-semibold text-[#e8e5de] text-sm sm:text-base">{faq.q}</span>
                                         <ChevronIcon isOpen={isOpen} />
                                     </button>
                                     <AnimatePresence>
@@ -113,13 +113,6 @@ export function FAQSection() {
 
             {/* CTA */}
             <section className="relative py-40 overflow-hidden section-divider grid-texture">
-                {/* Layered glows */}
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-[900px] h-[500px] bg-[#00ffc8]/6 blur-[140px] rounded-full" />
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-[500px] h-[300px] bg-violet-500/5 blur-[100px] rounded-full" />
-                </div>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px bg-gradient-to-r from-transparent via-[#00ffc8]/25 to-transparent" />
 
                 <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8 text-center">
@@ -137,12 +130,20 @@ export function FAQSection() {
                             </span>
                         </div>
 
-                        <h2 className="text-5xl sm:text-6xl md:text-[4rem] font-bold text-white mb-6 leading-[1.06]">
-                            Your agents are about
-                            <br />
-                            to do something real.
-                            <br />
-                            <span className="text-gradient">Make sure they&rsquo;re governed.</span>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.3 }}
+                            className="text-[11px] font-mono text-[#4a4a5a] mb-6"
+                        >
+                            YC S25 deadline · EOW 2026-04-04
+                        </motion.p>
+
+                        <h2 className="text-5xl sm:text-6xl md:text-[4rem] font-bold text-[#e8e5de] mb-6 leading-[1.06]">
+                            Your agents are about<br />
+                            to do something real.<br />
+                            <span className="font-display text-gradient" style={{ fontStyle: "italic" }}>Make sure they&rsquo;re governed.</span>
                         </h2>
                         <p className="text-lg text-[#7a7a8a] leading-relaxed max-w-xl mx-auto mb-10">
                             We&rsquo;re working with enterprise teams running production agents. Start with Shadow Mode — no code change, no production risk. See exactly which of your agent actions would have been blocked.
@@ -153,7 +154,7 @@ export function FAQSection() {
                                 href="https://www.surveymonkey.com/r/GVKH2KR"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-full bg-[#00ffc8] px-8 py-3.5 text-sm font-bold text-black transition-all hover:brightness-110 hover:scale-[1.02] shadow-[0_0_40px_rgba(0,255,200,0.3)] cursor-pointer"
+                                className="inline-flex items-center gap-2 rounded-full bg-[#00ffc8] px-8 py-3.5 text-sm font-bold text-black transition-all hover:brightness-110 hover:scale-[1.02] shadow-[0_0_40px_rgba(0,255,200,0.3)] cursor-pointer btn-shimmer"
                             >
                                 Request Design Partner Access
                                 <span>→</span>

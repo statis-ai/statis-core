@@ -35,11 +35,11 @@ client.propose(
   AND no_discount_in_30_days
   → APPROVED`,
         lang: "yaml",
-        accent: "text-violet-400",
-        border: "border-violet-500/18",
-        bg: "bg-violet-500/4",
-        codeBorder: "border-violet-500/12",
-        glow: "hover:shadow-[0_8px_40px_rgba(139,92,246,0.08)]",
+        accent: "text-[#7a756e]",
+        border: "border-[#7a756e]/18",
+        bg: "bg-[#7a756e]/4",
+        codeBorder: "border-[#7a756e]/12",
+        glow: "",
         span: "md:col-span-1",
     },
     {
@@ -55,11 +55,11 @@ client.propose(
 → 409 receipt exists — BLOCKED
 # Stripe never charged twice`,
         lang: "terminal",
-        accent: "text-emerald-400",
-        border: "border-emerald-500/18",
-        bg: "bg-emerald-500/4",
-        codeBorder: "border-emerald-500/12",
-        glow: "hover:shadow-[0_8px_40px_rgba(52,211,153,0.08)]",
+        accent: "text-[#7a756e]",
+        border: "border-[#7a756e]/18",
+        bg: "bg-[#7a756e]/4",
+        codeBorder: "border-[#7a756e]/12",
+        glow: "",
         span: "md:col-span-1",
     },
     {
@@ -76,20 +76,18 @@ client.propose(
   "hash": "sha256:3f9a8b2c…"
 }`,
         lang: "json",
-        accent: "text-amber-400",
-        border: "border-amber-500/18",
-        bg: "bg-amber-500/4",
-        codeBorder: "border-amber-500/12",
-        glow: "hover:shadow-[0_8px_40px_rgba(251,191,36,0.08)]",
+        accent: "text-[#7a756e]",
+        border: "border-[#7a756e]/18",
+        bg: "bg-[#7a756e]/4",
+        codeBorder: "border-[#7a756e]/12",
+        glow: "",
         span: "md:col-span-2",
     },
 ];
 
 export function BeforeAfterSection() {
     return (
-        <section className="relative py-32 bg-[#080810] overflow-hidden section-divider" id="primitives">
-            <div className="absolute top-0 right-0 w-[600px] h-[500px] bg-[#00ffc8]/4 blur-[150px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[600px] h-[500px] bg-violet-500/5 blur-[150px] rounded-full pointer-events-none" />
+        <section className="relative py-32 bg-[#0e0c0a] overflow-hidden section-divider" id="primitives">
 
             <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
@@ -104,7 +102,7 @@ export function BeforeAfterSection() {
                     <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#00ffc8]">
                         Core Primitives
                     </p>
-                    <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
+                    <h2 className="text-4xl sm:text-5xl font-bold text-[#e8e5de] leading-[1.1] mb-5">
                         Four primitives.
                         <br />
                         <span className="text-gradient">One complete layer.</span>
@@ -122,14 +120,15 @@ export function BeforeAfterSection() {
                             initial={{ opacity: 0, y: 24 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: i * 0.08 }}
-                            className={`group flex flex-col rounded-3xl border ${p.border} ${p.bg} p-7 transition-all duration-300 ${p.glow} cursor-default ${p.span}`}
+                            transition={{ duration: 0.5, delay: i * 0.12 }}
+                            whileHover={{ y: -4 }}
+                            className={`group flex flex-col rounded-3xl border ${p.border} ${p.bg} p-7 transition-all duration-300 cursor-default ${p.span}`}
                         >
                             {/* Header row */}
                             <div className="flex items-center gap-3 mb-4">
                                 <span className={`font-mono text-[10px] font-bold tracking-[0.2em] ${p.accent}`}>{p.id}</span>
                                 <span className="text-white/15 text-xs">—</span>
-                                <span className="text-white font-bold">{p.label}</span>
+                                <span className="text-[#e8e5de] font-bold">{p.label}</span>
                             </div>
 
                             <p className={`text-[10px] font-mono font-semibold uppercase tracking-[0.15em] mb-3 ${p.accent}`}>

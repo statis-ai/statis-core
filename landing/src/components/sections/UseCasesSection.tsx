@@ -29,18 +29,16 @@ const TERMINAL_LINES: TerminalLine[] = [
 ];
 
 const STATE_FIELDS = [
-    { key: "churn_risk", value: "HIGH", accent: "text-rose-400" },
-    { key: "ltv", value: "$1,200", accent: "text-emerald-400" },
+    { key: "churn_risk", value: "HIGH", accent: "text-[#7a756e]" },
+    { key: "ltv", value: "$1,200", accent: "text-[#7a756e]" },
     { key: "last_discount", value: "null", accent: "text-[#6a6a7a]" },
-    { key: "status", value: "active", accent: "text-sky-400" },
+    { key: "status", value: "active", accent: "text-[#7a756e]" },
 ];
 
 export function UseCasesSection() {
     return (
         <section className="relative py-32 overflow-hidden section-divider" id="demo">
             {/* Ambient glows */}
-            <div className="absolute top-0 right-0 w-[600px] h-[500px] bg-sky-500/5 blur-[140px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-emerald-500/5 blur-[140px] rounded-full pointer-events-none" />
 
             <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
 
@@ -52,11 +50,11 @@ export function UseCasesSection() {
                     transition={{ duration: 0.6 }}
                     className="max-w-3xl mx-auto mb-20 text-center"
                 >
-                    <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-sky-400 flex items-center justify-center gap-2">
+                    <p className="mb-5 text-sm font-semibold uppercase tracking-[0.2em] text-[#7a756e] flex items-center justify-center gap-2">
                         <Terminal className="w-4 h-4" />
                         Demo Scenario
                     </p>
-                    <h2 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-[3.5rem] mb-6 leading-[1.1] text-white">
+                    <h2 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-[3.5rem] mb-6 leading-[1.1] text-[#e8e5de]">
                         From proposal to receipt.
                         <br className="hidden sm:block" />
                         <span className="text-gradient">Every stage, visible.</span>
@@ -100,12 +98,12 @@ export function UseCasesSection() {
                         {/* Rule */}
                         <div className="p-6 sm:p-7 rounded-2xl glass-card border-violet-500/20">
                             <p className="text-[11px] font-mono font-semibold tracking-[0.2em] uppercase text-[#5a5a6a] mb-4">Rule</p>
-                            <p className="font-mono text-xs text-violet-400 font-bold mb-4">churn_retention_v1</p>
+                            <p className="font-mono text-xs text-[#7a756e] font-bold mb-4">churn_retention_v1</p>
                             <div className="font-mono text-xs text-[#6a6a7a] space-y-1.5">
                                 <p><span className="text-[#4a4a5a]">IF </span>churn_risk = HIGH</p>
                                 <p><span className="text-[#4a4a5a]">AND </span>ltv &gt; 1000</p>
                                 <p><span className="text-[#4a4a5a]">AND </span>no_discount_in_30_days</p>
-                                <p className="text-emerald-400 pt-1">→ ALLOW 10% discount</p>
+                                <p className="text-[#00ffc8] pt-1">→ ALLOW 10% discount</p>
                             </div>
                         </div>
 
@@ -114,14 +112,14 @@ export function UseCasesSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: 0.6 }}
-                            className="p-5 rounded-2xl border border-amber-500/20 bg-amber-500/4"
+                            className="p-5 rounded-2xl border border-[#7a756e]/20 bg-[#7a756e]/4"
                         >
                             <p className="text-[11px] font-mono font-semibold tracking-[0.2em] uppercase text-[#5a5a6a] mb-3">Receipt Written</p>
                             <div className="space-y-1.5 font-mono text-[11px]">
-                                <div className="flex justify-between"><span className="text-[#4a4a6a]">receipt_id</span><span className="text-amber-400">rct-8821</span></div>
-                                <div className="flex justify-between"><span className="text-[#4a4a6a]">rule</span><span className="text-amber-400">churn_retention_v1@1.0</span></div>
-                                <div className="flex justify-between gap-4"><span className="text-[#4a4a6a]">hash</span><span className="text-amber-400 truncate">sha256:3f9a8b2c…</span></div>
-                                <div className="flex justify-between"><span className="text-[#4a4a6a]">status</span><span className="text-emerald-400 font-bold">IMMUTABLE</span></div>
+                                <div className="flex justify-between"><span className="text-[#4a4a6a]">receipt_id</span><span className="text-[#7a756e]">rct-8821</span></div>
+                                <div className="flex justify-between"><span className="text-[#4a4a6a]">rule</span><span className="text-[#7a756e]">churn_retention_v1@1.0</span></div>
+                                <div className="flex justify-between gap-4"><span className="text-[#4a4a6a]">hash</span><span className="text-[#7a756e] truncate">sha256:3f9a8b2c…</span></div>
+                                <div className="flex justify-between"><span className="text-[#4a4a6a]">status</span><span className="text-[#00ffc8] font-bold">IMMUTABLE</span></div>
                             </div>
                         </motion.div>
                     </motion.div>

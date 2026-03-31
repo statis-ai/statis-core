@@ -51,11 +51,11 @@ const STEPS: {
             { type: "code",    text: "}" },
             { type: "info",    text: "→ 201 PROPOSED  act-f93a" },
         ],
-        accent: "text-violet-400",
-        border: "border-violet-500/20",
-        bg: "bg-violet-500/4",
-        dot: "bg-violet-400 shadow-[0_0_10px_rgba(139,92,246,0.7)]",
-        connector: "from-violet-500/25",
+        accent: "text-[#7a756e]",
+        border: "border-[#7a756e]/20",
+        bg: "bg-[#7a756e]/4",
+        dot: "bg-[#7a756e]",
+        connector: "from-[#7a756e]/25",
     },
     {
         num: "03",
@@ -70,11 +70,11 @@ const STEPS: {
             { type: "info",    text: "→ no_discount_30d ✓" },
             { type: "success", text: "→ APPROVED" },
         ],
-        accent: "text-sky-400",
-        border: "border-sky-500/20",
-        bg: "bg-sky-500/4",
-        dot: "bg-sky-400 shadow-[0_0_10px_rgba(56,189,248,0.7)]",
-        connector: "from-sky-500/25",
+        accent: "text-[#7a756e]",
+        border: "border-[#7a756e]/20",
+        bg: "bg-[#7a756e]/4",
+        dot: "bg-[#7a756e]",
+        connector: "from-[#7a756e]/25",
     },
     {
         num: "04",
@@ -90,11 +90,11 @@ const STEPS: {
             { type: "prompt",  text: "POST /actions  { action_id: 'act-f93a' }" },
             { type: "blocked", text: "→ 409  receipt exists — BLOCKED" },
         ],
-        accent: "text-emerald-400",
-        border: "border-emerald-500/20",
-        bg: "bg-emerald-500/4",
-        dot: "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.7)]",
-        connector: "from-emerald-500/25",
+        accent: "text-[#7a756e]",
+        border: "border-[#7a756e]/20",
+        bg: "bg-[#7a756e]/4",
+        dot: "bg-[#7a756e]",
+        connector: "from-[#7a756e]/25",
     },
     {
         num: "05",
@@ -111,10 +111,10 @@ const STEPS: {
             { type: "code",    text: "}" },
             { type: "success", text: "→ immutable  tamper-evident" },
         ],
-        accent: "text-amber-400",
-        border: "border-amber-500/20",
-        bg: "bg-amber-500/4",
-        dot: "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.7)]",
+        accent: "text-[#7a756e]",
+        border: "border-[#7a756e]/20",
+        bg: "bg-[#7a756e]/4",
+        dot: "bg-[#7a756e]",
         connector: null,
     },
 ];
@@ -124,8 +124,6 @@ export function IntroducingStatisSection() {
 
     return (
         <section className="relative py-32 overflow-hidden section-divider">
-            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#00ffc8]/6 blur-[140px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-violet-500/6 blur-[140px] rounded-full pointer-events-none" />
 
             <div className="relative z-10 mx-auto max-w-6xl px-6 lg:px-8">
 
@@ -139,7 +137,7 @@ export function IntroducingStatisSection() {
                     <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#00ffc8]">
                         How It Works
                     </p>
-                    <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
+                    <h2 className="text-4xl sm:text-5xl font-bold text-[#e8e5de] leading-[1.1] mb-5">
                         Every agent action. Five governed stages.
                         <br />
                         <span className="text-gradient">One receipt.</span>
@@ -193,7 +191,7 @@ export function IntroducingStatisSection() {
                                                 {step.tag}
                                             </span>
                                         </div>
-                                        <h3 className="text-white font-bold text-lg mb-2">{step.label}</h3>
+                                        <h3 className="text-[#e8e5de] font-bold text-lg mb-2">{step.label}</h3>
                                         <p className="text-[#7a7a8a] text-sm leading-relaxed mb-4">{step.body}</p>
 
                                         {/* Animated terminal — expands on hover */}

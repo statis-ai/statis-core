@@ -3,8 +3,7 @@ import { HeroV2 } from "@/components/hero/HeroV2";
 import { TrustBarSection } from "@/components/sections/TrustBarSection";
 import { BentoFeaturesSection } from "@/components/sections/BentoFeaturesSection";
 import { ProblemBridgeSection } from "@/components/sections/ProblemBridgeSection";
-import { IntroducingStatisSection } from "@/components/sections/IntroducingStatisSection";
-import { BeforeAfterSection } from "@/components/sections/BeforeAfterSection";
+import { PrimitivesFlowSection } from "@/components/sections/PrimitivesFlowSection";
 import { SDKQuickstartSection } from "@/components/sections/SDKQuickstartSection";
 import { AIStackSection } from "@/components/sections/AIStackSection";
 import { ComplianceStripSection } from "@/components/sections/ComplianceStripSection";
@@ -24,16 +23,15 @@ export default function Home() {
       <main className="relative z-10 min-h-screen bg-transparent">
         <HeroV2 />
         <TrustBarSection />
-        <BentoFeaturesSection />
+        <div className="surface-raised"><BentoFeaturesSection /></div>
         <ProblemBridgeSection />
-        <IntroducingStatisSection />
-        <BeforeAfterSection />
+        <PrimitivesFlowSection />
         <SDKQuickstartSection />
         <AIStackSection />
         <ComplianceStripSection />
         <UseCasesSection />
-        <MemoryVsRealitySection />
-        <BlogSection />
+        <div className="surface-raised"><MemoryVsRealitySection /></div>
+        <div className="surface-raised"><BlogSection /></div>
         <FAQSection />
         <FooterV2 />
       </main>

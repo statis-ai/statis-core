@@ -14,22 +14,22 @@ const PILLARS = [
     title: "Exactly-Once Execution",
     subtitle: "Distributed lock",
     body: "Distributed lock on every action ID. External systems are never called twice — even across agent retries.",
-    accent: "text-emerald-400",
-    border: "border-emerald-500/15",
+    accent: "text-[#7a756e]",
+    border: "border-[#7a756e]/15",
   },
   {
     title: "Tamper-Evident Receipts",
     subtitle: "SHA-256 · Immutable",
     body: "SHA-256 hash of every action outcome, written atomically. Proof, not logs. Cannot be altered after the fact.",
-    accent: "text-amber-400",
-    border: "border-amber-500/15",
+    accent: "text-[#7a756e]",
+    border: "border-[#7a756e]/15",
   },
   {
     title: "HITL Escalation",
     subtitle: "Human-in-the-loop",
     body: "Policy rules can escalate to human approval. Approver identity and timestamp recorded in the receipt.",
-    accent: "text-violet-400",
-    border: "border-violet-500/15",
+    accent: "text-[#7a756e]",
+    border: "border-[#7a756e]/15",
   },
 ];
 
