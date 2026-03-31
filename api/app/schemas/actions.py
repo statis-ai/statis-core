@@ -15,6 +15,7 @@ class ActionStatus(str, Enum):
     EXECUTING = "EXECUTING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+    SHADOW_COMPLETE = "SHADOW_COMPLETE"
 
 
 def _check_depth(obj: Any, max_depth: int = 10, current: int = 0) -> None:
@@ -48,6 +49,7 @@ class ActionIn(BaseModel):
     target_system: str
     parameters: dict[str, Any]
     context: dict[str, Any] = {}
+    mode: str = "live"
 
     @field_validator("parameters")
     @classmethod
@@ -58,6 +60,13 @@ class ActionIn(BaseModel):
     @classmethod
     def validate_context(cls, v: Any) -> dict:
         return _validate_jsonb_field(v, "context")
+
+    @field_validator("mode")
+    @classmethod
+    def validate_mode(cls, v: Any) -> str:
+        if v not in ("live", "shadow"):
+            raise ValueError("mode must be 'live' or 'shadow'")
+        return v
 
 
 class ActionAccepted(BaseModel):
@@ -82,3 +91,4 @@ class ActionOut(BaseModel):
     status: ActionStatus
     created_at: datetime
     updated_at: datetime
+    mode: str | None = None

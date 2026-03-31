@@ -23,6 +23,7 @@ class Receipt(Base):
     )
     execution_result: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     hash: Mapped[str] = mapped_column(String, nullable=False)
+    mode: Mapped[str] = mapped_column(String, nullable=False, server_default="live")
     # Supplementary audit fields — not included in canonical hash
     conditions_evaluated: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     entity_state_snapshot: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)

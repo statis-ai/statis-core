@@ -22,6 +22,7 @@ class ActionContract(Base):
     parameters: Mapped[dict] = mapped_column(JSONB, nullable=False)
     context: Mapped[dict] = mapped_column(JSONB, nullable=False)
     status: Mapped[str] = mapped_column(String, nullable=False)
+    mode: Mapped[str] = mapped_column(String, nullable=False, server_default="live")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

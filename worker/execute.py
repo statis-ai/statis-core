@@ -73,10 +73,15 @@ def make_session_factory() -> sessionmaker:
 
 
 def _fetch_approved(db: Session, batch_size: int) -> list[Any]:
-    """Return up to batch_size APPROVED action contracts (no row lock — lock is the execution_locks PK)."""
+    """Return up to batch_size APPROVED action contracts (no row lock — lock is the execution_locks PK).
+
+    Excludes shadow actions (mode='shadow') and only includes live actions or rows with no mode
+    set (NULL, for backward compatibility with pre-shadow-mode records).
+    """
     stmt = (
         select(ActionContract)
         .where(ActionContract.status == "APPROVED")
+        .where(ActionContract.mode.in_(["live", None]))
         .limit(batch_size)
     )
     return db.execute(stmt).scalars().all()

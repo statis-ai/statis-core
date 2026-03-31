@@ -10,6 +10,7 @@ from app.api.deps import AuthContext, get_auth_context
 from app.db.session import get_db
 from app.models.action_contract import ActionContract
 from app.models.entity_state import EntityState
+from app.models.kill_switch import KillSwitch
 from app.models.escalation_review import EscalationReview
 from app.models.policy_rule import PolicyRule
 from app.models.receipt import Receipt
@@ -38,6 +39,7 @@ def propose_action(
         parameters=action_in.parameters,
         context=action_in.context,
         status=ActionStatus.PROPOSED,
+        mode=action_in.mode,
     )
     db.add(contract)
     try:
@@ -118,6 +120,52 @@ def evaluate_action(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Action '{action_id}' is already in status '{contract.status}'",
+        )
+
+    # 1a. Kill switch check — short-circuit before any policy evaluation
+    ks = db.query(KillSwitch).filter(
+        KillSwitch.tenant_id == auth.tenant_id,
+        KillSwitch.active.is_(True),
+    ).first()
+    if ks:
+        ks_receipt_id = str(uuid.uuid4())
+        ks_now = datetime.now(timezone.utc)
+        ks_canonical = {
+            "receipt_id": ks_receipt_id,
+            "action_id": action_id,
+            "decision": "DENIED",
+            "rule_id": None,
+            "rule_version": None,
+            "approved_by": "kill_switch",
+            "executed_at": None,
+            "execution_result": None,
+            "created_at": ks_now.isoformat(),
+        }
+        ks_receipt = Receipt(
+            receipt_id=ks_receipt_id,
+            action_id=action_id,
+            decision="DENIED",
+            rule_id=None,
+            rule_version=None,
+            approved_by="kill_switch",
+            executed_at=None,
+            execution_result=None,
+            hash=canonical_state_hash(ks_canonical),
+            conditions_evaluated=None,
+            entity_state_snapshot={},
+            created_at=ks_now,
+        )
+        contract.status = ActionStatus.DENIED
+        contract.updated_at = ks_now
+        db.add(ks_receipt)
+        db.commit()
+        return EvaluateResponse(
+            action_id=action_id,
+            receipt_id=ks_receipt_id,
+            decision="DENIED",
+            rule_id=None,
+            rule_version=None,
+            reason="kill_switch_active",
         )
 
     # 2. Load entity state (best-effort; empty dict if not yet materialized)
@@ -231,12 +279,17 @@ def evaluate_action(
         conditions_evaluated=conditions_evaluated,
         entity_state_snapshot=dict(entity_state),
         created_at=created_at,
+        mode=contract.mode,
     )
 
-    # 7. Persist receipt + status update atomically in one transaction
-    # Policy-approved actions transition directly to COMPLETED — no async worker needed.
-    # DENIED and ESCALATED keep their decision as status.
-    if decision.decision == "APPROVED":
+    # 7. Persist receipt + status update atomically in one transaction.
+    # Shadow actions: write receipt but skip execution — terminal status SHADOW_COMPLETE.
+    # Live actions: APPROVED → COMPLETED (worker not needed), DENIED/ESCALATED keep decision.
+    if contract.mode == "shadow":
+        contract.status = ActionStatus.SHADOW_COMPLETE
+        receipt.executed_at = None
+        receipt.execution_result = {}
+    elif decision.decision == "APPROVED":
         contract.status = ActionStatus.COMPLETED
         receipt.executed_at = created_at
     else:
