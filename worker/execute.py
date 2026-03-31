@@ -10,9 +10,11 @@ Idempotency guard: skip if receipt.executed_at is already set.
 
 from __future__ import annotations
 
+import importlib
 import logging
 import os
 import sys
+import threading
 import time
 import uuid
 from datetime import datetime, timezone
@@ -43,28 +45,112 @@ POLL_INTERVAL = float(os.getenv("POLL_INTERVAL", "1"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10"))
 WORKER_ID = os.getenv("WORKER_ID", str(uuid.uuid4()))
 
-# Adapter registry: target_system → adapter instance
-_generic = GenericAdapter()
-
-ADAPTERS: dict[str, BaseAdapter] = {
-    "stripe": MockStripeAdapter(),
-    "airflow": AirflowAdapter(),
-    "salesforce": SalesforceAdapter(),
-    "zendesk": ZendeskAdapter(),
-    "hubspot": HubSpotAdapter(),
-    "filesystem": FilesystemAdapter(allowed_prefix=os.getenv("FILESYSTEM_ADAPTER_ALLOWED_PREFIX")),
-    # Keel action types — log-only via GenericAdapter
-    "log_expense": _generic,
-    "propose_trade": _generic,
-    "update_budget": _generic,
-    "log_tax_entry": _generic,
-}
+_ADAPTERS_YAML = os.path.join(os.path.dirname(__file__), "adapters.yaml")
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
 )
 logger = logging.getLogger("execute-worker")
+
+# Reload flag — set by the watchdog thread, cleared by the main loop
+_reload_pending = threading.Event()
+
+
+def _build_default_adapters() -> dict[str, BaseAdapter]:
+    _generic = GenericAdapter()
+    return {
+        "stripe": MockStripeAdapter(),
+        "airflow": AirflowAdapter(),
+        "salesforce": SalesforceAdapter(),
+        "zendesk": ZendeskAdapter(),
+        "hubspot": HubSpotAdapter(),
+        "filesystem": FilesystemAdapter(allowed_prefix=os.getenv("FILESYSTEM_ADAPTER_ALLOWED_PREFIX")),
+        # Keel action types — log-only via GenericAdapter
+        "log_expense": _generic,
+        "propose_trade": _generic,
+        "update_budget": _generic,
+        "log_tax_entry": _generic,
+    }
+
+
+def _load_adapters_from_yaml(path: str) -> dict[str, BaseAdapter] | None:
+    """Load adapter registry from adapters.yaml. Returns None on any failure."""
+    try:
+        import yaml  # type: ignore
+    except ImportError:
+        logger.debug("pyyaml not installed — skipping YAML adapter registry")
+        return None
+
+    try:
+        with open(path) as f:
+            config = yaml.safe_load(f)
+        entries = config.get("adapters", {})
+        registry: dict[str, BaseAdapter] = {}
+        _generic = GenericAdapter()
+        for key, class_path in entries.items():
+            module_path, class_name = class_path.rsplit(".", 1)
+            try:
+                mod = importlib.import_module(module_path)
+                cls = getattr(mod, class_name)
+                # FilesystemAdapter requires allowed_prefix kwarg
+                if class_name == "FilesystemAdapter":
+                    registry[key] = cls(allowed_prefix=os.getenv("FILESYSTEM_ADAPTER_ALLOWED_PREFIX"))
+                elif class_name == "GenericAdapter":
+                    registry[key] = _generic
+                else:
+                    registry[key] = cls()
+            except Exception as exc:
+                logger.warning("Failed to load adapter %s=%s: %s", key, class_path, exc)
+        return registry
+    except Exception as exc:
+        logger.warning("Failed to load adapters.yaml: %s", exc)
+        return None
+
+
+def _init_adapters() -> dict[str, BaseAdapter]:
+    if os.path.exists(_ADAPTERS_YAML):
+        registry = _load_adapters_from_yaml(_ADAPTERS_YAML)
+        if registry is not None:
+            logger.info("Adapter registry loaded from adapters.yaml: %s", list(registry.keys()))
+            return registry
+    return _build_default_adapters()
+
+
+# Adapter registry: target_system → adapter instance
+ADAPTERS: dict[str, BaseAdapter] = _init_adapters()
+
+
+def _start_adapter_watcher() -> None:
+    """Watch adapters.yaml for changes using watchdog (if installed). Gracefully skips if not."""
+    try:
+        from watchdog.observers import Observer  # type: ignore
+        from watchdog.events import FileSystemEventHandler  # type: ignore
+
+        class _Handler(FileSystemEventHandler):
+            def on_modified(self, event):
+                if os.path.abspath(event.src_path) == os.path.abspath(_ADAPTERS_YAML):
+                    _reload_pending.set()
+
+        observer = Observer()
+        observer.schedule(_Handler(), path=os.path.dirname(_ADAPTERS_YAML), recursive=False)
+        observer.daemon = True
+        observer.start()
+        logger.info("Watching %s for adapter registry changes", _ADAPTERS_YAML)
+    except ImportError:
+        logger.info("watchdog not installed — hot-reload disabled. Install with: pip install watchdog")
+
+
+def _maybe_reload_adapters() -> None:
+    """Reload the adapter registry if adapters.yaml changed. Called between poll cycles."""
+    if not _reload_pending.is_set():
+        return
+    _reload_pending.clear()
+    new_registry = _load_adapters_from_yaml(_ADAPTERS_YAML)
+    if new_registry is not None:
+        ADAPTERS.clear()
+        ADAPTERS.update(new_registry)
+        logger.info("adapter_registry_reloaded adapters=%s", list(ADAPTERS.keys()))
 
 
 def make_session_factory() -> sessionmaker:
@@ -172,6 +258,78 @@ def process_action(db: Session, action: ActionContract) -> None:
     _finalize(db, action, success=exec_result.success, execution_result=result_payload)
 
 
+def _deliver_webhooks(db: Session, action: ActionContract, receipt: Any) -> None:
+    """Deliver webhook notifications for a terminal action. Fires-and-forgets with retry."""
+    try:
+        from app.models.webhook import Webhook  # type: ignore
+    except ImportError:
+        return
+
+    status_to_event = {
+        "COMPLETED": "action.completed",
+        "FAILED": "action.completed",  # completed (failed) — still a terminal execution
+        "DENIED": "action.denied",
+        "ESCALATED": "action.escalated",
+        "SHADOW_COMPLETE": "action.completed",
+    }
+    event_type = status_to_event.get(action.status)
+    if event_type is None:
+        return
+
+    webhooks = (
+        db.query(Webhook)
+        .filter(
+            Webhook.tenant_id == action.tenant_id,
+            Webhook.is_active.is_(True),
+        )
+        .all()
+    )
+    if not webhooks:
+        return
+
+    payload = {
+        "event": event_type,
+        "action_id": action.action_id,
+        "action_type": action.action_type,
+        "status": action.status,
+        "tenant_id": action.tenant_id,
+    }
+    if receipt is not None:
+        payload["receipt_id"] = getattr(receipt, "receipt_id", None)
+        payload["decision"] = getattr(receipt, "decision", None)
+
+    import json
+    import time as _time
+
+    try:
+        import httpx  # type: ignore
+
+        payload_bytes = json.dumps(payload).encode("utf-8")
+        for webhook in webhooks:
+            if event_type not in (webhook.events or []):
+                continue
+            for attempt in range(3):
+                try:
+                    resp = httpx.post(
+                        webhook.url,
+                        content=payload_bytes,
+                        headers={"Content-Type": "application/json"},
+                        timeout=5.0,
+                    )
+                    if resp.status_code < 300:
+                        logger.info("Webhook delivered to %s (attempt %d)", webhook.url, attempt + 1)
+                        break
+                    logger.warning(
+                        "Webhook %s returned %d (attempt %d/3)", webhook.url, resp.status_code, attempt + 1
+                    )
+                except Exception as exc:
+                    logger.warning("Webhook %s failed (attempt %d/3): %s", webhook.url, attempt + 1, exc)
+                if attempt < 2:
+                    _time.sleep(2 ** attempt)  # 1s, 2s backoff
+    except ImportError:
+        logger.debug("httpx not available — webhook delivery skipped")
+
+
 def _finalize(
     db: Session,
     action: ActionContract,
@@ -196,6 +354,13 @@ def _finalize(
         action.status,
         execution_result,
     )
+
+    # Fire webhooks after commit — non-blocking, never raises
+    receipt = db.query(Receipt).filter(Receipt.action_id == action.action_id).first()
+    try:
+        _deliver_webhooks(db, action, receipt)
+    except Exception:
+        logger.exception("Webhook delivery error for action %s (non-fatal)", action.action_id)
 
 
 def run_once(session_factory: sessionmaker) -> int:
@@ -229,8 +394,10 @@ def main() -> None:
         POLL_INTERVAL,
     )
     sf = make_session_factory()
+    _start_adapter_watcher()
 
     while True:
+        _maybe_reload_adapters()
         processed = run_once(sf)
         if processed:
             logger.info("Processed %d approved actions", processed)

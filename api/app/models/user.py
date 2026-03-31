@@ -13,8 +13,10 @@ class User(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     email: Mapped[str] = mapped_column(String, unique=True, index=True, nullable=False)
-    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    password_hash: Mapped[str | None] = mapped_column(String, nullable=True)
     tenant_id: Mapped[str] = mapped_column(String, index=True, nullable=False)
+    sso_provider: Mapped[str | None] = mapped_column(String, nullable=True)
+    sso_subject: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

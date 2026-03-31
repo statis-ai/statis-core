@@ -1,0 +1,25 @@
+# Hot-reloadable adapter registry for the Statis execution worker.
+# Edit this file while the worker is running — changes are picked up
+# between poll cycles without a restart. In-flight executions always
+# complete before a reload is applied.
+#
+# Format:
+#   <target_system_key>: <module.path.ClassName>
+#
+# The key must match the `target_system` field on action proposals.
+
+adapters:
+  stripe: app.adapters.stripe_mock.MockStripeAdapter
+  airflow: app.adapters.airflow.AirflowAdapter
+  salesforce: app.adapters.salesforce.SalesforceAdapter
+  zendesk: app.adapters.zendesk.ZendeskAdapter
+  hubspot: app.adapters.hubspot.HubSpotAdapter
+  filesystem: app.adapters.filesystem.FilesystemAdapter
+  linear: app.adapters.linear.LinearAdapter
+  github_actions: app.adapters.github_actions.GitHubActionsAdapter
+  slack: app.adapters.slack.SlackAdapter
+  # Keel log-only action types
+  log_expense: app.adapters.generic.GenericAdapter
+  propose_trade: app.adapters.generic.GenericAdapter
+  update_budget: app.adapters.generic.GenericAdapter
+  log_tax_entry: app.adapters.generic.GenericAdapter

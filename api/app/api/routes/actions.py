@@ -14,13 +14,16 @@ from app.models.kill_switch import KillSwitch
 from app.models.escalation_review import EscalationReview
 from app.models.policy_rule import PolicyRule
 from app.models.receipt import Receipt
+from app.models.threat_log import ThreatLog
 from app.policy.evaluator import PolicyEvaluator, RuleSpec
 from app.schemas.actions import ActionAccepted, ActionCompleteIn, ActionIn, ActionOut, ActionStatus
 from app.schemas.escalation import EscalatedActionOut, EscalationReviewIn, EscalationReviewOut
 from app.schemas.policy import EvaluateResponse
+from app.security.threat_detector import ThreatDetector
 from app.utils.hashing import canonical_state_hash
 
 router = APIRouter(tags=["actions"])
+_threat_detector = ThreatDetector()
 
 
 @router.post("/actions", response_model=ActionAccepted, status_code=status.HTTP_201_CREATED)
@@ -29,6 +32,50 @@ def propose_action(
     db: Session = Depends(get_db),
     auth: AuthContext = Depends(get_auth_context),
 ) -> ActionAccepted:
+    # Threat scan — runs before any DB write
+    scan = _threat_detector.scan(action_in.action_type, action_in.parameters)
+    if scan.is_threat:
+        log = ThreatLog(
+            id=str(uuid.uuid4()),
+            action_id=action_in.action_id,
+            tenant_id=auth.tenant_id,
+            threat_types=scan.threat_types,
+            threat_level=scan.threat_level,
+            details=scan.details,
+        )
+        db.add(log)
+        db.commit()
+
+        if scan.threat_level == "critical":
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={"threat_detected": True, "threat_level": scan.threat_level, "details": scan.details},
+            )
+        if scan.threat_level == "high":
+            # Persist the action as DENIED without executing
+            contract = ActionContract(
+                action_id=action_in.action_id,
+                tenant_id=auth.tenant_id,
+                proposed_by=action_in.proposed_by,
+                action_type=action_in.action_type,
+                target_entity=action_in.target_entity,
+                target_system=action_in.target_system,
+                parameters=action_in.parameters,
+                context=action_in.context,
+                status=ActionStatus.DENIED,
+                mode=action_in.mode,
+            )
+            try:
+                db.add(contract)
+                db.commit()
+            except Exception:
+                db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail={"threat_detected": True, "threat_level": scan.threat_level, "details": scan.details},
+            )
+        # low/medium: log and proceed — policy engine makes the final call
+
     contract = ActionContract(
         action_id=action_in.action_id,
         tenant_id=auth.tenant_id,

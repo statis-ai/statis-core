@@ -23,3 +23,5 @@ __all__ = [
 ]
 # user model added
 from app.models.user import User  # noqa
+from app.models.webhook import Webhook  # noqa
+from app.models.threat_log import ThreatLog  # noqa
