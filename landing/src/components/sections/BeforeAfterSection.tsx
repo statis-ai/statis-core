@@ -119,7 +119,7 @@ export function BeforeAfterSection() {
                             whileInView={{ opacity: 1, y: 0 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.5, delay: i * 0.08 }}
-                            className={`group flex flex-col rounded-2xl border ${p.border} ${p.bg} p-7 transition-all duration-300 ${p.glow} cursor-default ${p.span}`}
+                            className={`group flex flex-col rounded-3xl border ${p.border} ${p.bg} p-7 transition-all duration-300 ${p.glow} cursor-default ${p.span}`}
                         >
                             {/* Header row */}
                             <div className="flex items-center gap-3 mb-4">

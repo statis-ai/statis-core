@@ -157,7 +157,16 @@ body {
   }
 
   .section-divider {
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .marquee-track {
+    display: flex;
+    gap: 0.75rem;
+    animation: marqueeScroll 40s linear infinite;
+  }
+  .marquee-track:hover {
+    animation-play-state: paused;
   }
 
   /* Premium scanline grid — subtle depth texture */
@@ -260,4 +269,9 @@ body {
 
 .prose-statis em {
   font-style: italic;
+}
+
+@keyframes marqueeScroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }

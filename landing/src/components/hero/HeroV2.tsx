@@ -10,10 +10,10 @@ const ParticleNetworkCanvas = dynamic(
 );
 
 const API_LINES = [
-    { delay: 0,    text: "$ statis execute \\",                         color: "text-[#5a5a7a]" },
-    { delay: 0.05, text: '    --type apply_discount \\',                color: "text-[#5a5a7a]" },
-    { delay: 0.1,  text: '    --target acct-8821 \\',                   color: "text-[#5a5a7a]" },
-    { delay: 0.15, text: '    --context churn_risk=HIGH',               color: "text-[#5a5a7a]" },
+    { delay: 0,    text: "POST /actions",                                color: "text-[#5a5a7a]" },
+    { delay: 0.05, text: '{  "action_type": "apply_discount",',          color: "text-[#5a5a7a]" },
+    { delay: 0.1,  text: '   "target": "acct-8821",',                   color: "text-[#5a5a7a]" },
+    { delay: 0.15, text: '   "params": { "pct": 10 }  }',               color: "text-[#5a5a7a]" },
     { delay: 0.5,  text: "",                                             color: "" },
     { delay: 0.6,  text: "→ 201 PROPOSED        act-f93a",              color: "text-[#8a8aaa]" },
     { delay: 1.0,  text: "→ evaluating policy   churn_retention_v1",   color: "text-[#8a8aaa]" },
@@ -118,22 +118,22 @@ export function HeroV2() {
                         >
                             <span className="w-1.5 h-1.5 rounded-full bg-[#00ffc8] shadow-[0_0_6px_rgba(0,255,200,0.9)]" />
                             <span className="text-xs font-mono font-semibold uppercase tracking-[0.2em] text-[#00ffc8]">
-                                Agent Execution Layer
+                                Agent Execution Infrastructure
                             </span>
                         </motion.div>
 
                         {/* Headline */}
                         <h1 className="text-[2.8rem] sm:text-5xl lg:text-[3.6rem] xl:text-[4rem] font-bold tracking-tight text-white leading-[1.08] mb-6">
-                            The layer between
+                            Shared state in.
                             <br />
-                            AI agents and
+                            Governed, receipted
                             <br />
-                            <span className="text-gradient">production.</span>
+                            <span className="text-gradient">action</span> out.
                         </h1>
 
                         {/* Sub */}
                         <p className="text-lg text-[#7a7a8a] leading-relaxed max-w-lg mb-8">
-                            Agents propose. Policy evaluates. Statis executes exactly once and writes a tamper-evident receipt. Every action. No exceptions.
+                            Without a governed execution layer, your agents retry blindly, duplicate production writes, and leave no audit trail. Statis closes that gap — policy before every action, exactly-once guarantee, SHA-256 receipt.
                         </p>
 
                         {/* Primitive flow */}
@@ -179,6 +179,25 @@ export function HeroV2() {
                             >
                                 Read the Docs →
                             </a>
+                            <a
+                                href="#demo"
+                                className="text-sm font-medium text-[#00ffc8]/70 hover:text-[#00ffc8] transition-colors cursor-pointer"
+                            >
+                                Try Shadow Mode — no code change →
+                            </a>
+                        </motion.div>
+
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 1, duration: 0.6 }}
+                            className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-6 text-[10px] font-mono text-[#3a3a4a]"
+                        >
+                            <span>Python · TypeScript</span>
+                            <span className="text-[#2a2a3a]">·</span>
+                            <span>PyPI + npm</span>
+                            <span className="text-[#2a2a3a]">·</span>
+                            <span>api.statis.dev live</span>
                         </motion.div>
                     </motion.div>
 

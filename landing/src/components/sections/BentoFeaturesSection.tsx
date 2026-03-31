@@ -78,7 +78,7 @@ export function BentoFeaturesSection() {
                     </p>
                 </motion.div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
 
                     {/* Problem 1 — Fragmented State */}
                     <motion.div
@@ -86,7 +86,7 @@ export function BentoFeaturesSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.1 }}
-                        className="rounded-2xl border border-white/8 bg-[#0b0b14] p-7 flex flex-col gap-6"
+                        className="rounded-3xl border border-t-2 border-white/8 border-t-rose-500/30 bg-[#0b0b14] p-7 flex flex-col gap-6"
                     >
                         <div>
                             <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-rose-400 uppercase">Problem 01</span>
@@ -129,7 +129,7 @@ export function BentoFeaturesSection() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="rounded-2xl border border-white/8 bg-[#0b0b14] p-7 flex flex-col gap-5"
+                        className="rounded-3xl border border-t-2 border-white/8 border-t-rose-500/30 bg-[#0b0b14] p-7 flex flex-col gap-5"
                     >
                         <div>
                             <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-rose-400 uppercase">Problem 02</span>
@@ -144,6 +144,31 @@ export function BentoFeaturesSection() {
                             title="crm-agent — no policy engine"
                             className="flex-1"
                         />
+                    </motion.div>
+
+                    {/* Problem 3 — No Audit Trail */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 24 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
+                        className="rounded-3xl border border-t-2 border-white/8 border-t-rose-500/30 bg-[#0b0b14] p-7 flex flex-col gap-5"
+                    >
+                        <div>
+                            <span className="text-[10px] font-mono font-bold tracking-[0.2em] text-rose-400 uppercase">Problem 03</span>
+                            <h3 className="text-xl font-bold text-white mt-2 mb-1.5">No Audit Trail</h3>
+                            <p className="text-sm text-[#7a7a8a] leading-relaxed">
+                                Agent ran at 03:14. Bulk-updated 847 records. No policy approved it. No receipt exists. The timestamp in your logs is what the agent told you — not what actually happened.
+                            </p>
+                        </div>
+                        <div className="font-mono text-[11px] leading-[1.85] rounded-xl border border-rose-500/12 bg-[#06070e] p-4 space-y-0.5">
+                            <div className="text-[#4a4a6a]"># Post-incident investigation</div>
+                            <div className="text-[#5a5a7a]">grep logs "03:14" → 847 entries</div>
+                            <div className="text-[#5a5a7a]">grep receipts "BJ-7821" → no results</div>
+                            <div className="text-[#5a5a7a]">grep policy_approvals → no results</div>
+                            <div className="text-rose-400 pt-1">✗ No policy. No receipt. No proof.</div>
+                            <div className="text-rose-400">✗ Auditor: "who approved this?" You: "..."</div>
+                        </div>
                     </motion.div>
                 </div>
 

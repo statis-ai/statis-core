@@ -140,9 +140,9 @@ export function IntroducingStatisSection() {
                         How It Works
                     </p>
                     <h2 className="text-4xl sm:text-5xl font-bold text-white leading-[1.1] mb-5">
-                        Every action flows through
+                        Every agent action. Five governed stages.
                         <br />
-                        <span className="text-gradient">five governed stages.</span>
+                        <span className="text-gradient">One receipt.</span>
                     </h2>
                     <p className="text-[#7a7a8a] text-lg leading-relaxed">
                         Hover any step to see the live API. Every stage auditable. Every execution exactly once.
@@ -173,8 +173,8 @@ export function IntroducingStatisSection() {
                                     />
                                     {step.connector && (
                                         <motion.div
-                                            animate={{ opacity: isActive ? 0.7 : 0.2 }}
-                                            className={`flex-1 w-px bg-gradient-to-b ${step.connector} to-transparent mt-2 min-h-[40px]`}
+                                            animate={{ opacity: isActive ? 0.8 : 0.25 }}
+                                            className={`flex-1 w-[2px] bg-gradient-to-b ${step.connector} to-transparent mt-2 min-h-[40px]`}
                                         />
                                     )}
                                 </div>

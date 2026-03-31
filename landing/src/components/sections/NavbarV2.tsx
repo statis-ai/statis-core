@@ -1,11 +1,20 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 export function NavbarV2() {
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        const handler = () => setScrolled(window.scrollY > 60);
+        window.addEventListener("scroll", handler, { passive: true });
+        return () => window.removeEventListener("scroll", handler);
+    }, []);
+
     return (
-        <header className="fixed inset-x-0 top-0 z-50 border-b border-white/6 bg-[#080810]/80 backdrop-blur-xl">
+        <header className={`fixed inset-x-0 top-0 z-50 border-b border-white/6 backdrop-blur-xl transition-colors duration-300 ${scrolled ? "bg-[#050508]/95" : "bg-[#080810]/80"}`}>
             <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
                 <Link href="/" className="flex items-center gap-2.5 cursor-pointer">
                     <Image
@@ -29,6 +38,9 @@ export function NavbarV2() {
                     <Link href="#primitives" className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer">
                         Primitives
                     </Link>
+                    <a href="#ecosystem" className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer">
+                        Adapters
+                    </a>
                     <Link href="/blog" className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer">
                         Blog
                     </Link>
@@ -39,9 +51,9 @@ export function NavbarV2() {
                         href="https://console.statis.dev"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="hidden text-sm text-[#8a8a9a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer"
+                        className="hidden text-sm text-[#6a6a7a] hover:text-white sm:inline transition-colors duration-150 cursor-pointer"
                     >
-                        Console
+                        Sign in
                     </a>
                     <a
                         href="https://www.surveymonkey.com/r/GVKH2KR"

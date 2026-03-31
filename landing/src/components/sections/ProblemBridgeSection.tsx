@@ -7,7 +7,7 @@ function StaticFallback() {
     return (
         <section className="py-24 section-divider">
             <div className="mx-auto max-w-5xl px-6 text-center space-y-6">
-                <h2 className="text-4xl md:text-5xl lg:text-6xl text-[#4a4a5a] font-medium">
+                <h2 className="text-4xl md:text-5xl lg:text-6xl text-[#5a5a7a] font-medium">
                     You wouldn&rsquo;t deploy code without CI/CD.
                 </h2>
                 <h2 className="text-4xl md:text-5xl lg:text-6xl text-white font-bold leading-tight">
@@ -70,7 +70,7 @@ export function ProblemBridgeSection() {
                     style={{ scale, opacity, filter }}
                     className="relative z-10 w-full max-w-6xl px-4 text-center flex flex-col items-center justify-center space-y-4 md:space-y-6"
                 >
-                    <h2 className="text-[clamp(1.2rem,2.5vw,2.5rem)] text-[#4a4a5a] font-medium leading-tight tracking-tight">
+                    <h2 className="text-[clamp(1.2rem,2.5vw,2.5rem)] text-[#5a5a7a] font-medium leading-tight tracking-tight">
                         You wouldn&rsquo;t deploy code without CI/CD.
                     </h2>
 
