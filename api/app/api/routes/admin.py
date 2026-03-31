@@ -1,13 +1,16 @@
 from __future__ import annotations
 import hashlib
-import hmac
+import os
 import uuid
 import secrets
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from passlib.context import CryptContext
 from pydantic import BaseModel
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
@@ -18,12 +21,17 @@ from app.api.deps import AuthContext, get_auth_context
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
+_rate_limit_auth = os.getenv("RATE_LIMIT_AUTH", "10/minute")
+limiter = Limiter(key_func=get_remote_address)
+
+_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 
 def _hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+    return _pwd_context.hash(password)
 
 def _verify_password(password: str, password_hash: str) -> bool:
-    return hmac.compare_digest(_hash_password(password), password_hash)
+    return _pwd_context.verify(password, password_hash)
 
 def _generate_api_key(
     tenant_id: str,
@@ -93,28 +101,30 @@ class CreateApiKeyResponse(BaseModel):
 
 
 @router.post("/signup", response_model=SignupResponse, status_code=status.HTTP_201_CREATED)
-def signup(request: SignupRequest, db: Session = Depends(get_db)):
-    existing = db.query(User).filter(User.email == request.email).first()
+@limiter.limit(_rate_limit_auth)
+def signup(request: Request, body: SignupRequest, db: Session = Depends(get_db)):
+    existing = db.query(User).filter(User.email == body.email).first()
     if existing:
         raise HTTPException(status_code=409, detail="An account with this email already exists.")
     tenant_id = f"tenant_{uuid.uuid4().hex[:12]}"
     user = User(
         id=str(uuid.uuid4()),
-        email=request.email,
-        password_hash=_hash_password(request.password),
+        email=body.email,
+        password_hash=_hash_password(body.password),
         tenant_id=tenant_id,
     )
     db.add(user)
     db.flush()
-    label = f"Master Key ({request.email})"
+    label = f"Master Key ({body.email})"
     raw_key, _ = _generate_api_key(tenant_id, label, db)
     return SignupResponse(tenant_id=tenant_id, api_key=raw_key, label=label)
 
 
 @router.post("/login", response_model=LoginResponse)
-def login(request: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == request.email).first()
-    if not user or not _verify_password(request.password, user.password_hash):
+@limiter.limit(_rate_limit_auth)
+def login(request: Request, body: LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == body.email).first()
+    if not user or not _verify_password(body.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
     raw_key, _ = _generate_api_key(user.tenant_id, "Login session key", db)
     return LoginResponse(tenant_id=user.tenant_id, api_key=raw_key)
