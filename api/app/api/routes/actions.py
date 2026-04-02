@@ -107,22 +107,22 @@ def propose_action(
 
 @router.get("/actions", response_model=list[ActionOut])
 def list_actions(
-    entity_type: str = Query(...),
-    entity_id: str = Query(...),
+    entity_type: str = Query(default=None),
+    entity_id: str = Query(default=None),
+    status: str = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
     db: Session = Depends(get_db),
     auth: AuthContext = Depends(get_auth_context),
 ) -> list[ActionOut]:
-    """List all action contracts targeting a specific entity."""
-    contracts = (
-        db.query(ActionContract)
-        .filter(
-            ActionContract.tenant_id == auth.tenant_id,
-            ActionContract.target_entity["entity_type"].as_string() == entity_type,
-            ActionContract.target_entity["entity_id"].as_string() == entity_id,
-        )
-        .order_by(ActionContract.created_at.desc())
-        .all()
-    )
+    """List action contracts, optionally filtered by entity or status."""
+    q = db.query(ActionContract).filter(ActionContract.tenant_id == auth.tenant_id)
+    if entity_type is not None:
+        q = q.filter(ActionContract.target_entity["entity_type"].as_string() == entity_type)
+    if entity_id is not None:
+        q = q.filter(ActionContract.target_entity["entity_id"].as_string() == entity_id)
+    if status is not None:
+        q = q.filter(ActionContract.status == status)
+    contracts = q.order_by(ActionContract.created_at.desc()).limit(limit).all()
     return [ActionOut.model_validate(c) for c in contracts]
 
 

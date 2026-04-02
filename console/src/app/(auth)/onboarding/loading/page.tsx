@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useOnboarding } from "@/components/OnboardingContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
-import Image from "next/image";
 
 function getSetupSteps(
   industry: string | null,
@@ -38,11 +37,11 @@ function getSetupSteps(
   const adapters = systems.slice(0, 2);
 
   return [
-    `Initialising workspace…`,
+    `Initialising workspace...`,
     `Seeding policy rules: ${rules.slice(0, 2).join(", ") || "churn_retention_v1"}`,
     `Creating entity registry: ${entities.join(", ")}`,
     `Configuring adapters: ${adapters.join(", ") || "stripe"}`,
-    `Starting event bus…`,
+    `Starting event bus...`,
     `Console ready.`,
   ];
 }
@@ -75,25 +74,21 @@ export default function LoadingPage() {
     <div className="min-h-screen flex flex-col items-center justify-center">
       <div className="w-full max-w-lg">
         {/* Header */}
-        <div className="flex items-center gap-2.5 mb-10">
-          <Image
-            src="/logomark-transparent.png"
-            alt="Statis"
-            width={24}
-            height={24}
-            className="rounded-md"
-            style={{ filter: "drop-shadow(0 0 6px rgba(0,255,200,0.45))" }}
-          />
-          <span className="text-[#5a5a7a] text-sm font-mono">Setting up your console…</span>
+        <div className="flex items-center gap-2 mb-10">
+          <span className="font-semibold text-[15px] tracking-tight text-white">
+            statis
+            <span className="inline-block ml-[1px] animate-pulse" style={{ width: "7px", height: "13px", background: "#ffffff" }} />
+          </span>
+          <span className="text-[#444444] text-sm font-mono ml-2">Setting up your console...</span>
         </div>
 
         {/* Terminal log */}
-        <div className="bg-[#0a0a14] rounded-xl overflow-hidden border border-white/8 shadow-2xl">
-          <div className="flex items-center gap-1.5 px-4 py-3 border-b border-white/6">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-400/40" />
-            <span className="w-2.5 h-2.5 rounded-full bg-yellow-400/40" />
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400/40" />
-            <span className="ml-2 text-[11px] text-[#4a4a6a] font-mono">statis bootstrap</span>
+        <div className="bg-[#111111] rounded overflow-hidden border border-[#1a1a1a] shadow-2xl">
+          <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#1a1a1a]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#333]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#262626]" />
+            <span className="w-2.5 h-2.5 rounded-full bg-[#1f1f1f]" />
+            <span className="ml-2 text-[11px] text-[#444444] font-mono">statis bootstrap</span>
           </div>
 
           <div className="p-5 font-mono text-[13px] min-h-[220px] space-y-2">
@@ -107,8 +102,8 @@ export default function LoadingPage() {
                     transition={{ duration: 0.3 }}
                     className="flex items-center gap-3"
                   >
-                    <span className="text-[#00ffc8]">$</span>
-                    <span className={i === steps.length - 1 ? "text-[#00ffc8] font-medium" : "text-[#8a8a9a]"}>
+                    <span className="text-[#d4d4d4]">$</span>
+                    <span className={i === steps.length - 1 ? "text-[#d4d4d4] font-medium" : "text-[#888888]"}>
                       {step}
                     </span>
                     {i < steps.length - 1 && (
@@ -123,7 +118,7 @@ export default function LoadingPage() {
               <motion.span
                 animate={{ opacity: [1, 0] }}
                 transition={{ duration: 0.6, repeat: Infinity }}
-                className="inline-block w-1.5 h-4 bg-[#3a3a5a] rounded-sm ml-4"
+                className="inline-block w-1.5 h-4 bg-[#444444] rounded-sm ml-4"
               />
             )}
           </div>
@@ -133,9 +128,9 @@ export default function LoadingPage() {
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-center text-sm text-[#4a4a6a] mt-6"
+            className="text-center text-sm text-[#444444] mt-6"
           >
-            Redirecting to your console…
+            Redirecting to your console...
           </motion.p>
         )}
       </div>

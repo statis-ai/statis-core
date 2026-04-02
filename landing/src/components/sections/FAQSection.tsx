@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 
 const FAQS = [
     {
@@ -26,7 +25,7 @@ const FAQS = [
     },
     {
         q: "Can I self-host Statis?",
-        a: "Statis is available as a hosted service today. VPC and self-hosted options are on the roadmap for enterprise design partners. If data residency is a requirement, reach out directly.",
+        a: "Yes. Statis ships with a Docker Compose setup for self-hosted deployment. VPC and managed hosting options are also on the roadmap for enterprise design partners. If data residency is a requirement, reach out directly.",
     },
     {
         q: "How fast is state materialization?",
@@ -37,7 +36,12 @@ const FAQS = [
 function ChevronIcon({ isOpen }: { isOpen: boolean }) {
     return (
         <svg
-            className={`w-4 h-4 text-[#5a5a6a] transform transition-transform duration-300 shrink-0 ${isOpen ? "rotate-180" : ""}`}
+            className="w-4 h-4 shrink-0"
+            style={{
+                color: "var(--text-muted)",
+                transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.25s ease",
+            }}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -51,134 +55,69 @@ export function FAQSection() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
-        <>
-            {/* FAQ */}
-            <section className="py-32 section-divider">
-                <div className="mx-auto max-w-4xl px-6 lg:px-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center mb-16"
+        <section className="py-28">
+            <div className="mx-auto max-w-3xl px-6">
+                <div className="text-center mb-14">
+                    <p
+                        className="text-[10px] uppercase tracking-[0.25em] mb-3 inline-block px-2 py-0.5 rounded"
+                        style={{ color: "var(--text-2)", background: "rgba(255,255,255,0.04)" }}
                     >
-                        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-[#00ffc8]">
-                            Questions
-                        </p>
-                        <h2 className="text-3xl font-bold tracking-tight text-[#e8e5de] sm:text-4xl">
-                            Frequently asked.
-                        </h2>
-                    </motion.div>
+                        Questions
+                    </p>
+                    <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--text)" }}>
+                        Frequently asked.
+                    </h2>
+                </div>
 
-                    <div className="space-y-2">
-                        {FAQS.map((faq, index) => {
-                            const isOpen = openIndex === index;
-                            return (
-                                <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, y: 12 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.4, delay: index * 0.05 }}
-                                    className={`rounded-2xl overflow-hidden transition-all duration-300 ${isOpen ? "glass-card border-white/14" : "glass-card hover:border-white/12"}`}
+                <div className="space-y-2">
+                    {FAQS.map((faq, index) => {
+                        const isOpen = openIndex === index;
+                        return (
+                            <div
+                                key={index}
+                                style={{
+                                    background: "var(--bg-surface)",
+                                    border: `1px solid ${isOpen ? "rgba(255,255,255,0.1)" : "var(--border)"}`,
+                                    borderRadius: "var(--radius)",
+                                    transition: "border-color 0.2s ease",
+                                }}
+                            >
+                                <button
+                                    onClick={() => setOpenIndex(isOpen ? null : index)}
+                                    className="w-full flex justify-between items-center px-5 py-4 text-left focus:outline-none gap-4 cursor-pointer"
                                 >
-                                    <button
-                                        onClick={() => setOpenIndex(isOpen ? null : index)}
-                                        className="w-full flex justify-between items-center px-6 py-5 text-left focus:outline-none gap-4 cursor-pointer"
+                                    <span
+                                        className="font-medium text-sm"
+                                        style={{ color: "var(--text)" }}
                                     >
-                                        <span className="font-semibold text-[#e8e5de] text-sm sm:text-base">{faq.q}</span>
-                                        <ChevronIcon isOpen={isOpen} />
-                                    </button>
-                                    <AnimatePresence>
-                                        {isOpen && (
-                                            <motion.div
-                                                initial={{ height: 0, opacity: 0 }}
-                                                animate={{ height: "auto", opacity: 1 }}
-                                                exit={{ height: 0, opacity: 0 }}
-                                                transition={{ duration: 0.28, ease: "easeInOut" }}
-                                                className="overflow-hidden"
-                                            >
-                                                <div className="px-6 pb-5 text-[#8a8a9a] leading-relaxed text-sm border-t border-white/6 pt-4">
-                                                    {faq.a}
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
-                            );
-                        })}
-                    </div>
+                                        {faq.q}
+                                    </span>
+                                    <ChevronIcon isOpen={isOpen} />
+                                </button>
+                                <div
+                                    style={{
+                                        maxHeight: isOpen ? "300px" : "0",
+                                        opacity: isOpen ? 1 : 0,
+                                        overflow: "hidden",
+                                        transition: "max-height 0.25s ease, opacity 0.2s ease",
+                                    }}
+                                >
+                                    <div
+                                        className="px-5 pb-4 text-sm leading-relaxed"
+                                        style={{
+                                            color: "var(--text-2)",
+                                            borderTop: "1px solid var(--border)",
+                                            paddingTop: "1rem",
+                                        }}
+                                    >
+                                        {faq.a}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
-            </section>
-
-            {/* CTA */}
-            <section className="relative py-40 overflow-hidden section-divider grid-texture">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px bg-gradient-to-r from-transparent via-[#00ffc8]/25 to-transparent" />
-
-                <div className="relative z-10 mx-auto max-w-4xl px-6 lg:px-8 text-center">
-                    <motion.div
-                        initial={{ opacity: 0, y: 24 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.7 }}
-                    >
-                        {/* Badge */}
-                        <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#00ffc8]/20 bg-[#00ffc8]/6 px-4 py-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-[#00ffc8] shadow-[0_0_6px_rgba(0,255,200,0.9)]" />
-                            <span className="text-[11px] font-mono font-semibold uppercase tracking-[0.2em] text-[#00ffc8]">
-                                Design Partner Program
-                            </span>
-                        </div>
-
-                        <motion.p
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.3 }}
-                            className="text-[11px] font-mono text-[#4a4a5a] mb-6"
-                        >
-                            YC S25 deadline · EOW 2026-04-04
-                        </motion.p>
-
-                        <h2 className="text-5xl sm:text-6xl md:text-[4rem] font-bold text-[#e8e5de] mb-6 leading-[1.06]">
-                            Your agents are about<br />
-                            to do something real.<br />
-                            <span className="font-display text-gradient" style={{ fontStyle: "italic" }}>Make sure they&rsquo;re governed.</span>
-                        </h2>
-                        <p className="text-lg text-[#7a7a8a] leading-relaxed max-w-xl mx-auto mb-10">
-                            We&rsquo;re working with enterprise teams running production agents. Start with Shadow Mode — no code change, no production risk. See exactly which of your agent actions would have been blocked.
-                        </p>
-
-                        <div className="flex flex-wrap justify-center gap-4 mb-8">
-                            <a
-                                href="https://www.surveymonkey.com/r/GVKH2KR"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-full bg-[#00ffc8] px-8 py-3.5 text-sm font-bold text-black transition-all hover:brightness-110 hover:scale-[1.02] shadow-[0_0_40px_rgba(0,255,200,0.3)] cursor-pointer btn-shimmer"
-                            >
-                                Request Design Partner Access
-                                <span>→</span>
-                            </a>
-                            <a
-                                href="https://docs.statis.dev"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-8 py-3.5 text-sm font-medium text-[#c4c4d4] transition-all hover:bg-white/8 cursor-pointer"
-                            >
-                                Read the Docs
-                            </a>
-                        </div>
-
-                        <div className="flex flex-wrap justify-center gap-x-8 gap-y-2 text-[11px] font-mono text-[#3a3a4a]">
-                            <span>api.statis.dev live</span>
-                            <span>·</span>
-                            <span>Python + TS SDKs on PyPI / npm</span>
-                            <span>·</span>
-                            <span>VPC options on roadmap</span>
-                        </div>
-                    </motion.div>
-                </div>
-            </section>
-        </>
+            </div>
+        </section>
     );
 }

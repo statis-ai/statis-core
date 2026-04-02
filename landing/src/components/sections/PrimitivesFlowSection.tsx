@@ -11,12 +11,6 @@ const STEPS: {
   label: string;
   body: string;
   lines: TerminalLine[];
-  accent: string;
-  border: string;
-  bg: string;
-  activeBg: string;
-  dot: string;
-  glowColor: string;
 }[] = [
   {
     id: 0,
@@ -35,12 +29,6 @@ const STEPS: {
       { type: "comment", text: "# State is read — no write yet" },
       { type: "info",    text: '→ churn_risk: "HIGH"  ltv: 1200' },
     ],
-    accent: "text-[#00ffc8]",
-    border: "border-[#00ffc8]/20",
-    bg: "bg-transparent",
-    activeBg: "bg-[#00ffc8]/6",
-    dot: "bg-[#00ffc8]",
-    glowColor: "rgba(0,255,200,0.15)",
   },
   {
     id: 1,
@@ -58,12 +46,6 @@ const STEPS: {
       { type: "spacer",  text: "" },
       { type: "success", text: "→ APPROVED" },
     ],
-    accent: "text-[#7a756e]",
-    border: "border-[#7a756e]/20",
-    bg: "bg-transparent",
-    activeBg: "bg-[#7a756e]/5",
-    dot: "bg-[#7a756e]",
-    glowColor: "rgba(122,117,110,0.08)",
   },
   {
     id: 2,
@@ -81,12 +63,6 @@ const STEPS: {
       { type: "blocked", text: "→ 409  receipt exists — BLOCKED" },
       { type: "comment", text: "# Stripe never charged twice" },
     ],
-    accent: "text-[#7a756e]",
-    border: "border-[#7a756e]/20",
-    bg: "bg-transparent",
-    activeBg: "bg-[#7a756e]/5",
-    dot: "bg-[#7a756e]",
-    glowColor: "rgba(122,117,110,0.08)",
   },
   {
     id: 3,
@@ -100,17 +76,10 @@ const STEPS: {
       { type: "code",    text: '  "receipt_id": "rct-8821",' },
       { type: "code",    text: '  "rule_id":    "churn_retention_v1",' },
       { type: "code",    text: '  "rule_ver":   "1.0",' },
-      { type: "code",    text: '  "approved_by":"policy_engine",' },
       { type: "code",    text: '  "hash":       "sha256:3f9a8b2c..."' },
       { type: "code",    text: "}" },
       { type: "success", text: "→ immutable  tamper-evident" },
     ],
-    accent: "text-[#7a756e]",
-    border: "border-[#7a756e]/20",
-    bg: "bg-transparent",
-    activeBg: "bg-[#7a756e]/5",
-    dot: "bg-[#7a756e]",
-    glowColor: "rgba(122,117,110,0.08)",
   },
 ];
 
@@ -134,10 +103,7 @@ export function PrimitivesFlowSection() {
       const elapsed = Date.now() - start;
       const pct = Math.min((elapsed / AUTO_ADVANCE_MS) * 100, 100);
       setProgress(pct);
-      if (pct >= 100) {
-        clearInterval(tick);
-        advance();
-      }
+      if (pct >= 100) { clearInterval(tick); advance(); }
     }, 30);
     return () => clearInterval(tick);
   }, [active, paused, advance]);
@@ -146,128 +112,128 @@ export function PrimitivesFlowSection() {
 
   return (
     <section
-      className="relative py-32 overflow-hidden section-divider"
+      className="relative py-28"
       id="primitives"
+      style={{ borderTop: "1px solid var(--border-muted)" }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
 
-      <motion.div initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
-
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="max-w-2xl mx-auto mb-16 text-center"
-        >
-          <p className="mb-4 text-[11px] font-mono font-semibold uppercase tracking-[0.25em] text-[#7a756e]">
-            How It Works
+        {/* Header */}
+        <div className="mb-14">
+          <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-[#52525b] mb-3">
+            How it works
           </p>
-          <h2 className="text-4xl sm:text-5xl font-bold text-[#e8e5de] leading-[1.1] mb-5">
-            Four primitives.
-            <br />
-            <span className="text-gradient">One governed execution.</span>
+          <h2 className="font-mono font-bold text-white text-3xl sm:text-4xl leading-[1.15]">
+            Four primitives.<br />
+            <span style={{ color: "var(--accent)" }}>One governed execution.</span>
           </h2>
-          <p className="text-[#7a7a8a] text-lg leading-relaxed">
-            Every agent action flows through four stages. Each one auditable. Together they make agents production-safe.
-          </p>
-        </motion.div>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-4 items-start">
 
-          <div className="space-y-2">
-            {STEPS.map((s) => {
+          {/* Step list */}
+          <div className="space-y-1.5">
+            {STEPS.map(s => {
               const isActive = s.id === active;
               return (
-                <motion.button
+                <button
                   key={s.id}
                   onClick={() => { setActive(s.id); setProgress(0); setPaused(true); }}
-                  initial={{ opacity: 0, x: -16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: s.id * 0.07 }}
-                  whileHover={{ scale: 1.01 }}
-                  className={`w-full text-left rounded-2xl border px-5 py-4 transition-all duration-300 cursor-pointer relative overflow-hidden ${
-                    isActive
-                      ? `${s.border} ${s.activeBg}`
-                      : "border-white/6 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10"
-                  }`}
-                  style={isActive ? { boxShadow: `0 0 30px ${s.glowColor}` } : {}}
+                  className="w-full text-left rounded px-4 py-3.5 border transition-all duration-200 cursor-pointer relative overflow-hidden"
+                  style={{
+                    background: isActive ? "var(--bg-card)" : "transparent",
+                    borderColor: isActive ? "rgba(255,255,255,0.1)" : "var(--border-muted)",
+                  }}
                 >
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <span className={`font-mono text-[10px] font-bold tracking-[0.2em] ${isActive ? s.accent : "text-[#3a3a4a]"}`}>
+                  <div className="flex items-center gap-2.5 mb-1">
+                    <span className="font-mono text-[10px] font-bold tracking-[0.2em] text-[#52525b]">
                       {s.num}
                     </span>
-                    <span className={`text-[10px] font-mono font-semibold tracking-[0.1em] uppercase px-2 py-0.5 rounded-full border ${
-                      isActive ? `${s.border} ${s.accent}` : "border-white/8 text-[#4a4a6a]"
-                    }`}>
+                    <span
+                      className="text-[10px] font-mono uppercase tracking-[0.08em] px-2 py-0.5 rounded"
+                      style={{
+                        color: isActive ? "var(--accent)" : "#52525b",
+                        background: isActive ? "var(--accent-bg)" : "transparent",
+                        border: isActive ? "1px solid var(--accent-border)" : "1px solid transparent",
+                      }}
+                    >
                       {s.tag}
                     </span>
                   </div>
-                  <p className={`text-sm font-semibold mb-1 ${isActive ? "text-white" : "text-[#6a6a7a]"}`}>
+                  <p className={`text-sm font-mono mb-0.5 ${isActive ? "text-white" : "text-[#52525b]"}`}>
                     {s.label}
                   </p>
-                  <p className={`text-xs leading-relaxed ${isActive ? "text-[#8a8a9a]" : "text-[#4a4a5a]"}`}>
+                  <p className={`text-xs leading-relaxed ${isActive ? "text-[#71717a]" : "text-[#3f3f46]"}`}
+                    style={{ fontFamily: "var(--font-sans)" }}>
                     {s.body}
                   </p>
 
+                  {/* Progress bar */}
                   {isActive && !paused && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/5">
-                      <motion.div
-                        className={`h-full ${s.dot.replace("bg-", "bg-")}`}
-                        style={{ width: `${progress}%` }}
-                        transition={{ ease: "linear" }}
+                    <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-white/5">
+                      <div
+                        className="h-full"
+                        style={{ width: `${progress}%`, background: "var(--accent)", transition: "none" }}
                       />
                     </div>
                   )}
-                </motion.button>
+                </button>
               );
             })}
 
-            <div className="flex items-center justify-center gap-2 pt-2">
-              {STEPS.map((s) => (
+            {/* Dots */}
+            <div className="flex items-center gap-1.5 pt-2 pl-1">
+              {STEPS.map(s => (
                 <button
                   key={s.id}
                   onClick={() => { setActive(s.id); setProgress(0); }}
-                  className={`rounded-full transition-all duration-300 cursor-pointer ${
-                    s.id === active ? `w-6 h-1.5 ${s.dot}` : "w-1.5 h-1.5 bg-white/15 hover:bg-white/30"
-                  }`}
+                  className="rounded-full transition-all duration-200 cursor-pointer"
+                  style={{
+                    width: s.id === active ? "20px" : "6px",
+                    height: "4px",
+                    background: s.id === active ? "var(--accent)" : "rgba(255,255,255,0.15)",
+                  }}
                 />
               ))}
             </div>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="rounded-3xl border border-white/10 bg-[#07090f] overflow-hidden terminal-glow h-full"
+          {/* Terminal */}
+          <div
+            className="rounded border overflow-hidden terminal-shadow"
+            style={{ background: "var(--bg-surface)", borderColor: "var(--border)" }}
           >
-            <div className="flex items-center gap-2 px-5 py-3.5 border-b border-white/6 bg-white/[0.02] transition-colors duration-500">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/60" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/45" />
-              <div className="w-2.5 h-2.5 rounded-full bg-[#4a4540]/35" />
-              <div className="ml-3 flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${step.dot} shadow-sm`} />
-                <span className={`text-[11px] font-mono ${step.accent}`}>{step.tag}</span>
+            {/* Chrome */}
+            <div
+              className="flex items-center gap-2 px-4 py-3 border-b"
+              style={{ borderColor: "var(--border-muted)", background: "rgba(255,255,255,0.015)" }}
+            >
+              <div className="w-2 h-2 rounded-full bg-white/10" />
+              <div className="w-2 h-2 rounded-full bg-white/[0.07]" />
+              <div className="w-2 h-2 rounded-full bg-white/[0.05]" />
+              <div className="ml-3 flex items-center gap-1.5">
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ background: "var(--accent)" }}
+                />
+                <span className="text-[11px] font-mono text-[#00ffc8]">{step.tag}</span>
               </div>
               <div className="ml-auto flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#00ffc8] shadow-[0_0_6px_rgba(0,255,200,0.8)]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00ffc8]" />
                 <span className="text-[10px] font-mono text-[#00ffc8]">live</span>
               </div>
             </div>
 
-            <div className="p-6 min-h-[360px] flex flex-col">
+            <div className="p-5 min-h-[320px] flex flex-col">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={active}
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.25, ease: "easeInOut" }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
                   className="flex-1"
                 >
                   <AnimatedTerminal
@@ -279,23 +245,28 @@ export function PrimitivesFlowSection() {
               </AnimatePresence>
             </div>
 
-            <div className="px-5 py-3 border-t border-white/5 bg-white/[0.015] flex items-center justify-between">
-              <span className="text-[10px] font-mono text-[#3a3a4a]">api.statis.dev</span>
+            <div
+              className="px-4 py-2.5 border-t flex items-center justify-between"
+              style={{ borderColor: "var(--border-muted)", background: "rgba(255,255,255,0.01)" }}
+            >
+              <span className="text-[10px] font-mono text-[#3f3f46]">api.statis.dev</span>
               <div className="flex items-center gap-1">
-                {STEPS.map((s) => (
+                {STEPS.map(s => (
                   <div
                     key={s.id}
-                    className={`rounded-full transition-all duration-300 ${
-                      s.id === active ? `w-4 h-1 ${s.dot}` : "w-1 h-1 bg-white/10"
-                    }`}
+                    className="rounded-full transition-all duration-200"
+                    style={{
+                      width: s.id === active ? "14px" : "4px",
+                      height: "3px",
+                      background: s.id === active ? "var(--accent)" : "rgba(255,255,255,0.1)",
+                    }}
                   />
                 ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
-      </motion.div>
     </section>
   );
 }

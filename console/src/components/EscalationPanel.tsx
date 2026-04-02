@@ -59,19 +59,19 @@ export default function EscalationPanel() {
             Escalation Queue
           </h2>
           {items.length > 0 && (
-            <span className="text-xs bg-brand-warn/20 text-brand-warn px-2 py-0.5 rounded-full font-semibold">
+            <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full font-semibold">
               {items.length} pending
             </span>
           )}
         </div>
 
         {loading && (
-          <p className="text-brand-muted text-sm animate-pulse">Loading…</p>
+          <p className="text-[#888888] text-sm animate-pulse">Loading...</p>
         )}
-        {error && <p className="text-brand-error text-sm">{error}</p>}
+        {error && <p className="text-red-400 text-sm">{error}</p>}
         {!loading && !error && items.length === 0 && (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-brand-muted text-sm">No escalated actions.</p>
+            <p className="text-[#888888] text-sm">No escalated actions.</p>
           </div>
         )}
 
@@ -82,24 +82,24 @@ export default function EscalationPanel() {
               <button
                 key={item.action_id}
                 onClick={() => { setSelected(item); setActionError(null); }}
-                className={`text-left rounded-lg border px-4 py-3 transition-colors ${
+                className={`text-left rounded border px-4 py-3 transition-colors ${
                   isSelected
-                    ? "border-brand-warn bg-brand-warn/10"
-                    : "border-brand-border bg-[#0d0d1a] hover:bg-white/[0.03]"
+                    ? "border-orange-500/40 bg-orange-500/10"
+                    : "border-[#1a1a1a] bg-[#111111] hover:bg-white/[0.03]"
                 }`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-mono text-brand-accent truncate max-w-[14rem]">
+                  <span className="text-xs font-mono text-[#d4d4d4] truncate max-w-[14rem]">
                     {item.action_id}
                   </span>
-                  <span className="text-xs text-brand-warn font-semibold">ESCALATED</span>
+                  <span className="text-xs text-orange-400 font-semibold">ESCALATED</span>
                 </div>
                 <div className="text-xs text-white font-medium">{item.action_type}</div>
-                <div className="text-xs text-brand-muted mt-0.5">
+                <div className="text-xs text-[#888888] mt-0.5">
                   {item.target_entity.entity_type} / {item.target_entity.entity_id}
                   {" · "}proposed by {item.proposed_by}
                 </div>
-                <div className="text-xs text-brand-muted/60 mt-0.5">
+                <div className="text-xs text-[#444444] mt-0.5">
                   {new Date(item.created_at).toLocaleString()}
                 </div>
               </button>
@@ -116,7 +116,7 @@ export default function EscalationPanel() {
               Review Action
             </h2>
 
-            <div className="rounded-lg border border-brand-border bg-[#0d0d1a] p-4 space-y-2 text-xs">
+            <div className="rounded border border-[#1a1a1a] bg-[#111111] p-4 space-y-2 text-xs">
               <Row label="Action ID" value={selected.action_id} mono />
               <Row label="Type" value={selected.action_type} />
               <Row label="Target" value={`${selected.target_entity.entity_type} / ${selected.target_entity.entity_id}`} />
@@ -126,59 +126,59 @@ export default function EscalationPanel() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs text-brand-muted font-medium">
-                Reviewer ID <span className="text-brand-error">*</span>
+              <label className="text-xs text-[#888888] font-medium">
+                Reviewer ID <span className="text-red-400">*</span>
               </label>
               <input
                 value={reviewerId}
                 onChange={(e) => setReviewerId(e.target.value)}
                 placeholder="your-name or user-id"
-                className="bg-[#0a0a14] border border-brand-border rounded-md px-3 py-2 text-sm text-white placeholder:text-[#4a4a6a] focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20"
+                className="bg-[#0a0a0a] border border-[#1a1a1a] rounded px-3 py-2 text-sm text-white placeholder:text-[#444444] focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10"
               />
             </div>
 
             <div className="flex flex-col gap-2">
-              <label className="text-xs text-brand-muted font-medium">Note (optional)</label>
+              <label className="text-xs text-[#888888] font-medium">Note (optional)</label>
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
                 rows={2}
-                placeholder="Reason for approval or rejection…"
-                className="bg-white border border-brand-border rounded-md px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20 resize-none"
+                placeholder="Reason for approval or rejection..."
+                className="bg-[#0a0a0a] border border-[#1a1a1a] rounded px-3 py-2 text-sm text-white placeholder:text-[#444444] focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 resize-none"
               />
             </div>
 
             {actionError && (
-              <p className="text-brand-error text-xs">{actionError}</p>
+              <p className="text-red-400 text-xs">{actionError}</p>
             )}
 
             <div className="flex gap-3">
               <button
                 disabled={submitting || !reviewerId.trim()}
                 onClick={() => handleDecision("approve")}
-                className="flex-1 py-2 rounded-md text-sm font-semibold bg-brand-success/20 text-brand-success border border-brand-success/30 hover:bg-brand-success/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 py-2 rounded text-sm font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                {submitting ? "…" : "Approve"}
+                {submitting ? "..." : "Approve"}
               </button>
               <button
                 disabled={submitting || !reviewerId.trim()}
                 onClick={() => handleDecision("reject")}
-                className="flex-1 py-2 rounded-md text-sm font-semibold bg-brand-error/20 text-brand-error border border-brand-error/30 hover:bg-brand-error/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="flex-1 py-2 rounded text-sm font-semibold bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               >
-                {submitting ? "…" : "Reject"}
+                {submitting ? "..." : "Reject"}
               </button>
             </div>
 
             <button
               onClick={() => setSelected(null)}
-              className="text-xs text-brand-muted hover:text-white transition-colors"
+              className="text-xs text-[#888888] hover:text-white transition-colors"
             >
               ← Back to queue
             </button>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-brand-muted text-sm">Select an escalation to review.</p>
+            <p className="text-[#888888] text-sm">Select an escalation to review.</p>
           </div>
         )}
       </div>
@@ -189,7 +189,7 @@ export default function EscalationPanel() {
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex gap-2">
-      <span className="text-brand-muted w-24 shrink-0">{label}</span>
+      <span className="text-[#888888] w-24 shrink-0">{label}</span>
       <span className={`text-white break-all ${mono ? "font-mono" : ""}`}>{value}</span>
     </div>
   );

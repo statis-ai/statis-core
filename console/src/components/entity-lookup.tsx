@@ -22,15 +22,15 @@ export default function EntityLookup({ onInspect, loading }: Props) {
   return (
     <form onSubmit={handleSubmit} className="flex items-end gap-3">
       <div className="flex flex-col gap-1.5">
-        <label className="text-xs font-medium text-brand-muted uppercase tracking-wider">
+        <label className="text-xs font-medium text-[#888888] uppercase tracking-wider">
           Entity Type
         </label>
         <select
           value={entityType}
           onChange={(e) => setEntityType(e.target.value)}
-          className="h-10 rounded border border-brand-border bg-[#0a0a14] px-3 text-sm
-                     text-white outline-none focus:border-brand-accent focus:ring-1
-                     focus:ring-brand-accent/20 transition-colors"
+          className="h-10 rounded border border-[#1a1a1a] bg-[#111111] px-3 text-sm
+                     text-white outline-none focus:border-white/20 focus:ring-1
+                     focus:ring-white/10 transition-colors"
         >
           {ENTITY_TYPES.map((t) => (
             <option key={t} value={t}>
@@ -41,7 +41,7 @@ export default function EntityLookup({ onInspect, loading }: Props) {
       </div>
 
       <div className="flex flex-col gap-1.5 flex-1">
-        <label className="text-xs font-medium text-brand-muted uppercase tracking-wider">
+        <label className="text-xs font-medium text-[#888888] uppercase tracking-wider">
           Entity ID
         </label>
         <input
@@ -49,9 +49,9 @@ export default function EntityLookup({ onInspect, loading }: Props) {
           value={entityId}
           onChange={(e) => setEntityId(e.target.value)}
           placeholder="e.g. acct-001"
-          className="h-10 rounded border border-brand-border bg-[#0a0a14] px-3 text-sm
-                     text-white placeholder:text-[#4a4a6a] outline-none
-                     focus:border-brand-accent focus:ring-1 focus:ring-brand-accent/20
+          className="h-10 rounded border border-[#1a1a1a] bg-[#111111] px-3 text-sm
+                     text-white placeholder:text-[#444444] outline-none
+                     focus:border-white/20 focus:ring-1 focus:ring-white/10
                      transition-colors"
         />
       </div>
@@ -59,11 +59,11 @@ export default function EntityLookup({ onInspect, loading }: Props) {
       <button
         type="submit"
         disabled={!entityId.trim() || loading}
-        className="h-10 px-5 rounded bg-brand-accent text-brand-statist text-sm font-semibold
-                   hover:bg-brand-accent/90 disabled:opacity-40 disabled:cursor-not-allowed
+        className="h-10 px-5 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold
+                   hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed
                    transition-colors"
       >
-        {loading ? "Loading…" : "Inspect"}
+        {loading ? "Loading..." : "Inspect"}
       </button>
     </form>
   );

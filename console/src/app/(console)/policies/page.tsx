@@ -1,183 +1,158 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Shield, ChevronRight, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface Condition {
-  field: string;
-  op: string;
-  value: string;
-}
-
-interface Policy {
-  name: string;
-  version: string;
-  action: string;
-  priority: "critical" | "high" | "medium";
-  active: boolean;
-  conditions: Condition[];
-  result: "APPROVED" | "DENIED" | "ESCALATED";
-}
-
-const INITIAL_POLICIES: Policy[] = [
-  {
-    name: "churn_retention_v1",
-    version: "v1.0",
-    action: "apply_discount",
-    priority: "critical",
-    active: true,
-    conditions: [
-      { field: "churn_risk", op: "=", value: '"HIGH"' },
-      { field: "ltv", op: ">", value: "$500" },
-      { field: "plan", op: "!=", value: '"free"' },
-    ],
-    result: "APPROVED",
-  },
-  {
-    name: "refund_eligibility_v1",
-    version: "v1.0",
-    action: "issue_refund",
-    priority: "high",
-    active: true,
-    conditions: [
-      { field: "standing", op: "=", value: '"good"' },
-      { field: "txn_age", op: "<", value: "30d" },
-      { field: "last_refund", op: "=", value: "null" },
-    ],
-    result: "APPROVED",
-  },
-  {
-    name: "vip_escalation_v1",
-    version: "v1.0",
-    action: "apply_discount",
-    priority: "medium",
-    active: true,
-    conditions: [
-      { field: "ltv", op: ">", value: "$5000" },
-      { field: "churn_risk", op: "=", value: '"HIGH"' },
-    ],
-    result: "ESCALATED",
-  },
-];
+import {
+  fetchPolicyRules,
+  createPolicyRule,
+  updatePolicyRule,
+  deletePolicyRule,
+  type PolicyRule,
+  type PolicyRuleCreate,
+  type PolicyRuleUpdate,
+} from "@/lib/api";
 
 const PRIORITY_STYLES: Record<string, string> = {
   critical: "bg-red-500/15 text-red-400 border-red-500/20",
-  high:     "bg-orange-500/15 text-orange-400 border-orange-500/20",
-  medium:   "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
+  high: "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  medium: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
 };
 
-const RESULT_STYLES: Record<string, string> = {
-  APPROVED:  "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-  DENIED:    "bg-red-500/15 text-red-400 border-red-500/20",
+function priorityLabel(p: number): string {
+  if (p >= 90) return "critical";
+  if (p >= 50) return "high";
+  return "medium";
+}
+
+const DECISION_STYLES: Record<string, string> = {
+  APPROVED: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  DENIED: "bg-red-500/15 text-red-400 border-red-500/20",
   ESCALATED: "bg-violet-500/15 text-violet-400 border-violet-500/20",
 };
 
-const BLANK_DRAFT: Omit<Policy, "version" | "active"> = {
-  name: "",
-  action: "",
-  priority: "medium",
-  conditions: [{ field: "", op: "=", value: "" }],
-  result: "APPROVED",
-};
+const inputCls =
+  "w-full font-mono text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#111111] text-white placeholder:text-[#444444] focus:outline-none focus:ring-1 focus:ring-white/20";
+const selectCls =
+  "w-full text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#111111] text-white focus:outline-none focus:ring-1 focus:ring-white/20";
 
-const inputCls = "font-mono text-xs px-2 py-1.5 rounded border border-white/8 bg-[#0a0a14] text-white placeholder:text-[#4a4a6a] focus:outline-none focus:ring-1 focus:ring-[#00ffc8]/40";
-
-function ConditionRow({
-  condition,
-  index,
-  onChange,
-  onRemove,
-  canRemove,
-}: {
-  condition: Condition;
-  index: number;
-  onChange: (c: Condition) => void;
-  onRemove: () => void;
-  canRemove: boolean;
-}) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <span className="text-[#4a4a6a] text-xs w-7 text-right shrink-0 font-mono">
-        {index === 0 ? "IF" : "AND"}
-      </span>
-      <input
-        placeholder="field"
-        value={condition.field}
-        onChange={(e) => onChange({ ...condition, field: e.target.value })}
-        className={cn(inputCls, "w-24")}
-      />
-      <select
-        value={condition.op}
-        onChange={(e) => onChange({ ...condition, op: e.target.value })}
-        className={cn(inputCls, "w-14 bg-[#0a0a14]")}
-      >
-        {["=", "!=", ">", "<", ">=", "<="].map((o) => (
-          <option key={o} value={o}>{o}</option>
-        ))}
-      </select>
-      <input
-        placeholder="value"
-        value={condition.value}
-        onChange={(e) => onChange({ ...condition, value: e.target.value })}
-        className={cn(inputCls, "flex-1 min-w-0")}
-      />
-      {canRemove && (
-        <button onClick={onRemove} className="text-[#3a3a5a] hover:text-red-400 transition-colors shrink-0">
-          <Trash2 size={12} />
-        </button>
-      )}
-    </div>
-  );
+interface Draft {
+  rule_id: string;
+  action_type: string;
+  conditions: string;
+  decision: string;
+  priority: number;
+  description: string;
+  active: boolean;
 }
 
-function PolicyCard({ policy, onEdit }: { policy: Policy; onEdit: () => void }) {
+const BLANK_DRAFT: Draft = {
+  rule_id: "",
+  action_type: "",
+  conditions: "{}",
+  decision: "APPROVED",
+  priority: 50,
+  description: "",
+  active: true,
+};
+
+function draftFromRule(rule: PolicyRule): Draft {
+  return {
+    rule_id: rule.rule_id,
+    action_type: rule.action_type,
+    conditions: JSON.stringify(rule.conditions, null, 2),
+    decision: rule.decision,
+    priority: rule.priority,
+    description: rule.description ?? "",
+    active: rule.active,
+  };
+}
+
+function PolicyCard({
+  rule,
+  onEdit,
+  onDelete,
+  onToggleActive,
+}: {
+  rule: PolicyRule;
+  onEdit: () => void;
+  onDelete: () => void;
+  onToggleActive: () => void;
+}) {
+  const pLabel = priorityLabel(rule.priority);
   return (
-    <div className="bg-[#0d0d1a] rounded-xl border border-white/8 p-6 hover:border-white/12 transition-colors">
+    <div className="bg-[#111111] rounded border border-[#1a1a1a] p-6 hover:border-white/[0.1] transition-colors">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#00ffc8]/10 flex items-center justify-center">
-            <Shield size={15} className="text-[#00ffc8]" />
+          <div className="w-8 h-8 rounded bg-white/[0.06] flex items-center justify-center">
+            <Shield size={15} className="text-[#d4d4d4]" />
           </div>
           <div>
-            <h3 className="font-mono text-sm font-semibold text-white">{policy.name}</h3>
-            <p className="font-mono text-[11px] text-[#4a4a6a] mt-0.5">{policy.action}</p>
+            <h3 className="font-mono text-sm font-semibold text-white">
+              {rule.rule_id}
+            </h3>
+            <p className="font-mono text-[11px] text-[#444444] mt-0.5">
+              {rule.action_type}
+            </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full border uppercase tracking-wide", PRIORITY_STYLES[policy.priority])}>
-            {policy.priority}
+          <span
+            className={cn(
+              "text-[10px] font-semibold px-2 py-0.5 rounded-full border uppercase tracking-wide",
+              PRIORITY_STYLES[pLabel] ?? PRIORITY_STYLES.medium
+            )}
+          >
+            {pLabel} ({rule.priority})
           </span>
-          <span className="text-[10px] font-mono text-[#4a4a6a] bg-white/4 border border-white/8 px-2 py-0.5 rounded">
-            {policy.version}
+          <span className="text-[10px] font-mono text-[#444444] bg-white/[0.04] border border-[#1a1a1a] px-2 py-0.5 rounded">
+            {rule.rule_version}
           </span>
-          <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border", policy.active ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20" : "bg-white/5 text-[#5a5a7a] border-white/8")}>
-            {policy.active ? "Active" : "Inactive"}
+          <button
+            onClick={onToggleActive}
+            className={cn(
+              "text-[10px] font-medium px-2 py-0.5 rounded-full border cursor-pointer transition-colors",
+              rule.active
+                ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/25"
+                : "bg-white/5 text-[#444444] border-[#1a1a1a] hover:text-[#888888]"
+            )}
+          >
+            {rule.active ? "Active" : "Inactive"}
+          </button>
+        </div>
+      </div>
+
+      {rule.description && (
+        <p className="text-xs text-[#888888] mb-3">{rule.description}</p>
+      )}
+
+      <div className="bg-[#0a0a0a] rounded p-4 font-mono text-xs space-y-1.5 border border-[#1a1a1a]">
+        <div className="text-[#888888] whitespace-pre-wrap break-all">
+          {JSON.stringify(rule.conditions, null, 2)}
+        </div>
+        <div className="flex items-center gap-2 pt-2 border-t border-[#1a1a1a] mt-2">
+          <span className="text-[#444444] w-8 text-right shrink-0">-&gt;</span>
+          <span
+            className={cn(
+              "font-semibold px-2 py-0.5 rounded text-[11px] border",
+              DECISION_STYLES[rule.decision] ?? ""
+            )}
+          >
+            {rule.decision}
           </span>
         </div>
       </div>
 
-      <div className="bg-[#0a0a14] rounded-lg p-4 font-mono text-xs space-y-1.5 border border-white/5">
-        {policy.conditions.map((c, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <span className="text-[#3a3a5a] w-8 text-right shrink-0">{i === 0 ? "IF" : "AND"}</span>
-            <span className="text-[#c4c4d4]">{c.field}</span>
-            <span className="text-[#00ffc8]">{c.op}</span>
-            <span className="text-[#00ffc8]/70">{c.value}</span>
-          </div>
-        ))}
-        <div className="flex items-center gap-2 pt-2 border-t border-white/5 mt-2">
-          <span className="text-[#3a3a5a] w-8 text-right shrink-0">→</span>
-          <span className={cn("font-semibold px-2 py-0.5 rounded text-[11px] border", RESULT_STYLES[policy.result])}>
-            {policy.result}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-end mt-4">
+      <div className="flex items-center justify-between mt-4">
+        <button
+          onClick={onDelete}
+          className="text-xs text-[#444444] hover:text-red-400 transition-colors"
+        >
+          Delete
+        </button>
         <button
           onClick={onEdit}
-          className="flex items-center gap-1 text-xs text-[#00ffc8] font-medium hover:text-[#00ffc8]/80 transition-colors"
+          className="flex items-center gap-1 text-xs text-[#d4d4d4] font-medium hover:text-white transition-colors"
         >
           Edit rule <ChevronRight size={12} />
         </button>
@@ -186,172 +161,261 @@ function PolicyCard({ policy, onEdit }: { policy: Policy; onEdit: () => void }) 
   );
 }
 
-type PanelMode = { kind: "edit"; policy: Policy } | { kind: "new" };
+type PanelMode =
+  | { kind: "new" }
+  | { kind: "edit"; ruleId: string };
 
 export default function PoliciesPage() {
-  const [policies, setPolicies] = useState<Policy[]>(INITIAL_POLICIES);
+  const [rules, setRules] = useState<PolicyRule[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [panel, setPanel] = useState<PanelMode | null>(null);
-  const [draft, setDraft] = useState<Omit<Policy, "version" | "active">>(BLANK_DRAFT);
+  const [draft, setDraft] = useState<Draft>(BLANK_DRAFT);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await fetchPolicyRules();
+      setRules(data);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load policies");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   function openNew() {
     setDraft(BLANK_DRAFT);
     setPanel({ kind: "new" });
   }
 
-  function updateDraftCondition(i: number, c: Condition) {
-    setDraft((d) => {
-      const conds = [...d.conditions];
-      conds[i] = c;
-      return { ...d, conditions: conds };
-    });
+  function openEdit(rule: PolicyRule) {
+    setDraft(draftFromRule(rule));
+    setPanel({ kind: "edit", ruleId: rule.rule_id });
   }
 
-  function addDraftCondition() {
-    setDraft((d) => ({ ...d, conditions: [...d.conditions, { field: "", op: "=", value: "" }] }));
+  async function handleSave() {
+    setSaving(true);
+    try {
+      let conditions: Record<string, unknown>;
+      try {
+        conditions = JSON.parse(draft.conditions);
+      } catch {
+        setError("Invalid JSON in conditions");
+        setSaving(false);
+        return;
+      }
+
+      if (panel?.kind === "new") {
+        const payload: PolicyRuleCreate = {
+          rule_id: draft.rule_id,
+          action_type: draft.action_type,
+          conditions,
+          decision: draft.decision,
+          priority: draft.priority,
+          active: draft.active,
+          description: draft.description || undefined,
+        };
+        await createPolicyRule(payload);
+      } else if (panel?.kind === "edit") {
+        const payload: PolicyRuleUpdate = {
+          action_type: draft.action_type,
+          conditions,
+          decision: draft.decision,
+          priority: draft.priority,
+          active: draft.active,
+          description: draft.description || undefined,
+        };
+        await updatePolicyRule(panel.ruleId, payload);
+      }
+      setPanel(null);
+      await load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Save failed");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  function removeDraftCondition(i: number) {
-    setDraft((d) => ({ ...d, conditions: d.conditions.filter((_, idx) => idx !== i) }));
+  async function handleDelete(ruleId: string) {
+    if (!confirm(`Delete rule "${ruleId}"?`)) return;
+    try {
+      await deletePolicyRule(ruleId);
+      await load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    }
   }
 
-  function saveNew() {
-    if (!draft.name || !draft.action) return;
-    const newPolicy: Policy = { ...draft, version: "v1.0", active: true };
-    setPolicies((p) => [...p, newPolicy]);
-    setPanel(null);
+  async function handleToggleActive(rule: PolicyRule) {
+    try {
+      await updatePolicyRule(rule.rule_id, { active: !rule.active });
+      await load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Toggle failed");
+    }
   }
 
-  const editingPolicy = panel?.kind === "edit" ? panel.policy : null;
-  const panelInputCls = "w-full font-mono text-sm px-3 py-2 rounded-lg border border-white/8 bg-[#0a0a14] text-white placeholder:text-[#4a4a6a] focus:outline-none focus:ring-1 focus:ring-[#00ffc8]/40";
-  const panelSelectCls = "w-full text-sm px-3 py-2 rounded-lg border border-white/8 bg-[#0a0a14] text-white focus:outline-none focus:ring-1 focus:ring-[#00ffc8]/40";
+  if (loading) {
+    return (
+      <div className="p-8 max-w-4xl">
+        <p className="text-sm text-[#888888]">Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 max-w-4xl">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-[20px] font-semibold text-white">Policies</h1>
-          <p className="text-xs text-[#5a5a7a] mt-0.5">{policies.length} rules · {policies.filter(p => p.active).length} active</p>
+          <p className="text-xs text-[#444444] mt-0.5">
+            {rules.length} rules -- {rules.filter((r) => r.active).length}{" "}
+            active
+          </p>
         </div>
         <button
           onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors"
         >
           <Plus size={14} />
           New rule
         </button>
       </div>
 
-      <div className="flex flex-col gap-4">
-        {policies.map((policy) => (
-          <PolicyCard key={policy.name} policy={policy} onEdit={() => setPanel({ kind: "edit", policy })} />
-        ))}
-      </div>
-
-      {/* Edit panel */}
-      {editingPolicy && (
-        <div className="fixed inset-y-0 right-0 w-[400px] bg-[#0d0d1a] border-l border-white/8 shadow-2xl z-50 flex flex-col">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
-            <div>
-              <p className="font-mono text-sm font-semibold text-white">{editingPolicy.name}</p>
-              <p className="text-xs text-[#4a4a6a] mt-0.5">{editingPolicy.version}</p>
-            </div>
-            <button onClick={() => setPanel(null)} className="text-[#4a4a6a] hover:text-white transition-colors">
-              <X size={16} />
-            </button>
-          </div>
-          <div className="p-6 flex-1 overflow-y-auto space-y-5">
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">Rule name</label>
-              <input defaultValue={editingPolicy.name} className={panelInputCls} />
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">Action type</label>
-              <input defaultValue={editingPolicy.action} className={panelInputCls} />
-            </div>
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">Conditions (DSL)</label>
-              <div className="bg-[#0a0a14] rounded-lg p-4 font-mono text-xs space-y-2 border border-white/5">
-                {editingPolicy.conditions.map((c, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className="text-[#3a3a5a] w-8 text-right shrink-0">{i === 0 ? "IF" : "AND"}</span>
-                    <span className="text-[#c4c4d4]">{c.field}</span>
-                    <span className="text-[#00ffc8]">{c.op}</span>
-                    <span className="text-[#00ffc8]/70">{c.value}</span>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2 pt-2 border-t border-white/5">
-                  <span className="text-[#3a3a5a] w-8 text-right shrink-0">→</span>
-                  <span className={cn("font-semibold px-2 py-0.5 rounded text-[11px] border", RESULT_STYLES[editingPolicy.result])}>
-                    {editingPolicy.result}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="px-6 py-4 border-t border-white/8 flex gap-3">
-            <button className="flex-1 py-2 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors">
-              Save changes
-            </button>
-            <button onClick={() => setPanel(null)} className="px-4 py-2 rounded-lg border border-white/8 text-[#6a6a8a] text-sm hover:text-white hover:border-white/20 transition-colors">
-              Cancel
-            </button>
-          </div>
+      {error && (
+        <div className="mb-4 px-4 py-2 rounded border border-red-500/20 bg-red-500/10 text-red-400 text-xs font-mono">
+          {error}
+          <button
+            onClick={() => setError(null)}
+            className="ml-3 text-red-400/60 hover:text-red-400"
+          >
+            dismiss
+          </button>
         </div>
       )}
 
-      {/* New rule panel */}
-      {panel?.kind === "new" && (
-        <div className="fixed inset-y-0 right-0 w-[420px] bg-[#0d0d1a] border-l border-white/8 shadow-2xl z-50 flex flex-col">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+      {rules.length === 0 ? (
+        <div className="text-center py-16 text-[#444444] text-sm">
+          No policy rules configured
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {rules.map((rule) => (
+            <PolicyCard
+              key={rule.rule_id + rule.rule_version}
+              rule={rule}
+              onEdit={() => openEdit(rule)}
+              onDelete={() => handleDelete(rule.rule_id)}
+              onToggleActive={() => handleToggleActive(rule)}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Slide-in panel for new/edit */}
+      {panel && (
+        <div className="fixed inset-y-0 right-0 w-[420px] bg-[#111111] border-l border-[#1a1a1a] shadow-2xl z-50 flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a]">
             <div>
-              <p className="text-sm font-semibold text-white">New rule</p>
-              <p className="text-xs text-[#4a4a6a] mt-0.5">Define conditions and outcome</p>
+              <p className="text-sm font-semibold text-white">
+                {panel.kind === "new" ? "New rule" : `Edit ${panel.ruleId}`}
+              </p>
+              <p className="text-xs text-[#444444] mt-0.5">
+                {panel.kind === "new"
+                  ? "Define conditions and outcome"
+                  : "Update rule configuration"}
+              </p>
             </div>
-            <button onClick={() => setPanel(null)} className="text-[#4a4a6a] hover:text-white transition-colors">
+            <button
+              onClick={() => setPanel(null)}
+              className="text-[#444444] hover:text-white transition-colors"
+            >
               <X size={16} />
             </button>
           </div>
 
           <div className="p-6 flex-1 overflow-y-auto space-y-5">
             <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">Rule name</label>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                Rule ID
+              </label>
               <input
-                placeholder="e.g. win_back_discount_v1"
-                value={draft.name}
-                onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
-                className={panelInputCls}
+                placeholder="e.g. churn_retention_v1"
+                value={draft.rule_id}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, rule_id: e.target.value }))
+                }
+                disabled={panel.kind === "edit"}
+                className={cn(
+                  inputCls,
+                  panel.kind === "edit" && "opacity-50 cursor-not-allowed"
+                )}
               />
             </div>
 
             <div>
-              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">Action type</label>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                Action type
+              </label>
               <input
                 placeholder="e.g. apply_discount"
-                value={draft.action}
-                onChange={(e) => setDraft((d) => ({ ...d, action: e.target.value }))}
-                className={panelInputCls}
+                value={draft.action_type}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, action_type: e.target.value }))
+                }
+                className={inputCls}
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                Description
+              </label>
+              <input
+                placeholder="Optional description"
+                value={draft.description}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, description: e.target.value }))
+                }
+                className={inputCls}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">Priority</label>
-                <select
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                  Priority
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
                   value={draft.priority}
-                  onChange={(e) => setDraft((d) => ({ ...d, priority: e.target.value as Policy["priority"] }))}
-                  className={panelSelectCls}
-                >
-                  <option value="critical">Critical</option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                </select>
+                  onChange={(e) =>
+                    setDraft((d) => ({
+                      ...d,
+                      priority: parseInt(e.target.value) || 0,
+                    }))
+                  }
+                  className={inputCls}
+                />
               </div>
               <div>
-                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">Result</label>
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                  Decision
+                </label>
                 <select
-                  value={draft.result}
-                  onChange={(e) => setDraft((d) => ({ ...d, result: e.target.value as Policy["result"] }))}
-                  className={panelSelectCls}
+                  value={draft.decision}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, decision: e.target.value }))
+                  }
+                  className={selectCls}
                 >
                   <option value="APPROVED">APPROVED</option>
                   <option value="DENIED">DENIED</option>
@@ -361,47 +425,53 @@ export default function PoliciesPage() {
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a]">Conditions</label>
-                <button
-                  onClick={addDraftCondition}
-                  className="text-[10px] text-[#00ffc8] font-medium hover:text-[#00ffc8]/80 flex items-center gap-1"
-                >
-                  <Plus size={10} /> Add condition
-                </button>
-              </div>
-              <div className="space-y-2 bg-[#0a0a14] rounded-lg p-3 border border-white/5">
-                {draft.conditions.map((c, i) => (
-                  <ConditionRow
-                    key={i}
-                    condition={c}
-                    index={i}
-                    onChange={(updated) => updateDraftCondition(i, updated)}
-                    onRemove={() => removeDraftCondition(i)}
-                    canRemove={draft.conditions.length > 1}
-                  />
-                ))}
-                <div className="flex items-center gap-2 pt-2 border-t border-white/5 mt-1">
-                  <span className="text-[#3a3a5a] text-xs w-7 text-right font-mono">→</span>
-                  <span className={cn("font-mono font-semibold text-xs px-2 py-0.5 rounded border", RESULT_STYLES[draft.result])}>
-                    {draft.result}
-                  </span>
-                </div>
-              </div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                Conditions (JSON)
+              </label>
+              <textarea
+                rows={8}
+                value={draft.conditions}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, conditions: e.target.value }))
+                }
+                className={cn(inputCls, "resize-y")}
+              />
+            </div>
+
+            <div className="flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="active-toggle"
+                checked={draft.active}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, active: e.target.checked }))
+                }
+                className="accent-[#d4d4d4]"
+              />
+              <label
+                htmlFor="active-toggle"
+                className="text-xs text-[#888888]"
+              >
+                Active
+              </label>
             </div>
           </div>
 
-          <div className="px-6 py-4 border-t border-white/8 flex gap-3">
+          <div className="px-6 py-4 border-t border-[#1a1a1a] flex gap-3">
             <button
-              onClick={saveNew}
-              disabled={!draft.name || !draft.action}
-              className="flex-1 py-2 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              onClick={handleSave}
+              disabled={saving || !draft.rule_id || !draft.action_type}
+              className="flex-1 py-2 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              Create rule
+              {saving
+                ? "Saving..."
+                : panel.kind === "new"
+                ? "Create rule"
+                : "Save changes"}
             </button>
             <button
               onClick={() => setPanel(null)}
-              className="px-4 py-2 rounded-lg border border-white/8 text-[#6a6a8a] text-sm hover:text-white hover:border-white/20 transition-colors"
+              className="px-4 py-2 rounded border border-[#1a1a1a] text-[#888888] text-sm hover:text-white hover:border-white/20 transition-colors"
             >
               Cancel
             </button>

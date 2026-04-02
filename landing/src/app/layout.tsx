@@ -1,50 +1,35 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Instrument_Serif } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { ScrollProgress } from "@/components/ui/ScrollProgress";
 
-const inter = Inter({
-  variable: "--font-sans",
+const mono = JetBrains_Mono({
+  variable: "--font",
   subsets: ["latin"],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-mono",
-  subsets: ["latin"],
-});
-
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-display",
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
   title: "Statis — Agent Execution Infrastructure",
   description:
-    "The execution layer for AI agents. Shared state in. Governed, receipted action out.",
+    "The execution layer for production AI agents. Policy before every action, exactly-once guarantee, SHA-256 receipt.",
   metadataBase: new URL("https://statis.dev"),
   openGraph: {
     title: "Statis — Agent Execution Infrastructure",
     description:
-      "The execution layer for AI agents. Shared state in. Governed, receipted action out.",
+      "The execution layer for production AI agents. Policy before every action, exactly-once guarantee, SHA-256 receipt.",
     url: "https://statis.dev",
     siteName: "Statis",
-    images: [{ url: "/og-banner.png", width: 1200, height: 630, alt: "Statis" }],
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Statis — Agent Execution Infrastructure",
     description:
-      "The execution layer for AI agents. Shared state in. Governed, receipted action out.",
-    images: ["/twitter-card.png"],
+      "The execution layer for production AI agents. Policy before every action, exactly-once guarantee, SHA-256 receipt.",
   },
   icons: {
     icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-64.png", sizes: "64x64", type: "image/png" },
     ],
     apple: "/apple-touch-icon.png",
   },
@@ -57,12 +42,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} ${jetbrainsMono.variable} ${instrumentSerif.variable} antialiased`}
-      >
-        <ScrollProgress />
-        {children}
-      </body>
+      <body className={mono.variable}>{children}</body>
     </html>
   );
 }

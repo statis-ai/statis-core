@@ -11,27 +11,21 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          statist: "var(--color-statist)",
-          surface: "var(--color-surface)",
-          border: "var(--color-border)",
-          accent: "var(--color-accent)",
-          "accent-dim": "var(--color-accent-dim)",
-          muted: "var(--color-muted)",
-          success: "var(--color-success)",
-          warn: "var(--color-warn)",
-          "flow-blue": "var(--color-flow-blue)",
-          "alert-high": "var(--color-alert-high)",
-          "alert-medium": "var(--color-alert-medium)",
+          bg: "var(--bg)",
+          surface: "var(--bg-surface)",
+          border: "var(--border)",
+          text: "var(--text)",
+          "text-2": "var(--text-2)",
+          muted: "var(--text-muted)",
+          highlight: "var(--highlight)",
         },
       },
       fontFamily: {
-        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
         mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
-        serif: ["var(--font-serif)", "Playfair Display", "serif"],
       },
-      boxShadow: {
-        glow: "0 0 20px var(--color-accent-dim)",
-        "glow-sm": "0 0 10px var(--color-accent-dim)",
+      borderRadius: {
+        DEFAULT: "4px",
       },
     },
   },

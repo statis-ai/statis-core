@@ -1,172 +1,291 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
 import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  fetchEscalations,
+  approveEscalation,
+  rejectEscalation,
+  type EscalatedAction,
+} from "@/lib/api";
 
-interface Escalation {
-  id: string;
-  entity: string;
-  action: string;
-  param: string;
-  action_id: string;
-  rule: string;
-  timestamp: string;
-  reason: string;
-  status: "pending" | "approved" | "denied";
-  reviewer_id?: string;
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-const INITIAL_ESCALATIONS: Escalation[] = [
-  {
-    id: "esc-001",
-    entity: "acct-77",
-    action: "apply_discount",
-    param: "25%",
-    action_id: "act-0191",
-    rule: "vip_escalation_v1",
-    timestamp: "2026-03-04T14:28:11Z",
-    reason: "Discount threshold exceeded: 25% > max_auto_discount(15%). Customer LTV $6,200 qualifies for VIP review. Manual override required.",
-    status: "pending",
-  },
-  {
-    id: "esc-002",
-    entity: "cust-330",
-    action: "issue_refund",
-    param: "$340.00",
-    action_id: "act-0188",
-    rule: "refund_eligibility_v1",
-    timestamp: "2026-03-04T13:55:03Z",
-    reason: "Refund amount $340 exceeds auto-approve limit ($200). Last refund was 8 days ago — within cooldown window. Escalated for manual review.",
-    status: "pending",
-  },
-];
+function KeyValuePairs({ data }: { data: Record<string, unknown> }) {
+  const entries = Object.entries(data);
+  if (entries.length === 0) {
+    return <span className="text-[#444444] text-xs">--</span>;
+  }
+  return (
+    <div className="space-y-1">
+      {entries.map(([key, value]) => (
+        <div key={key} className="flex gap-2 font-mono text-xs">
+          <span className="text-[#444444] shrink-0">{key}:</span>
+          <span className="text-[#888888] break-all">
+            {typeof value === "object" && value !== null
+              ? JSON.stringify(value)
+              : String(value)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function EscalationCard({
   esc,
-  onApprove,
-  onDeny,
+  onResolved,
 }: {
-  esc: Escalation;
-  onApprove: () => void;
-  onDeny: () => void;
+  esc: EscalatedAction;
+  onResolved: () => void;
 }) {
+  const [reviewerId, setReviewerId] = useState("");
+  const [note, setNote] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState<"approved" | "denied" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const entityLabel = esc.target_entity
+    ? Object.entries(esc.target_entity)
+        .map(([k, v]) => `${k}/${v}`)
+        .join(", ")
+    : "--";
+
+  async function handleApprove() {
+    if (!reviewerId.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await approveEscalation(
+        esc.action_id,
+        reviewerId.trim(),
+        note.trim() || undefined
+      );
+      setResult("approved");
+      setTimeout(onResolved, 1500);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Approve failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleDeny() {
+    if (!reviewerId.trim()) return;
+    setSubmitting(true);
+    setError(null);
+    try {
+      await rejectEscalation(
+        esc.action_id,
+        reviewerId.trim(),
+        note.trim() || undefined
+      );
+      setResult("denied");
+      setTimeout(onResolved, 1500);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Deny failed");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const inputCls =
+    "w-full font-mono text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#0a0a0a] text-white placeholder:text-[#444444] focus:outline-none focus:ring-1 focus:ring-white/20";
+
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.97 }}
-      transition={{ duration: 0.25 }}
-      className={`bg-[#0d0d1a] rounded-xl border p-6 transition-colors ${
-        esc.status === "approved"
+    <div
+      className={cn(
+        "bg-[#111111] rounded border p-6 transition-colors",
+        result === "approved"
           ? "border-emerald-500/25"
-          : esc.status === "denied"
-          ? "border-white/5 opacity-50"
-          : "border-white/8"
-      }`}
+          : result === "denied"
+          ? "border-[#1a1a1a] opacity-50"
+          : "border-[#1a1a1a]"
+      )}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-sm font-semibold text-white">{esc.entity}</span>
-            <span className="text-[#3a3a5a]">·</span>
-            <span className="font-mono text-sm text-[#8a8a9a]">{esc.action}</span>
-            <span className="font-mono text-sm font-semibold text-[#00ffc8]">{esc.param}</span>
+            <span className="font-mono text-sm font-semibold text-white">
+              {entityLabel}
+            </span>
+            <span className="text-[#444444]">--</span>
+            <span className="font-mono text-sm text-[#888888]">
+              {esc.action_type}
+            </span>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-[#4a4a6a]">
+          <div className="flex items-center gap-2 text-[11px] text-[#444444]">
             <span className="font-mono">{esc.action_id}</span>
-            <span className="text-[#2a2a4a]">·</span>
-            <span className="font-mono">{esc.rule}</span>
-            <span className="text-[#2a2a4a]">·</span>
-            <span>{new Date(esc.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC</span>
+            <span className="text-[#333]">--</span>
+            <span className="font-mono">by {esc.proposed_by}</span>
+            <span className="text-[#333]">--</span>
+            <span>{formatTime(esc.created_at)}</span>
           </div>
         </div>
 
-        {esc.status === "pending" ? (
-          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
-            <AlertTriangle size={10} />
-            Pending review
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] text-[#444444] bg-white/[0.04] border border-[#1a1a1a] px-2 py-0.5 rounded">
+            {esc.target_system}
           </span>
-        ) : esc.status === "approved" ? (
-          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
-            <CheckCircle2 size={10} />
-            Approved
-          </span>
-        ) : (
-          <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-white/5 text-[#5a5a7a] border border-white/8">
-            <XCircle size={10} />
-            Denied
-          </span>
-        )}
+          {result === "approved" ? (
+            <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+              <CheckCircle2 size={10} />
+              Approved
+            </span>
+          ) : result === "denied" ? (
+            <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-white/5 text-[#444444] border border-[#1a1a1a]">
+              <XCircle size={10} />
+              Denied
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
+              <AlertTriangle size={10} />
+              Pending
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Reason */}
-      <div className="bg-orange-500/8 border border-orange-500/15 rounded-lg px-4 py-3 mb-4">
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-400 mb-1">Escalation reason</p>
-        <p className="text-xs text-[#c4c4d4] leading-relaxed">{esc.reason}</p>
-      </div>
-
-      {/* Approved receipt */}
-      {esc.status === "approved" && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-          className="bg-emerald-500/8 border border-emerald-500/15 rounded-lg px-4 py-3 mb-4 font-mono text-xs"
-        >
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-emerald-400 mb-1">Override receipt</p>
-          <div className="grid grid-cols-2 gap-1 text-[#8a8a9a]">
-            <span>reviewer_id:</span><span className="text-emerald-400">{esc.reviewer_id}</span>
-            <span>decision:</span><span className="text-emerald-400">APPROVED</span>
-            <span>action_id:</span><span className="text-emerald-400">{esc.action_id}</span>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Actions */}
-      {esc.status === "pending" && (
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onApprove}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 border border-emerald-500/20 transition-colors"
-          >
-            <CheckCircle2 size={14} />
-            Approve
-          </button>
-          <button
-            onClick={onDeny}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/8 text-[#6a6a8a] text-sm font-medium hover:text-white hover:border-white/20 transition-colors"
-          >
-            <XCircle size={14} />
-            Deny
-          </button>
+      {/* Parameters */}
+      {Object.keys(esc.parameters).length > 0 && (
+        <div className="bg-[#0a0a0a] rounded p-4 border border-[#1a1a1a] mb-3">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-2">
+            Parameters
+          </p>
+          <KeyValuePairs data={esc.parameters} />
         </div>
       )}
-    </motion.div>
+
+      {/* Context */}
+      {Object.keys(esc.context).length > 0 && (
+        <div className="bg-orange-500/[0.06] border border-orange-500/15 rounded px-4 py-3 mb-4">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-400 mb-2">
+            Context
+          </p>
+          <KeyValuePairs data={esc.context} />
+        </div>
+      )}
+
+      {/* Result message */}
+      {result === "approved" && (
+        <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded px-4 py-3 mb-4 text-xs text-emerald-400 font-medium">
+          Escalation approved successfully.
+        </div>
+      )}
+      {result === "denied" && (
+        <div className="bg-white/[0.04] border border-[#1a1a1a] rounded px-4 py-3 mb-4 text-xs text-[#888888]">
+          Escalation denied.
+        </div>
+      )}
+
+      {/* Review panel */}
+      {!result && (
+        <>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-xs text-[#d4d4d4] font-medium hover:text-white transition-colors mb-3"
+          >
+            {expanded ? "Collapse review" : "Review this escalation"}
+          </button>
+
+          {expanded && (
+            <div className="border-t border-[#1a1a1a] pt-4 space-y-3">
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-1.5">
+                  Reviewer ID
+                </label>
+                <input
+                  placeholder="e.g. reviewer-aniket"
+                  value={reviewerId}
+                  onChange={(e) => setReviewerId(e.target.value)}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-1.5">
+                  Note (optional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Add a review note..."
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  className={cn(inputCls, "resize-y")}
+                />
+              </div>
+
+              {error && (
+                <p className="text-xs text-red-400 font-mono">{error}</p>
+              )}
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleApprove}
+                  disabled={submitting || !reviewerId.trim()}
+                  className="flex items-center gap-2 px-4 py-2 rounded bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 border border-emerald-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <CheckCircle2 size={14} />
+                  {submitting ? "..." : "Approve"}
+                </button>
+                <button
+                  onClick={handleDeny}
+                  disabled={submitting || !reviewerId.trim()}
+                  className="flex items-center gap-2 px-4 py-2 rounded border border-[#1a1a1a] text-[#888888] text-sm font-medium hover:text-white hover:border-white/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <XCircle size={14} />
+                  {submitting ? "..." : "Deny"}
+                </button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+    </div>
   );
 }
 
 export default function EscalationsPage() {
-  const [escalations, setEscalations] = useState<Escalation[]>(INITIAL_ESCALATIONS);
+  const [escalations, setEscalations] = useState<EscalatedAction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  function approve(id: string) {
-    setEscalations((escs) =>
-      escs.map((e) =>
-        e.id === id
-          ? { ...e, status: "approved", reviewer_id: "reviewer-aniket" }
-          : e
-      )
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await fetchEscalations();
+      setEscalations(data);
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Failed to load escalations"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const pending = escalations.length;
+
+  if (loading) {
+    return (
+      <div className="p-8 max-w-3xl">
+        <p className="text-sm text-[#888888]">Loading...</p>
+      </div>
     );
   }
-
-  function deny(id: string) {
-    setEscalations((escs) =>
-      escs.map((e) => (e.id === id ? { ...e, status: "denied" } : e))
-    );
-  }
-
-  const pending = escalations.filter((e) => e.status === "pending").length;
 
   return (
     <div className="p-8 max-w-3xl">
@@ -179,25 +298,32 @@ export default function EscalationsPage() {
             </span>
           )}
         </div>
-        <p className="text-xs text-[#5a5a7a]">{pending} awaiting review · {escalations.length} total</p>
+        <p className="text-xs text-[#444444]">
+          {pending} pending escalation{pending !== 1 ? "s" : ""}
+        </p>
       </div>
 
-      <AnimatePresence mode="popLayout">
+      {error && (
+        <div className="mb-4 px-4 py-2 rounded border border-red-500/20 bg-red-500/10 text-red-400 text-xs font-mono">
+          {error}
+          <button
+            onClick={() => setError(null)}
+            className="ml-3 text-red-400/60 hover:text-red-400"
+          >
+            dismiss
+          </button>
+        </div>
+      )}
+
+      {escalations.length === 0 ? (
+        <div className="text-center py-16 text-[#444444] text-sm">
+          No pending escalations
+        </div>
+      ) : (
         <div className="flex flex-col gap-4">
           {escalations.map((esc) => (
-            <EscalationCard
-              key={esc.id}
-              esc={esc}
-              onApprove={() => approve(esc.id)}
-              onDeny={() => deny(esc.id)}
-            />
+            <EscalationCard key={esc.action_id} esc={esc} onResolved={load} />
           ))}
-        </div>
-      </AnimatePresence>
-
-      {escalations.every((e) => e.status !== "pending") && (
-        <div className="mt-8 text-center py-12 text-[#3a3a5a] text-sm">
-          All escalations resolved.
         </div>
       )}
     </div>

@@ -23,8 +23,8 @@ export default function StateTab({ entityType, entityId }: Props) {
       .finally(() => setLoading(false));
   }, [entityType, entityId]);
 
-  if (loading) return <p className="text-brand-muted animate-pulse">Loading state…</p>;
-  if (error) return <p className="text-brand-error">{error}</p>;
+  if (loading) return <p className="text-[#888888] animate-pulse">Loading state...</p>;
+  if (error) return <p className="text-red-400">{error}</p>;
   if (!data) return null;
 
   return (
@@ -38,13 +38,13 @@ export default function StateTab({ entityType, entityId }: Props) {
 
       {/* State JSON */}
       <div>
-        <h3 className="text-xs font-medium text-brand-muted uppercase tracking-wider mb-2">
+        <h3 className="text-xs font-medium text-[#444444] uppercase tracking-wider mb-2">
           State
         </h3>
         <pre
           data-testid="state-json"
-          className="rounded border border-brand-border bg-[#0a0a14] p-4
-                     text-xs font-mono text-[#00ffc8] overflow-auto max-h-[28rem]"
+          className="rounded border border-[#1a1a1a] bg-[#0a0a0a] p-4
+                     text-xs font-mono text-[#d4d4d4] overflow-auto max-h-[28rem]"
         >
           {JSON.stringify(data.state, null, 2)}
         </pre>
@@ -52,10 +52,10 @@ export default function StateTab({ entityType, entityId }: Props) {
 
       {/* Provenance */}
       <div>
-        <h3 className="text-xs font-medium text-brand-muted uppercase tracking-wider mb-2">
+        <h3 className="text-xs font-medium text-[#444444] uppercase tracking-wider mb-2">
           Provenance ({data.provenance.length} event{data.provenance.length !== 1 ? "s" : ""})
         </h3>
-        <ol className="list-decimal list-inside space-y-0.5 text-xs font-mono text-brand-muted">
+        <ol className="list-decimal list-inside space-y-0.5 text-xs font-mono text-[#888888]">
           {data.provenance.map((eid, i) => (
             <li key={i}>{eid}</li>
           ))}
@@ -75,8 +75,8 @@ function MetaChip({
   mono?: boolean;
 }) {
   return (
-    <div className="rounded border border-brand-border bg-[#0a0a14] px-3 py-2">
-      <span className="text-brand-muted text-xs uppercase tracking-wider">{label}</span>
+    <div className="rounded border border-[#1a1a1a] bg-[#0a0a0a] px-3 py-2">
+      <span className="text-[#444444] text-xs uppercase tracking-wider">{label}</span>
       <p className={`mt-0.5 text-white text-sm ${mono ? "font-mono" : ""} truncate max-w-[20rem]`}>
         {value}
       </p>

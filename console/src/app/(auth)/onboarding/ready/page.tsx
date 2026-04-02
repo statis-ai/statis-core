@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useOnboarding } from "@/components/OnboardingContext";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, Shield, Database, Plug } from "lucide-react";
 
@@ -82,15 +81,11 @@ export default function ReadyPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-10">
       <div className="w-full max-w-2xl">
-        <div className="flex items-center gap-2.5 mb-10">
-          <Image
-            src="/logomark-transparent.png"
-            alt="Statis"
-            width={24}
-            height={24}
-            className="rounded-md"
-            style={{ filter: "drop-shadow(0 0 6px rgba(0,255,200,0.45))" }}
-          />
+        <div className="flex items-center gap-2 mb-10">
+          <span className="font-semibold text-[15px] tracking-tight text-white">
+            statis
+            <span className="inline-block ml-[1px] animate-pulse" style={{ width: "7px", height: "13px", background: "#ffffff" }} />
+          </span>
         </div>
 
         <motion.div
@@ -105,7 +100,7 @@ export default function ReadyPage() {
           <h1 className="text-3xl font-semibold text-white mb-2 tracking-tight">
             Your Statis console is set up.
           </h1>
-          <p className="text-[#6a6a8a] text-sm mb-8">
+          <p className="text-[#888888] text-sm mb-8">
             Here&apos;s what was created for you. You can edit any of it from your console.
           </p>
         </motion.div>
@@ -116,15 +111,15 @@ export default function ReadyPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5"
+            className="bg-[#111111] rounded border border-[#1a1a1a] p-5"
           >
             <div className="flex items-center gap-2 mb-4">
-              <Shield size={15} className="text-[#00ffc8]" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#5a5a7a]">Policies</span>
+              <Shield size={15} className="text-[#d4d4d4]" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#444444]">Policies</span>
             </div>
             <ul className="flex flex-col gap-2">
               {displayRules.map((r) => (
-                <li key={r} className="font-mono text-xs text-[#00ffc8]/80 bg-[#00ffc8]/8 px-2.5 py-1.5 rounded-md border border-[#00ffc8]/15">
+                <li key={r} className="font-mono text-xs text-[#d4d4d4]/80 bg-white/[0.06] px-2.5 py-1.5 rounded border border-[#1a1a1a]">
                   {r}
                 </li>
               ))}
@@ -136,15 +131,15 @@ export default function ReadyPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5"
+            className="bg-[#111111] rounded border border-[#1a1a1a] p-5"
           >
             <div className="flex items-center gap-2 mb-4">
-              <Database size={15} className="text-[#00ffc8]" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#5a5a7a]">Entities</span>
+              <Database size={15} className="text-[#d4d4d4]" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#444444]">Entities</span>
             </div>
             <ul className="flex flex-col gap-2">
               {entities.map((e) => (
-                <li key={e} className="font-mono text-xs text-[#8a8a9a] bg-white/4 px-2.5 py-1.5 rounded-md border border-white/8">
+                <li key={e} className="font-mono text-xs text-[#888888] bg-white/[0.04] px-2.5 py-1.5 rounded border border-[#1a1a1a]">
                   {e}
                 </li>
               ))}
@@ -156,16 +151,16 @@ export default function ReadyPage() {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5"
+            className="bg-[#111111] rounded border border-[#1a1a1a] p-5"
           >
             <div className="flex items-center gap-2 mb-4">
-              <Plug size={15} className="text-[#00ffc8]" />
-              <span className="text-xs font-semibold uppercase tracking-widest text-[#5a5a7a]">Adapters</span>
+              <Plug size={15} className="text-[#d4d4d4]" />
+              <span className="text-xs font-semibold uppercase tracking-widest text-[#444444]">Adapters</span>
             </div>
             <ul className="flex flex-col gap-2">
               {(adapters.length > 0 ? adapters : [{ name: "Stripe", status: "connected" as const }]).map((a) => (
                 <li key={a.name} className="flex items-center justify-between">
-                  <span className="text-xs text-[#c4c4d4]">{a.name}</span>
+                  <span className="text-xs text-[#888888]">{a.name}</span>
                   <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full border ${
                     a.status === "connected"
                       ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/20"
@@ -187,9 +182,9 @@ export default function ReadyPage() {
           <button
             onClick={handleOpenConsole}
             disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-6 py-3 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors disabled:opacity-50"
           >
-            {loading ? "Setting up…" : "Open my console"}
+            {loading ? "Setting up..." : "Open my console"}
             <ArrowRight size={15} />
           </button>
           {error && (

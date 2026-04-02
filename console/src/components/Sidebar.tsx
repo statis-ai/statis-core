@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
@@ -93,19 +92,12 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="flex flex-col w-[220px] min-h-screen bg-[#08080f] border-r border-white/[0.06] shrink-0">
+    <aside className="flex flex-col w-[220px] min-h-screen bg-[#0a0a0a] border-r border-[#1a1a1a] shrink-0">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-4 border-b border-white/5">
-        <Image
-          src="/logomark-transparent.png"
-          alt="Statis"
-          width={28}
-          height={28}
-          className="shrink-0"
-          style={{ filter: "drop-shadow(0 0 6px rgba(0,255,200,0.45))" }}
-        />
-        <span className="text-[15px] font-semibold tracking-tight font-serif text-gradient">
-          Statis
+      <div className="flex items-center gap-2 px-5 py-4 border-b border-[#1a1a1a]">
+        <span className="text-[15px] font-bold tracking-tight text-white inline-flex items-center">
+          statis
+          <span className="inline-block ml-[1px] animate-pulse" style={{ width: "7px", height: "13px", background: "#ffffff" }} />
         </span>
       </div>
 
@@ -114,7 +106,7 @@ export default function Sidebar() {
         {NAV.map((section, i) => (
           <div key={i}>
             {section.group && (
-              <p className="px-2 mb-1 text-[10px] font-semibold tracking-widest text-[#3a3a5a] uppercase">
+              <p className="px-2 mb-1 text-[10px] font-semibold tracking-widest text-[#444444] uppercase">
                 {section.group}
               </p>
             )}
@@ -132,15 +124,15 @@ export default function Sidebar() {
                       href={item.href}
                       {...linkProps}
                       className={cn(
-                        "flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm transition-colors",
+                        "flex items-center gap-2.5 px-2.5 py-2 rounded text-sm transition-colors",
                         active
-                          ? "bg-[#00ffc8]/10 text-[#00ffc8] font-medium"
-                          : "text-[#6a6a8a] hover:bg-white/[0.04] hover:text-[#c4c4d4]"
+                          ? "bg-white/[0.06] text-[#d4d4d4] font-medium"
+                          : "text-[#444444] hover:bg-white/[0.04] hover:text-[#888888]"
                       )}
                     >
                       <Icon
                         size={15}
-                        className={active ? "text-[#00ffc8]" : "text-[#3a3a5a]"}
+                        className={active ? "text-[#d4d4d4]" : "text-[#444444]"}
                       />
                       <span className="flex-1">{item.label}</span>
                       {"badge" in item && item.badge ? (
@@ -149,7 +141,7 @@ export default function Sidebar() {
                         </span>
                       ) : null}
                       {isExternal && (
-                        <ExternalLink size={11} className="text-[#3a3a5a]" />
+                        <ExternalLink size={11} className="text-[#444444]" />
                       )}
                     </Link>
                   </li>
@@ -161,22 +153,22 @@ export default function Sidebar() {
       </nav>
 
       {/* User footer */}
-      <div className="px-3 py-3 border-t border-white/5">
-        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-md">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#00ffc8] to-[#00a8ff] flex items-center justify-center shrink-0">
-            <span className="text-[#080810] text-[11px] font-semibold">
+      <div className="px-3 py-3 border-t border-[#1a1a1a]">
+        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded">
+          <div className="w-7 h-7 rounded bg-[#1a1a1a] flex items-center justify-center shrink-0">
+            <span className="text-white text-[11px] font-semibold">
               {email ? email[0].toUpperCase() : "?"}
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-[#c4c4d4] truncate leading-tight">
+            <p className="text-xs font-medium text-[#888888] truncate leading-tight">
               {email || ""}
             </p>
-            <p className="text-[10px] text-[#4a4a6a] leading-tight">Workspace</p>
+            <p className="text-[10px] text-[#444444] leading-tight">Workspace</p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-[#3a3a5a] hover:text-[#8a8a9a] transition-colors shrink-0"
+            className="text-[#444444] hover:text-[#888888] transition-colors shrink-0"
             title="Sign out"
           >
             <LogOut size={14} />

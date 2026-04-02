@@ -1,63 +1,266 @@
 "use client";
 
-import { Radio, Plus } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { Radio, Plus, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const WEBHOOKS = [
-  { id: "wh-001", url: "https://api.example.com/statis/events", events: ["action.completed", "receipt.minted"], status: "active", last_delivery: "2026-03-04T14:32:08Z", success_rate: "100%" },
-  { id: "wh-002", url: "https://hooks.zapier.com/hooks/catch/12345/abc", events: ["action.escalated"], status: "active", last_delivery: "2026-03-04T14:28:11Z", success_rate: "98%" },
-];
+import {
+  fetchWebhooks,
+  createWebhook,
+  deleteWebhook,
+  type WebhookRecord,
+} from "@/lib/api";
 
 const STATUS_STYLES: Record<string, string> = {
-  active: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
-  paused: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
+  true: "bg-emerald-500/15 text-emerald-400 border-emerald-500/20",
+  false: "bg-white/5 text-[#444444] border-[#1a1a1a]",
 };
 
+const EVENT_OPTIONS = [
+  "action.completed",
+  "action.denied",
+  "action.escalated",
+  "receipt.minted",
+];
+
+const inputCls =
+  "w-full font-mono text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#111111] text-white placeholder:text-[#444444] focus:outline-none focus:ring-1 focus:ring-white/20";
+
 export default function WebhooksPage() {
+  const [webhooks, setWebhooks] = useState<WebhookRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showPanel, setShowPanel] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const [newUrl, setNewUrl] = useState("");
+  const [newEvents, setNewEvents] = useState<string[]>([]);
+
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      const data = await fetchWebhooks();
+      setWebhooks(data);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load webhooks");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  function openPanel() {
+    setNewUrl("");
+    setNewEvents([]);
+    setShowPanel(true);
+  }
+
+  function toggleEvent(event: string) {
+    setNewEvents((prev) =>
+      prev.includes(event) ? prev.filter((e) => e !== event) : [...prev, event]
+    );
+  }
+
+  async function handleCreate() {
+    if (!newUrl || newEvents.length === 0) return;
+    setSaving(true);
+    try {
+      await createWebhook({ url: newUrl, events: newEvents });
+      setShowPanel(false);
+      await load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Create failed");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this webhook?")) return;
+    try {
+      await deleteWebhook(id);
+      await load();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Delete failed");
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="p-8 max-w-3xl">
+        <p className="text-sm text-[#888888]">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8 max-w-3xl">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-[20px] font-semibold text-white">Webhooks</h1>
-          <p className="text-xs text-[#5a5a7a] mt-0.5">{WEBHOOKS.length} subscriptions</p>
+          <p className="text-xs text-[#444444] mt-0.5">
+            {webhooks.length} subscription{webhooks.length !== 1 ? "s" : ""}
+          </p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors">
+        <button
+          onClick={openPanel}
+          className="flex items-center gap-2 px-4 py-2 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors"
+        >
           <Plus size={14} />
           Add webhook
         </button>
       </div>
 
-      <div className="flex flex-col gap-4">
-        {WEBHOOKS.map((wh) => (
-          <div key={wh.id} className="bg-[#0d0d1a] rounded-xl border border-white/8 p-5 hover:border-white/12 transition-colors">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-lg bg-[#00ffc8]/10 flex items-center justify-center shrink-0">
-                <Radio size={14} className="text-[#00ffc8]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-mono text-xs text-[#c4c4d4] truncate">{wh.url}</p>
-                  <span className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0", STATUS_STYLES[wh.status])}>
-                    {wh.status}
-                  </span>
+      {error && (
+        <div className="mb-4 px-4 py-2 rounded border border-red-500/20 bg-red-500/10 text-red-400 text-xs font-mono">
+          {error}
+          <button
+            onClick={() => setError(null)}
+            className="ml-3 text-red-400/60 hover:text-red-400"
+          >
+            dismiss
+          </button>
+        </div>
+      )}
+
+      {webhooks.length === 0 ? (
+        <div className="text-center py-16 text-[#444444] text-sm">
+          No webhooks configured
+        </div>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {webhooks.map((wh) => (
+            <div
+              key={wh.id}
+              className="bg-[#111111] rounded border border-[#1a1a1a] p-5 hover:border-white/[0.1] transition-colors"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded bg-white/[0.06] flex items-center justify-center shrink-0">
+                  <Radio size={14} className="text-[#d4d4d4]" />
                 </div>
-                <p className="text-[10px] text-[#4a4a6a] font-mono mb-2">{wh.id}</p>
-                <div className="flex items-center gap-1.5 flex-wrap mb-2">
-                  {wh.events.map((e) => (
-                    <span key={e} className="font-mono text-[10px] text-[#00ffc8]/70 bg-[#00ffc8]/8 border border-[#00ffc8]/15 px-2 py-0.5 rounded">
-                      {e}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-mono text-xs text-[#888888] truncate">
+                      {wh.url}
+                    </p>
+                    <span
+                      className={cn(
+                        "text-[10px] font-medium px-2 py-0.5 rounded-full border shrink-0",
+                        STATUS_STYLES[String(wh.is_active)]
+                      )}
+                    >
+                      {wh.is_active ? "active" : "inactive"}
                     </span>
-                  ))}
+                  </div>
+                  <p className="text-[10px] text-[#444444] font-mono mb-2">
+                    {wh.id}
+                  </p>
+                  <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                    {wh.events.map((e) => (
+                      <span
+                        key={e}
+                        className="font-mono text-[10px] text-[#d4d4d4]/70 bg-white/[0.06] border border-[#1a1a1a] px-2 py-0.5 rounded"
+                      >
+                        {e}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-[11px] text-[#444444]">
+                    Created:{" "}
+                    {new Date(wh.created_at).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                      year: "numeric",
+                    })}
+                  </p>
                 </div>
-                <p className="text-[11px] text-[#5a5a7a]">
-                  Last delivery: {new Date(wh.last_delivery).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC ·{" "}
-                  <span className="text-emerald-400 font-medium">{wh.success_rate} success rate</span>
-                </p>
+                <button
+                  onClick={() => handleDelete(wh.id)}
+                  className="text-[#444444] hover:text-red-400 transition-colors shrink-0 mt-1"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add webhook panel */}
+      {showPanel && (
+        <div className="fixed inset-y-0 right-0 w-[400px] bg-[#111111] border-l border-[#1a1a1a] shadow-2xl z-50 flex flex-col">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a]">
+            <div>
+              <p className="text-sm font-semibold text-white">Add webhook</p>
+              <p className="text-xs text-[#444444] mt-0.5">
+                Subscribe to event notifications
+              </p>
+            </div>
+            <button
+              onClick={() => setShowPanel(false)}
+              className="text-[#444444] hover:text-white transition-colors"
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          <div className="p-6 flex-1 overflow-y-auto space-y-5">
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                Endpoint URL
+              </label>
+              <input
+                placeholder="https://example.com/webhook"
+                value={newUrl}
+                onChange={(e) => setNewUrl(e.target.value)}
+                className={inputCls}
+              />
+            </div>
+
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                Events
+              </label>
+              <div className="space-y-2">
+                {EVENT_OPTIONS.map((event) => (
+                  <label
+                    key={event}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={newEvents.includes(event)}
+                      onChange={() => toggleEvent(event)}
+                      className="accent-[#d4d4d4]"
+                    />
+                    <span className="font-mono text-xs text-[#888888]">
+                      {event}
+                    </span>
+                  </label>
+                ))}
               </div>
             </div>
           </div>
-        ))}
-      </div>
+
+          <div className="px-6 py-4 border-t border-[#1a1a1a] flex gap-3">
+            <button
+              onClick={handleCreate}
+              disabled={saving || !newUrl || newEvents.length === 0}
+              className="flex-1 py-2 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {saving ? "Creating..." : "Create webhook"}
+            </button>
+            <button
+              onClick={() => setShowPanel(false)}
+              className="px-4 py-2 rounded border border-[#1a1a1a] text-[#888888] text-sm hover:text-white hover:border-white/20 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -12,14 +12,14 @@ interface Props {
 }
 
 const STATUS_STYLES: Record<string, { dot: string; text: string; bg: string }> = {
-  PROPOSED:   { dot: "bg-brand-warn",    text: "text-brand-warn",    bg: "bg-brand-warn/10" },
+  PROPOSED:   { dot: "bg-orange-400",    text: "text-orange-400",    bg: "bg-orange-500/10" },
   EVALUATING: { dot: "bg-blue-400",      text: "text-blue-400",      bg: "bg-blue-400/10" },
-  APPROVED:   { dot: "bg-brand-success", text: "text-brand-success", bg: "bg-brand-success/10" },
-  DENIED:     { dot: "bg-brand-error",   text: "text-brand-error",   bg: "bg-brand-error/10" },
-  ESCALATED:  { dot: "bg-orange-400",    text: "text-orange-400",    bg: "bg-orange-400/10" },
+  APPROVED:   { dot: "bg-emerald-400",   text: "text-emerald-400",   bg: "bg-emerald-500/10" },
+  DENIED:     { dot: "bg-red-400",       text: "text-red-400",       bg: "bg-red-500/10" },
+  ESCALATED:  { dot: "bg-orange-400",    text: "text-orange-400",    bg: "bg-orange-500/10" },
   EXECUTING:  { dot: "bg-blue-400 animate-pulse", text: "text-blue-400", bg: "bg-blue-400/10" },
-  COMPLETED:  { dot: "bg-brand-success", text: "text-brand-success", bg: "bg-brand-success/10" },
-  FAILED:     { dot: "bg-brand-error",   text: "text-brand-error",   bg: "bg-brand-error/10" },
+  COMPLETED:  { dot: "bg-emerald-400",   text: "text-emerald-400",   bg: "bg-emerald-500/10" },
+  FAILED:     { dot: "bg-red-400",       text: "text-red-400",       bg: "bg-red-500/10" },
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -46,25 +46,25 @@ export default function ActionsTab({ entityType, entityId, selectedActionId, onS
       .finally(() => setLoading(false));
   }, [entityType, entityId]);
 
-  if (loading) return <p className="text-brand-muted animate-pulse p-6">Loading actions…</p>;
-  if (error) return <p className="text-brand-error p-6">{error}</p>;
+  if (loading) return <p className="text-[#888888] animate-pulse p-6">Loading actions...</p>;
+  if (error) return <p className="text-red-400 p-6">{error}</p>;
   if (actions.length === 0) return (
     <div className="p-10 text-center">
-      <p className="text-brand-muted">No action contracts found for this entity.</p>
-      <p className="text-brand-muted/50 text-xs mt-1">Run the demo script to create one.</p>
+      <p className="text-[#888888]">No action contracts found for this entity.</p>
+      <p className="text-[#888888]/50 text-xs mt-1">Run the demo script to create one.</p>
     </div>
   );
 
   return (
     <div className="overflow-auto">
-      <div className="px-4 py-3 border-b border-brand-border flex items-center justify-between">
-        <p className="text-xs text-brand-muted">
+      <div className="px-4 py-3 border-b border-[#1a1a1a] flex items-center justify-between">
+        <p className="text-xs text-[#888888]">
           {actions.length} action{actions.length !== 1 ? "s" : ""} — click a row to view its receipt
         </p>
       </div>
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-brand-border text-left text-xs font-medium text-brand-muted uppercase tracking-wider">
+          <tr className="border-b border-[#1a1a1a] text-left text-xs font-medium text-[#444444] uppercase tracking-wider">
             <th className="px-4 py-2.5">Action ID</th>
             <th className="px-4 py-2.5">Type</th>
             <th className="px-4 py-2.5">Status</th>
@@ -73,7 +73,7 @@ export default function ActionsTab({ entityType, entityId, selectedActionId, onS
             <th className="px-4 py-2.5">Created</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-brand-border">
+        <tbody className="divide-y divide-[#1a1a1a]">
           {actions.map((a) => {
             const isSelected = a.action_id === selectedActionId;
             return (
@@ -82,20 +82,20 @@ export default function ActionsTab({ entityType, entityId, selectedActionId, onS
                 onClick={() => onSelectAction(a.action_id)}
                 className={`cursor-pointer transition-colors ${
                   isSelected
-                    ? "bg-brand-accent/10 border-l-2 border-brand-accent"
+                    ? "bg-[#d4d4d4]/10 border-l-2 border-[#d4d4d4]"
                     : "hover:bg-white/[0.02]"
                 }`}
               >
-                <td className="px-4 py-3 font-mono text-xs text-brand-accent truncate max-w-[12rem]">
+                <td className="px-4 py-3 font-mono text-xs text-[#d4d4d4] truncate max-w-[12rem]">
                   {a.action_id}
                 </td>
                 <td className="px-4 py-3 text-white text-xs font-medium">{a.action_type}</td>
                 <td className="px-4 py-3">
                   <StatusBadge status={a.status} />
                 </td>
-                <td className="px-4 py-3 text-xs text-brand-muted">{a.proposed_by}</td>
-                <td className="px-4 py-3 text-xs text-brand-muted">{a.target_system}</td>
-                <td className="px-4 py-3 text-xs text-brand-muted whitespace-nowrap">
+                <td className="px-4 py-3 text-xs text-[#888888]">{a.proposed_by}</td>
+                <td className="px-4 py-3 text-xs text-[#888888]">{a.target_system}</td>
+                <td className="px-4 py-3 text-xs text-[#888888] whitespace-nowrap">
                   {new Date(a.created_at).toLocaleString()}
                 </td>
               </tr>

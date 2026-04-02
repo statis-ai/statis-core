@@ -6,13 +6,13 @@ import OnboardingShell from "@/components/OnboardingShell";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const SYSTEMS: { id: ProductionSystem; label: string; desc: string; logo: string }[] = [
-  { id: "stripe", label: "Stripe", desc: "Payments & billing", logo: "💳" },
-  { id: "salesforce", label: "Salesforce", desc: "CRM & accounts", logo: "☁️" },
-  { id: "zendesk", label: "Zendesk", desc: "Support tickets", logo: "🎫" },
-  { id: "hubspot", label: "HubSpot", desc: "Marketing & deals", logo: "🟠" },
-  { id: "aws", label: "AWS", desc: "Cloud infrastructure", logo: "⚡" },
-  { id: "custom", label: "Custom API", desc: "Bring your own adapter", logo: "🔌" },
+const SYSTEMS: { id: ProductionSystem; label: string; desc: string }[] = [
+  { id: "stripe", label: "Stripe", desc: "Payments & billing" },
+  { id: "salesforce", label: "Salesforce", desc: "CRM & accounts" },
+  { id: "zendesk", label: "Zendesk", desc: "Support tickets" },
+  { id: "hubspot", label: "HubSpot", desc: "Marketing & deals" },
+  { id: "aws", label: "AWS", desc: "Cloud infrastructure" },
+  { id: "custom", label: "Custom API", desc: "Bring your own adapter" },
 ];
 
 export default function SystemsPage() {
@@ -21,14 +21,14 @@ export default function SystemsPage() {
 
   return (
     <OnboardingShell
-      step={3}
+      step={2}
       hint="Connected systems become adapters in Statis. Each one gets a pre-built connector with auth and retry logic."
     >
       <div className="max-w-xl">
         <h1 className="text-2xl font-semibold text-white mb-2 tracking-tight">
           Which production systems do you use?
         </h1>
-        <p className="text-[#6a6a8a] text-sm mb-8">
+        <p className="text-[#888888] text-sm mb-8">
           These will appear as ready-to-connect adapters in your console.
         </p>
 
@@ -40,16 +40,15 @@ export default function SystemsPage() {
                 key={sys.id}
                 onClick={() => toggleSystem(sys.id)}
                 className={cn(
-                  "flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all",
+                  "flex items-center gap-3 p-4 rounded border-2 text-left transition-all",
                   selected
-                    ? "border-[#00ffc8] bg-[#00ffc8]/10"
-                    : "border-white/8 bg-white/[0.02] hover:border-white/20"
+                    ? "border-[#d4d4d4] bg-white/[0.06]"
+                    : "border-[#1a1a1a] bg-white/[0.02] hover:border-white/20"
                 )}
               >
-                <span className="text-2xl">{sys.logo}</span>
                 <div>
-                  <p className={cn("text-sm font-semibold", selected ? "text-[#00ffc8]" : "text-white")}>{sys.label}</p>
-                  <p className="text-xs text-[#4a4a6a] mt-0.5">{sys.desc}</p>
+                  <p className={cn("text-sm font-semibold", selected ? "text-[#d4d4d4]" : "text-white")}>{sys.label}</p>
+                  <p className="text-xs text-[#444444] mt-0.5">{sys.desc}</p>
                 </div>
               </button>
             );
@@ -59,7 +58,7 @@ export default function SystemsPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push("/onboarding/actions")}
-            className="flex items-center gap-1.5 text-sm text-[#5a5a7a] hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-sm text-[#444444] hover:text-white transition-colors"
           >
             <ArrowLeft size={14} />
             Back
@@ -67,7 +66,7 @@ export default function SystemsPage() {
           <button
             onClick={() => router.push("/onboarding/loading")}
             disabled={systems.length === 0}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Set up my console
             <ArrowRight size={15} />

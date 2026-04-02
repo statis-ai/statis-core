@@ -55,26 +55,26 @@ export default function DiffTab({ entityType, entityId }: Props) {
         <button
           onClick={compare}
           disabled={loading}
-          className="h-10 px-5 rounded bg-brand-accent text-brand-statist text-sm font-semibold
-                     hover:bg-brand-accent/90 disabled:opacity-40 transition-colors"
+          className="h-10 px-5 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold
+                     hover:bg-white disabled:opacity-40 transition-colors"
         >
           {loading ? "Comparing…" : "Compare"}
         </button>
       </div>
 
-      {error && <p className="text-brand-error text-sm">{error}</p>}
+      {error && <p className="text-red-400 text-sm">{error}</p>}
 
       {result === "identical" && (
-        <p className="text-brand-muted text-sm">States are identical at these revisions.</p>
+        <p className="text-[#888888] text-sm">States are identical at these revisions.</p>
       )}
 
       {result && result !== "identical" && (
         <div>
-          <h3 className="text-xs font-medium text-brand-muted uppercase tracking-wider mb-2">
+          <h3 className="text-xs font-medium text-[#444444] uppercase tracking-wider mb-2">
             Changes (rev {fromRev} → {toRev})
           </h3>
           <div
-            className="rounded border border-brand-border bg-[#0a0a14] p-4
+            className="rounded border border-[#1a1a1a] bg-[#0a0a0a] p-4
                        text-xs font-mono overflow-auto max-h-[28rem]"
             dangerouslySetInnerHTML={{ __html: result.html }}
           />
@@ -95,7 +95,7 @@ function RevInput({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-medium text-brand-muted uppercase tracking-wider">
+      <label className="text-xs font-medium text-[#444444] uppercase tracking-wider">
         {label}
       </label>
       <input
@@ -103,9 +103,9 @@ function RevInput({
         min={1}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-10 w-24 rounded border border-brand-border bg-[#0a0a14] px-3 text-sm
-                   text-white outline-none focus:border-brand-accent focus:ring-1
-                   focus:ring-brand-accent/20 transition-colors"
+        className="h-10 w-24 rounded border border-[#1a1a1a] bg-[#0a0a0a] px-3 text-sm
+                   text-white outline-none focus:border-white/20 focus:ring-1
+                   focus:ring-white/10 transition-colors"
       />
     </div>
   );

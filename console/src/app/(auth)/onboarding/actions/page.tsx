@@ -24,14 +24,14 @@ export default function ActionsPage() {
 
   return (
     <OnboardingShell
-      step={2}
+      step={1}
       hint="Each action type maps to a pre-built governance rule. You can customise conditions after setup."
     >
       <div className="max-w-xl">
         <h1 className="text-2xl font-semibold text-white mb-2 tracking-tight">
           What actions will your agents take?
         </h1>
-        <p className="text-[#6a6a8a] text-sm mb-8">
+        <p className="text-[#888888] text-sm mb-8">
           Select all that apply. We&apos;ll create rules for each one.
         </p>
 
@@ -45,11 +45,11 @@ export default function ActionsPage() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all",
                   selected
-                    ? "border-[#00ffc8] bg-[#00ffc8]/10 text-[#00ffc8]"
-                    : "border-white/8 bg-transparent text-[#6a6a8a] hover:border-white/20 hover:text-white"
+                    ? "border-[#d4d4d4] bg-white/[0.06] text-[#d4d4d4]"
+                    : "border-[#1a1a1a] bg-transparent text-[#888888] hover:border-white/20 hover:text-white"
                 )}
               >
-                <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", selected ? "bg-[#00ffc8]" : "bg-[#3a3a5a]")} />
+                <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", selected ? "bg-[#d4d4d4]" : "bg-[#444444]")} />
                 {action.label}
               </button>
             );
@@ -57,15 +57,15 @@ export default function ActionsPage() {
         </div>
 
         {actions.length > 0 && (
-          <div className="mb-8 p-4 bg-[#00ffc8]/5 border border-[#00ffc8]/15 rounded-lg">
-            <p className="text-[11px] font-semibold uppercase tracking-widest text-[#00ffc8]/70 mb-2">
+          <div className="mb-8 p-4 bg-white/[0.04] border border-[#1a1a1a] rounded">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-[#888888] mb-2">
               Rules to be created
             </p>
             <div className="flex flex-wrap gap-1.5">
               {actions.map((a) => {
                 const found = ACTIONS.find((x) => x.id === a);
                 return found ? (
-                  <span key={a} className="font-mono text-[11px] text-[#00ffc8]/80 bg-[#00ffc8]/8 px-2 py-0.5 rounded border border-[#00ffc8]/15">
+                  <span key={a} className="font-mono text-[11px] text-[#d4d4d4]/80 bg-white/[0.06] px-2 py-0.5 rounded border border-[#1a1a1a]">
                     {found.rule}
                   </span>
                 ) : null;
@@ -76,8 +76,8 @@ export default function ActionsPage() {
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push("/onboarding/industry")}
-            className="flex items-center gap-1.5 text-sm text-[#5a5a7a] hover:text-white transition-colors"
+            onClick={() => router.push("/auth")}
+            className="flex items-center gap-1.5 text-sm text-[#444444] hover:text-white transition-colors"
           >
             <ArrowLeft size={14} />
             Back
@@ -85,7 +85,7 @@ export default function ActionsPage() {
           <button
             onClick={() => router.push("/onboarding/systems")}
             disabled={actions.length === 0}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-2 px-6 py-2.5 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Continue
             <ArrowRight size={15} />

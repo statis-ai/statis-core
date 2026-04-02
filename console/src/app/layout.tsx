@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono, Playfair_Display } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./jsondiffpatch.css";
 
-const inter = Inter({ variable: "--font-sans", subsets: ["latin"] });
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
-const playfair = Playfair_Display({ variable: "--font-serif", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Statis Console",
@@ -18,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} ${playfair.variable} min-h-screen bg-brand-statist font-sans antialiased`}>
+      <body className={`${jetbrainsMono.variable} min-h-screen bg-[#0a0a0a] font-mono antialiased`}>
         {children}
       </body>
     </html>

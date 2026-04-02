@@ -81,25 +81,25 @@ export default function DevelopersTab() {
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-500">
+        <div className="space-y-8">
             <div>
                 <h2 className="text-xl font-semibold text-white">API Keys</h2>
-                <p className="text-sm text-brand-muted mt-1">
+                <p className="text-sm text-[#888888] mt-1">
                     Manage your API keys to authenticate with the Statis platform. Keep these secret.
                 </p>
             </div>
 
             {newKey && (
-                <div className="bg-[#0d0d1a] border border-emerald-500/30 rounded-lg p-6 backdrop-blur-md">
+                <div className="bg-[#111111] border border-emerald-500/30 rounded p-6">
                     <div className="flex items-center gap-3 text-emerald-400 mb-2">
                         <KeyRound className="w-5 h-5" />
                         <h3 className="font-semibold">New API Key Generated</h3>
                     </div>
-                    <p className="text-sm text-brand-muted mb-4">
+                    <p className="text-sm text-[#888888] mb-4">
                         Please copy this key immediately. You will not be able to see it again.
                     </p>
                     <div className="flex items-center gap-2">
-                        <code className="flex-1 bg-[#080810] border border-brand-border px-4 py-2 text-[#00ffc8] font-mono rounded">
+                        <code className="flex-1 bg-[#0a0a0a] border border-[#1a1a1a] px-4 py-2 text-[#d4d4d4] font-mono rounded">
                             {newKey}
                         </code>
                         <button
@@ -112,26 +112,26 @@ export default function DevelopersTab() {
                     </div>
                     <button
                         onClick={() => setNewKey(null)}
-                        className="mt-4 text-sm text-brand-muted hover:text-white transition-colors"
+                        className="mt-4 text-sm text-[#888888] hover:text-white transition-colors"
                     >
                         I have saved this key securely
                     </button>
                 </div>
             )}
 
-            <div className="bg-[#0d0d1a] border border-brand-border rounded-lg overflow-hidden backdrop-blur-md">
-                <div className="p-4 border-b border-brand-border">
+            <div className="bg-[#111111] border border-[#1a1a1a] rounded overflow-hidden">
+                <div className="p-4 border-b border-[#1a1a1a]">
                     <div className="flex items-center gap-2 mb-3">
                         <input
                             type="text"
                             placeholder="Key label (optional)"
                             value={newKeyLabel}
                             onChange={(e) => setNewKeyLabel(e.target.value)}
-                            className="flex-1 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] text-white text-[13px] placeholder:text-[#3a3a5a] focus:outline-none focus:border-[#00ffc8]/40 focus:ring-1 focus:ring-[#00ffc8]/20 transition-colors"
+                            className="flex-1 px-3 py-1.5 rounded bg-white/[0.03] border border-[#1a1a1a] text-white text-[13px] placeholder:text-[#444444] focus:outline-none focus:border-white/20 focus:ring-1 focus:ring-white/10 transition-colors"
                         />
                         <button
                             onClick={generateKey}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-[#00ffc8] hover:bg-[#00ffc8]/90 text-[#080810] text-sm font-medium rounded transition-colors"
+                            className="flex items-center gap-2 px-3 py-1.5 bg-[#d4d4d4] hover:bg-white text-[#0a0a0a] text-sm font-medium rounded transition-colors"
                         >
                             <Plus className="w-4 h-4" />
                             Generate New Key
@@ -141,28 +141,28 @@ export default function DevelopersTab() {
                 </div>
 
                 {error && (
-                    <div className="px-4 py-2 text-sm text-red-400 border-b border-brand-border">{error}</div>
+                    <div className="px-4 py-2 text-sm text-red-400 border-b border-[#1a1a1a]">{error}</div>
                 )}
 
                 {loading ? (
-                    <div className="p-8 text-center text-brand-muted">Loading keys...</div>
+                    <div className="p-8 text-center text-[#888888]">Loading keys...</div>
                 ) : keys.length === 0 ? (
-                    <div className="p-8 text-center text-brand-muted">No API keys found.</div>
+                    <div className="p-8 text-center text-[#888888]">No API keys found.</div>
                 ) : (
                     <table className="w-full text-left text-sm">
-                        <thead className="bg-[#0a0a14] text-brand-muted">
+                        <thead className="bg-[#0a0a0a] text-[#444444]">
                             <tr>
                                 <th className="px-4 py-3 font-medium">NAME</th>
                                 <th className="px-4 py-3 font-medium">KEY PREVIEW</th>
                                 <th className="px-4 py-3 font-medium">CREATED</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-brand-border">
+                        <tbody className="divide-y divide-[#1a1a1a]">
                             {keys.map((k) => (
                                 <tr key={k.id} className="hover:bg-white/[0.02] transition-colors">
                                     <td className="px-4 py-3 text-white font-medium">{k.label}</td>
-                                    <td className="px-4 py-3 font-mono text-brand-muted">{k.key_preview}</td>
-                                    <td className="px-4 py-3 text-brand-muted">
+                                    <td className="px-4 py-3 font-mono text-[#888888]">{k.key_preview}</td>
+                                    <td className="px-4 py-3 text-[#888888]">
                                         {new Date(k.created_at).toLocaleDateString()}
                                     </td>
                                 </tr>

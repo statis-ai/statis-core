@@ -16,7 +16,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     // If onboarding not complete, redirect there (unless already in onboarding)
     const onboarded = localStorage.getItem("statis_onboarding_complete");
     if (!onboarded && !pathname.startsWith("/onboarding")) {
-      router.replace("/onboarding/industry");
+      router.replace("/onboarding/actions");
     }
   }, [pathname, router]);
 

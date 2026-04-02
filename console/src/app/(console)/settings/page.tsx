@@ -34,72 +34,72 @@ export default function SettingsPage() {
     <div className="p-8 max-w-xl">
       <div className="mb-8">
         <h1 className="text-[20px] font-semibold text-white">Settings</h1>
-        <p className="text-xs text-[#5a5a7a] mt-0.5">Workspace configuration</p>
+        <p className="text-xs text-[#444444] mt-0.5">Workspace configuration</p>
       </div>
 
-      <div className="bg-[#0d0d1a] rounded-xl border border-white/8 divide-y divide-white/5">
+      <div className="bg-[#111111] rounded border border-[#1a1a1a] divide-y divide-[#1a1a1a]">
         <div className="p-5">
-          <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">
+          <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
             Tenant ID
           </label>
           <input
             value={tenantId}
             onChange={(e) => setTenantId(e.target.value)}
-            className="w-full font-mono text-sm px-3 py-2 rounded-lg border border-white/8 bg-[#0a0a14] text-white placeholder:text-[#4a4a6a] focus:outline-none focus:ring-1 focus:ring-[#00ffc8]/40"
+            className="w-full font-mono text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#0a0a0a] text-white placeholder:text-[#444444] focus:outline-none focus:ring-1 focus:ring-white/20"
           />
         </div>
 
         <div className="p-5">
-          <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">
+          <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
             API Key
           </label>
           <div className="flex gap-2">
             <input
-              value={revealed ? apiKey : apiKey ? "•".repeat(Math.min(apiKey.length, 32)) : ""}
+              value={revealed ? apiKey : apiKey ? "\u2022".repeat(Math.min(apiKey.length, 32)) : ""}
               onChange={(e) => revealed && setApiKey(e.target.value)}
               readOnly={!revealed}
-              className="flex-1 font-mono text-sm px-3 py-2 rounded-lg border border-white/8 bg-[#0a0a14] text-white placeholder:text-[#4a4a6a] focus:outline-none focus:ring-1 focus:ring-[#00ffc8]/40"
+              className="flex-1 font-mono text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#0a0a0a] text-white placeholder:text-[#444444] focus:outline-none focus:ring-1 focus:ring-white/20"
             />
             <button
               onClick={() => setRevealed((r) => !r)}
-              className="px-3 py-2 rounded-lg border border-white/8 bg-[#0a0a14] text-[#5a5a7a] hover:text-white transition-colors"
+              className="px-3 py-2 rounded border border-[#1a1a1a] bg-[#0a0a0a] text-[#444444] hover:text-white transition-colors"
               title={revealed ? "Hide" : "Reveal"}
             >
               {revealed ? <EyeOff size={14} /> : <Eye size={14} />}
             </button>
             <button
               onClick={handleCopy}
-              className="px-3 py-2 rounded-lg border border-white/8 bg-[#0a0a14] text-[#5a5a7a] hover:text-white transition-colors"
+              className="px-3 py-2 rounded border border-[#1a1a1a] bg-[#0a0a0a] text-[#444444] hover:text-white transition-colors"
               title="Copy API key"
             >
-              {copied ? <Check size={14} className="text-[#00ffc8]" /> : <Copy size={14} />}
+              {copied ? <Check size={14} className="text-[#d4d4d4]" /> : <Copy size={14} />}
             </button>
           </div>
           {copied && (
-            <p className="text-[11px] text-[#00ffc8] mt-1.5">Copied</p>
+            <p className="text-[11px] text-[#d4d4d4] mt-1.5">Copied</p>
           )}
         </div>
 
         <div className="p-5">
-          <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">
+          <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
             Email
           </label>
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             type="email"
-            className="w-full font-mono text-sm px-3 py-2 rounded-lg border border-white/8 bg-[#0a0a14] text-white placeholder:text-[#4a4a6a] focus:outline-none focus:ring-1 focus:ring-[#00ffc8]/40"
+            className="w-full font-mono text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#0a0a0a] text-white placeholder:text-[#444444] focus:outline-none focus:ring-1 focus:ring-white/20"
           />
         </div>
 
         <div className="p-5">
-          <label className="text-[10px] font-semibold uppercase tracking-widest text-[#5a5a7a] block mb-2">
+          <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
             API URL
           </label>
           <input
             value="https://api.statis.dev"
             readOnly
-            className="w-full font-mono text-sm px-3 py-2 rounded-lg border border-white/8 bg-[#0a0a14] text-[#5a5a7a] focus:outline-none cursor-default"
+            className="w-full font-mono text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#0a0a0a] text-[#444444] focus:outline-none cursor-default"
           />
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function SettingsPage() {
       <div className="mt-5 flex gap-3">
         <button
           onClick={handleSave}
-          className="px-4 py-2 rounded-lg bg-[#00ffc8] text-[#080810] text-sm font-semibold hover:bg-[#00ffc8]/90 transition-colors"
+          className="px-4 py-2 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors"
         >
           Save settings
         </button>
