@@ -10,7 +10,7 @@ export function Logo({ size = "default" }: { size?: "default" | "large" }) {
       <span style={{ color: "var(--text)" }}>statis</span>
       <motion.span
         animate={{ opacity: [1, 0] }}
-        transition={{ duration: 0.9, repeat: Infinity, repeatType: "reverse", ease: "steps(2)" }}
+        transition={{ duration: 0.9, repeat: Infinity, repeatType: "reverse", ease: "linear" }}
         className="inline-block ml-[1px]"
         style={{
           width: size === "large" ? "10px" : "7px",
