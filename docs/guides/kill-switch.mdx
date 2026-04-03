@@ -1,0 +1,134 @@
+---
+title: "Kill Switch"
+description: "Emergency stop for all agent actions."
+---
+
+## What it does
+
+The kill switch instantly denies all agent actions across your tenant. When activated, every `POST /actions/{id}/evaluate` returns `DENIED` regardless of policy rules. No actions are executed. No adapters are called.
+
+This is a global emergency stop -- it overrides all policy rules and affects every agent using your API key.
+
+## API
+
+### Check status
+
+```bash
+GET /kill-switch/status
+X-API-Key: st_...
+```
+
+Response:
+
+```json
+{
+  "active": false
+}
+```
+
+### Activate
+
+```bash
+POST /kill-switch/activate
+X-API-Key: st_...
+```
+
+Response:
+
+```json
+{
+  "active": true,
+  "activated_at": "2025-01-15T10:30:00Z"
+}
+```
+
+All subsequent policy evaluations return `DENIED` immediately.
+
+### Deactivate
+
+```bash
+POST /kill-switch/deactivate
+X-API-Key: st_...
+```
+
+Response:
+
+```json
+{
+  "active": false,
+  "deactivated_at": "2025-01-15T11:00:00Z"
+}
+```
+
+Normal policy evaluation resumes.
+
+## SDK usage
+
+<CodeGroup>
+```python Python
+from statis import StatisClient
+
+with StatisClient(api_key="st_...") as client:
+    # Check status
+    status = client.kill_switch_status()
+    print(f"Kill switch active: {status.active}")
+
+    # Activate
+    client.kill_switch_activate()
+
+    # Deactivate
+    client.kill_switch_deactivate()
+```
+```typescript TypeScript
+import { StatisClient } from "statis-ai";
+
+const client = new StatisClient({ api_key: "st_..." });
+
+// Check status
+const status = await client.killSwitchStatus();
+console.log(`Kill switch active: ${status.active}`);
+
+// Activate
+await client.killSwitchActivate();
+
+// Deactivate
+await client.killSwitchDeactivate();
+```
+</CodeGroup>
+
+## Console UI
+
+The Console displays a kill switch toggle in the top navigation bar. Click to activate or deactivate. The toggle turns red when active.
+
+When the kill switch is active, a banner appears across the Console:
+
+```
+KILL SWITCH ACTIVE — All agent actions are being denied.
+```
+
+## When to use it
+
+<CardGroup cols={2}>
+  <Card title="Runaway agent">
+    An agent is taking unexpected actions at high volume. Kill switch stops everything while you investigate.
+  </Card>
+  <Card title="Security incident">
+    Compromised credentials or suspicious activity. Shut down all agent execution immediately.
+  </Card>
+  <Card title="Maintenance window">
+    Taking a downstream system offline for maintenance. Prevent agents from calling adapters that will fail.
+  </Card>
+  <Card title="Policy change rollout">
+    Pause all execution while deploying new policy rules to avoid evaluating against stale rules.
+  </Card>
+</CardGroup>
+
+<Warning>
+  The kill switch affects all agents and all action types for the entire tenant. There is no granular per-agent or per-action-type kill switch. If you need to block a specific action type, use a policy rule with `decision: "DENIED"` instead.
+</Warning>
+
+## Behavior during activation
+
+- Actions already in `APPROVED` status that have not yet been picked up by the worker **will not execute**. The worker checks kill switch status before acquiring a lock.
+- Actions in `ESCALATED` status remain in the escalation queue but cannot be approved while the kill switch is active.
+- Receipts for denied actions during a kill switch period include `kill_switch: true` in the metadata.

@@ -1,0 +1,26 @@
+---
+title: "Kill Switch Status"
+api: "GET /kill-switch/status"
+description: "Check whether the kill switch is active for the authenticated tenant."
+---
+
+## Response
+
+<ResponseField name="active" type="boolean">`true` if the kill switch is currently engaged.</ResponseField>
+<ResponseField name="activated_at" type="string | null">ISO 8601 timestamp of when the kill switch was last activated. `null` if inactive.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl https://api.statis.dev/kill-switch/status \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "active": false,
+  "activated_at": null
+}
+```
+</ResponseExample>

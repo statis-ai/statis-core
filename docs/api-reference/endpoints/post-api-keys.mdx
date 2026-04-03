@@ -1,0 +1,52 @@
+---
+title: "Create API Key"
+api: "POST /admin/api-keys"
+description: "Generate a new API key for the authenticated tenant. Optionally scope it to a role or agent."
+---
+
+## Request body
+
+<ParamField body="label" type="string" optional>
+  Human-readable label for the key. Defaults to `"New API Key"`.
+</ParamField>
+
+<ParamField body="role" type="string" optional>
+  RBAC role to assign (e.g. `"admin"`, `"agent"`, `"viewer"`).
+</ParamField>
+
+<ParamField body="agent_id" type="string" optional>
+  Bind this key to a specific agent ID.
+</ParamField>
+
+## Response
+
+<ResponseField name="raw_key" type="string">The full API key. This is the only time it is returned -- store it securely.</ResponseField>
+<ResponseField name="id" type="string">Key record ID.</ResponseField>
+<ResponseField name="label" type="string | null" />
+<ResponseField name="role" type="string | null" />
+<ResponseField name="agent_id" type="string | null" />
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/admin/api-keys \
+  -H "X-API-Key: st_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "label": "CSM Agent Key",
+    "role": "agent",
+    "agent_id": "csm-agent-v2"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201
+{
+  "raw_key": "st_aBcDeFgHiJkLmNoPqRsTuVwXyZ...",
+  "id": "key-abc123",
+  "label": "CSM Agent Key",
+  "role": "agent",
+  "agent_id": "csm-agent-v2"
+}
+```
+</ResponseExample>

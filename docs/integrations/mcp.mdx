@@ -1,0 +1,149 @@
+---
+title: "MCP (Model Context Protocol)"
+description: "Statis governance for MCP-native agents like Claude, Cursor, and Cline."
+---
+
+## Overview
+
+MCP (Model Context Protocol) is the standard for connecting AI agents to tools and data sources. Statis integrates with MCP to wrap every tool call through the governance pipeline -- policy evaluation, exactly-once execution, and tamper-evident receipts.
+
+Zero SDK changes required. The `StatisMCPMiddleware` sits between the MCP client and your MCP servers.
+
+## How it works
+
+```
+MCP Agent (Claude, Cursor, Cline)
+  │
+  ▼
+StatisMCPMiddleware
+  │
+  ▼
+POST /actions              ← propose (action_type = tool name)
+  │
+  ▼
+Policy Engine              ← evaluate
+  │
+  ├─ APPROVED → MCPProxyAdapter → MCP Server → tool executes
+  ├─ DENIED   → tool call blocked, agent receives denial reason
+  └─ ESCALATED → tool call paused, human reviews in Console
+  │
+  ▼
+Receipt                    ← audit trail for every tool call
+```
+
+The middleware intercepts MCP `tool/call` requests, wraps them as Statis actions, and routes execution through the `MCPProxyAdapter`. The agent sees standard MCP tool responses -- it does not need to know Statis exists.
+
+## MCPProxyAdapter
+
+The `MCPProxyAdapter` is a Statis adapter with `target_system="mcp"`. When an action is approved, it forwards the call to the original MCP server and returns the response.
+
+```python
+from app.adapters.base import BaseAdapter, ExecutionResult
+
+class MCPProxyAdapter(BaseAdapter):
+    def execute(self, action) -> ExecutionResult:
+        # Forward to the original MCP server
+        response = self.mcp_client.call_tool(
+            tool_name=action.action_type,
+            arguments=action.parameters,
+        )
+        return ExecutionResult(success=True, result=response)
+```
+
+Register it in `worker/execute.py`:
+
+```python
+ADAPTERS = {
+    "stripe": MockStripeAdapter(),
+    "airflow": AirflowAdapter(),
+    "mcp": MCPProxyAdapter(),
+}
+```
+
+## Policy rules for MCP tools
+
+Create policy rules using the MCP tool name as the `action_type`:
+
+```json
+{
+  "rule_id": "file_write_approval",
+  "action_type": "write_file",
+  "conditions": {
+    "path_prefix": {"$in": ["/tmp/", "/workspace/"]}
+  },
+  "decision": "APPROVED",
+  "priority": 10
+}
+```
+
+```json
+{
+  "rule_id": "file_write_escalate",
+  "action_type": "write_file",
+  "conditions": {},
+  "decision": "ESCALATED",
+  "priority": 99
+}
+```
+
+This approves file writes to safe directories and escalates everything else to human review.
+
+## Shadow mode as zero-risk onramp
+
+Shadow mode is the recommended first step for MCP integrations. It lets you observe every tool call your MCP agents make without executing anything:
+
+<CodeGroup>
+```python Python
+from statis import StatisClient
+
+client = StatisClient(api_key="st_...")
+
+# Every MCP tool call goes through governance in observe-only mode
+receipt = client.execute(
+    action_type="write_file",
+    target={"entity_type": "filesystem", "entity_id": "/workspace/config.json"},
+    parameters={"content": "{...}"},
+    agent_id="cursor-agent",
+    target_system="mcp",
+    shadow_mode=True,
+)
+```
+```typescript TypeScript
+import { StatisClient } from "statis-ai";
+
+const client = new StatisClient({ api_key: "st_..." });
+
+const receipt = await client.execute({
+  action_type: "write_file",
+  target: { entity_type: "filesystem", entity_id: "/workspace/config.json" },
+  parameters: { content: "{...}" },
+  agent_id: "cursor-agent",
+  target_system: "mcp",
+  shadow_mode: true,
+});
+```
+</CodeGroup>
+
+Review shadow receipts in the Console to understand what your agents are doing before enabling live execution.
+
+## Supported MCP agents
+
+The middleware works with any MCP-compliant client:
+
+| Agent | Integration |
+|-------|------------|
+| **Claude** (Anthropic) | MCP client with middleware |
+| **Cursor** | MCP server configuration |
+| **Cline** | MCP server configuration |
+| **Custom agents** | Any MCP SDK client |
+
+<Note>
+  The Statis MCP middleware is protocol-level. It does not depend on the specific agent implementation. Any agent that speaks MCP can be governed by Statis.
+</Note>
+
+## Benefits
+
+- **No SDK changes** -- agents call MCP tools normally; governance is transparent
+- **Per-tool policies** -- different rules for different tools (read vs. write, safe vs. dangerous)
+- **Full audit trail** -- every tool call has a receipt, even in shadow mode
+- **Human review** -- escalate dangerous tool calls (file deletes, API mutations) to the Console

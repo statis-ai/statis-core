@@ -1,0 +1,28 @@
+---
+title: "Delete Policy Rule"
+api: "DELETE /policy-rules/{rule_id}"
+description: "Permanently delete a policy rule."
+---
+
+## Path parameters
+
+<ParamField path="rule_id" type="string" required>
+  The ID of the policy rule to delete.
+</ParamField>
+
+## Response
+
+Returns `204 No Content` on success. No response body.
+
+<RequestExample>
+```bash cURL
+curl -X DELETE https://api.statis.dev/policy-rules/churn_retention_v1 \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 404
+{ "detail": "Policy rule 'churn_retention_v1' not found" }
+```
+</ResponseExample>

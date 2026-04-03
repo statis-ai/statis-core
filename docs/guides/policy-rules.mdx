@@ -1,0 +1,168 @@
+---
+title: "Policy Rules"
+description: "Define and manage deterministic governance rules for agent actions."
+---
+
+## Overview
+
+Policy rules are deterministic conditions that the policy engine evaluates against every action proposal. Each rule maps an `action_type` to a set of conditions and a decision: **APPROVED**, **DENIED**, or **ESCALATED**.
+
+Rules are versioned, prioritized, and tenant-scoped.
+
+## Rule structure
+
+```json
+{
+  "rule_id": "churn_retention_v1",
+  "rule_version": 1,
+  "action_type": "retention_offer",
+  "conditions": {
+    "churn_risk": true,
+    "ltv": {"$gte": 1000}
+  },
+  "decision": "APPROVED",
+  "priority": 10,
+  "active": true
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `rule_id` | string | Unique identifier for the rule |
+| `rule_version` | integer | Auto-incremented on update |
+| `action_type` | string | The action type this rule applies to |
+| `conditions` | object | JSON conditions evaluated against entity state |
+| `decision` | string | `APPROVED`, `DENIED`, or `ESCALATED` |
+| `priority` | integer | Lower number = higher priority. First matching rule wins. |
+| `active` | boolean | Inactive rules are skipped during evaluation |
+
+## Conditions format
+
+Conditions are a JSON object evaluated against the entity's materialized state. Each key maps to a field on the entity state.
+
+| Condition | Example | Matches when |
+|-----------|---------|-------------|
+| Exact match | `"churn_risk": true` | `state.churn_risk == true` |
+| `$gte` | `"ltv": {"$gte": 1000}` | `state.ltv >= 1000` |
+| `$lte` | `"ltv": {"$lte": 5000}` | `state.ltv <= 5000` |
+| `$gt` | `"age_days": {"$gt": 30}` | `state.age_days > 30` |
+| `$lt` | `"age_days": {"$lt": 365}` | `state.age_days < 365` |
+| `$in` | `"plan": {"$in": ["pro", "enterprise"]}` | `state.plan` is `"pro"` or `"enterprise"` |
+| `$ne` | `"status": {"$ne": "churned"}` | `state.status != "churned"` |
+
+Multiple conditions are ANDed together. All must pass for the rule to match.
+
+## Priority ordering
+
+When multiple rules match an action, the rule with the **lowest priority number** wins. This lets you layer rules:
+
+```
+Priority 1:  If amount > 10000 → ESCALATED    (safety net)
+Priority 10: If churn_risk = true → APPROVED   (normal flow)
+Priority 99: Catch-all → DENIED                (default deny)
+```
+
+<Note>
+  If no rule matches an action type, the default decision is `DENIED`. Always create a catch-all rule if you want different default behavior.
+</Note>
+
+## API
+
+### Create a rule
+
+```bash
+POST /policy-rules
+X-API-Key: st_...
+
+{
+  "rule_id": "churn_retention_v1",
+  "action_type": "retention_offer",
+  "conditions": {"churn_risk": true, "ltv": {"$gte": 1000}},
+  "decision": "APPROVED",
+  "priority": 10
+}
+```
+
+### Get a rule
+
+```bash
+GET /policy-rules/{rule_id}
+X-API-Key: st_...
+```
+
+### Update a rule
+
+```bash
+PUT /policy-rules/{rule_id}
+X-API-Key: st_...
+
+{
+  "conditions": {"churn_risk": true, "ltv": {"$gte": 500}},
+  "decision": "APPROVED",
+  "priority": 10
+}
+```
+
+`rule_version` auto-increments on every update. Previous versions are retained for audit.
+
+### Delete a rule
+
+```bash
+DELETE /policy-rules/{rule_id}
+X-API-Key: st_...
+```
+
+### List rules
+
+```bash
+GET /policy-rules
+X-API-Key: st_...
+```
+
+Returns all rules for the tenant, ordered by priority.
+
+## Versioning
+
+Every update to a rule increments `rule_version`. Receipts reference the exact `rule_id` and `rule_version` that evaluated the action, so you always know which version of a rule produced a given decision.
+
+## Example rules
+
+### High-value escalation
+
+```json
+{
+  "rule_id": "high_value_escalation",
+  "action_type": "retention_offer",
+  "conditions": {"ltv": {"$gte": 50000}},
+  "decision": "ESCALATED",
+  "priority": 1
+}
+```
+
+Escalates any retention offer for accounts with LTV above 50k, regardless of other conditions.
+
+### Deny churned accounts
+
+```json
+{
+  "rule_id": "deny_churned",
+  "action_type": "retention_offer",
+  "conditions": {"status": "churned"},
+  "decision": "DENIED",
+  "priority": 5
+}
+```
+
+### DAG trigger approval
+
+```json
+{
+  "rule_id": "dag_trigger_auto",
+  "action_type": "airflow_dag_trigger",
+  "conditions": {"env": {"$in": ["staging", "dev"]}},
+  "decision": "APPROVED",
+  "priority": 10
+}
+```
+
+Auto-approves DAG triggers in non-production environments.

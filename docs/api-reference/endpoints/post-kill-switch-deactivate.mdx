@@ -1,0 +1,26 @@
+---
+title: "Deactivate Kill Switch"
+api: "POST /kill-switch/deactivate"
+description: "Deactivate the kill switch. Normal policy evaluation resumes for all subsequent actions."
+---
+
+## Response
+
+<ResponseField name="active" type="boolean">Always `false` after deactivation.</ResponseField>
+<ResponseField name="activated_at" type="null">Always `null` after deactivation.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/kill-switch/deactivate \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "active": false,
+  "activated_at": null
+}
+```
+</ResponseExample>

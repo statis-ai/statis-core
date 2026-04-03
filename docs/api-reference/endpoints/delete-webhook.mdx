@@ -1,0 +1,28 @@
+---
+title: "Delete Webhook"
+api: "DELETE /webhooks/{webhook_id}"
+description: "Delete a webhook registration."
+---
+
+## Path parameters
+
+<ParamField path="webhook_id" type="string" required>
+  The ID of the webhook to delete.
+</ParamField>
+
+## Response
+
+Returns `204 No Content` on success. No response body.
+
+<RequestExample>
+```bash cURL
+curl -X DELETE https://api.statis.dev/webhooks/wh-abc123 \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 404
+{ "detail": "Webhook not found" }
+```
+</ResponseExample>

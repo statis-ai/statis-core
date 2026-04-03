@@ -1,0 +1,95 @@
+---
+title: "Update Policy Rule"
+api: "PUT /policy-rules/{rule_id}"
+description: "Update an existing policy rule. Only provided fields are changed."
+---
+
+## Path parameters
+
+<ParamField path="rule_id" type="string" required>
+  The ID of the policy rule to update.
+</ParamField>
+
+## Request body
+
+All fields are optional. Only provided fields are updated.
+
+<ParamField body="rule_version" type="string" optional>
+  New version string.
+</ParamField>
+
+<ParamField body="action_type" type="string" optional>
+  Updated action type.
+</ParamField>
+
+<ParamField body="conditions" type="object" optional>
+  Updated condition map.
+</ParamField>
+
+<ParamField body="decision" type="string" optional>
+  Updated decision (`"APPROVED"`, `"DENIED"`, or `"ESCALATED"`).
+</ParamField>
+
+<ParamField body="priority" type="integer" optional>
+  Updated priority.
+</ParamField>
+
+<ParamField body="active" type="boolean" optional>
+  Enable or disable the rule.
+</ParamField>
+
+<ParamField body="description" type="string" optional>
+  Updated description.
+</ParamField>
+
+## Response
+
+Returns the full updated policy rule.
+
+<ResponseField name="rule_id" type="string" />
+<ResponseField name="rule_version" type="string" />
+<ResponseField name="action_type" type="string" />
+<ResponseField name="conditions" type="object" />
+<ResponseField name="decision" type="string" />
+<ResponseField name="priority" type="integer" />
+<ResponseField name="active" type="boolean" />
+<ResponseField name="description" type="string | null" />
+<ResponseField name="created_at" type="string">ISO 8601 timestamp.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT https://api.statis.dev/policy-rules/churn_retention_v1 \
+  -H "X-API-Key: st_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rule_version": "2",
+    "conditions": {
+      "churn_risk": true,
+      "min_ltv": 500
+    },
+    "priority": 20
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "rule_id": "churn_retention_v1",
+  "rule_version": "2",
+  "action_type": "retention_offer",
+  "conditions": {
+    "churn_risk": true,
+    "min_ltv": 500
+  },
+  "decision": "APPROVED",
+  "priority": 20,
+  "active": true,
+  "description": "Auto-approve retention offers for high-LTV churning accounts",
+  "created_at": "2024-01-15T10:00:00Z"
+}
+```
+```json 404
+{ "detail": "Policy rule 'churn_retention_v1' not found" }
+```
+</ResponseExample>

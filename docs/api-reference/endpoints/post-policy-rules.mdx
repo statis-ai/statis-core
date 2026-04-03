@@ -1,0 +1,92 @@
+---
+title: "Create Policy Rule"
+api: "POST /policy-rules"
+description: "Create a new policy rule for the authenticated tenant."
+---
+
+## Request body
+
+<ParamField body="rule_id" type="string" required>
+  Unique identifier for the rule within the tenant.
+</ParamField>
+
+<ParamField body="rule_version" type="string">
+  Version string. Defaults to `"1"`.
+</ParamField>
+
+<ParamField body="action_type" type="string" required>
+  The action type this rule applies to (e.g. `"retention_offer"`).
+</ParamField>
+
+<ParamField body="conditions" type="object" required>
+  Condition map evaluated against entity state. Keys are condition names, values are expected thresholds or booleans.
+</ParamField>
+
+<ParamField body="decision" type="string">
+  Decision when all conditions pass. Defaults to `"APPROVED"`. Can also be `"DENIED"` or `"ESCALATED"`.
+</ParamField>
+
+<ParamField body="priority" type="integer">
+  Higher priority rules are evaluated first. Defaults to `0`.
+</ParamField>
+
+<ParamField body="active" type="boolean">
+  Whether the rule is active. Defaults to `true`.
+</ParamField>
+
+<ParamField body="description" type="string" optional>
+  Human-readable description of the rule.
+</ParamField>
+
+## Response
+
+<ResponseField name="rule_id" type="string" />
+<ResponseField name="rule_version" type="string" />
+<ResponseField name="action_type" type="string" />
+<ResponseField name="conditions" type="object" />
+<ResponseField name="decision" type="string" />
+<ResponseField name="priority" type="integer" />
+<ResponseField name="active" type="boolean" />
+<ResponseField name="description" type="string | null" />
+<ResponseField name="created_at" type="string">ISO 8601 timestamp.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/policy-rules \
+  -H "X-API-Key: st_..." \
+  -H "Content-Type: application/json" \
+  -d '{
+    "rule_id": "churn_retention_v1",
+    "action_type": "retention_offer",
+    "conditions": {
+      "churn_risk": true,
+      "min_ltv": 1000
+    },
+    "decision": "APPROVED",
+    "priority": 10,
+    "description": "Auto-approve retention offers for high-LTV churning accounts"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 201
+{
+  "rule_id": "churn_retention_v1",
+  "rule_version": "1",
+  "action_type": "retention_offer",
+  "conditions": {
+    "churn_risk": true,
+    "min_ltv": 1000
+  },
+  "decision": "APPROVED",
+  "priority": 10,
+  "active": true,
+  "description": "Auto-approve retention offers for high-LTV churning accounts",
+  "created_at": "2024-01-15T10:00:00Z"
+}
+```
+```json 409
+{ "detail": "Policy rule 'churn_retention_v1' already exists for this tenant" }
+```
+</ResponseExample>

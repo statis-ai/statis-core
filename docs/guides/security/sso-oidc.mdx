@@ -1,0 +1,112 @@
+---
+title: "SSO / OIDC"
+description: "Enterprise single sign-on via Okta, Entra ID, or any OIDC provider."
+---
+
+## Overview
+
+Statis supports enterprise single sign-on via OpenID Connect (OIDC). This lets your team authenticate to the Statis Console using their existing identity provider -- Okta, Microsoft Entra ID (Azure AD), or any OIDC-compliant provider.
+
+API key authentication for agent-to-API communication is unchanged. SSO applies to Console (human) access only.
+
+## OIDC Flow
+
+```
+User visits Console
+  │
+  ▼
+Redirect to Identity Provider (Okta, Entra ID, etc.)
+  │
+  ▼
+User authenticates with IdP
+  │
+  ▼
+IdP redirects back to /auth/callback with authorization code
+  │
+  ▼
+Statis exchanges code for tokens
+  │
+  ▼
+User record created or updated (upsert by email)
+  │
+  ▼
+Session established → Console access granted
+```
+
+<Note>
+  On first login, Statis creates a user record linked to the tenant. Subsequent logins update the last-login timestamp. User deprovisioning in your IdP prevents new logins but does not delete existing Statis data.
+</Note>
+
+## Configuration
+
+Set the following environment variables on the Statis API:
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `OIDC_ISSUER` | Yes | Your IdP's issuer URL (e.g., `https://your-org.okta.com`) |
+| `OIDC_CLIENT_ID` | Yes | Client ID from your IdP's application registration |
+| `OIDC_CLIENT_SECRET` | Yes | Client secret from your IdP's application registration |
+| `OIDC_POST_LOGIN_URL` | Yes | Where to redirect after successful login (e.g., `https://console.your-domain.com`) |
+
+```bash
+OIDC_ISSUER=https://your-org.okta.com
+OIDC_CLIENT_ID=0oa1b2c3d4e5f6g7h8
+OIDC_CLIENT_SECRET=your_client_secret
+OIDC_POST_LOGIN_URL=https://console.your-domain.com
+```
+
+## Provider Setup
+
+### Okta
+
+<Steps>
+  <Step title="Create application">
+    In the Okta Admin Console, go to Applications > Create App Integration. Select OIDC and Web Application.
+  </Step>
+  <Step title="Configure redirect">
+    Set the sign-in redirect URI to `https://your-statis-api.com/auth/callback`.
+  </Step>
+  <Step title="Copy credentials">
+    Copy the Client ID and Client Secret. Set `OIDC_ISSUER` to your Okta domain (e.g., `https://your-org.okta.com`).
+  </Step>
+  <Step title="Assign users">
+    Assign the application to users or groups in Okta who should have Console access.
+  </Step>
+</Steps>
+
+### Microsoft Entra ID (Azure AD)
+
+<Steps>
+  <Step title="Register application">
+    In the Azure Portal, go to App registrations > New registration. Set redirect URI to `https://your-statis-api.com/auth/callback`.
+  </Step>
+  <Step title="Create client secret">
+    Under Certificates and secrets, create a new client secret. Copy the value immediately.
+  </Step>
+  <Step title="Configure env vars">
+    Set `OIDC_ISSUER` to `https://login.microsoftonline.com/{tenant-id}/v2.0`. Use the Application (client) ID as `OIDC_CLIENT_ID`.
+  </Step>
+</Steps>
+
+### Other OIDC Providers
+
+Any provider that supports OpenID Connect Discovery works with Statis. The provider must expose a `/.well-known/openid-configuration` endpoint at the issuer URL. Statis uses this to discover authorization, token, and userinfo endpoints automatically.
+
+## Auth model
+
+SSO and API keys serve different purposes:
+
+| Auth method | Used by | Scope |
+|-------------|---------|-------|
+| **API key** (`X-API-Key`) | Agents, SDKs, API clients | Tenant-scoped. Full API access. |
+| **SSO / OIDC** | Humans via Console | User-scoped. Console access with audit trail of who did what. |
+
+<Warning>
+  SSO does not replace API key authentication for programmatic access. Agents and SDKs always authenticate with `X-API-Key`. SSO is for Console users only.
+</Warning>
+
+## Session management
+
+- Sessions expire after 24 hours of inactivity.
+- Users can log out from the Console, which destroys the session server-side.
+- Revoking a user's access in your IdP prevents new sessions but does not terminate active ones. Active sessions expire naturally.

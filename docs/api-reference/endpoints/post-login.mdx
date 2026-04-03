@@ -1,0 +1,43 @@
+---
+title: "Log In"
+api: "POST /admin/login"
+description: "Authenticate with email and password. Returns a session API key."
+---
+
+## Request body
+
+<ParamField body="email" type="string" required>
+  Account email address.
+</ParamField>
+
+<ParamField body="password" type="string" required>
+  Account password.
+</ParamField>
+
+## Response
+
+<ResponseField name="tenant_id" type="string">The tenant identifier for this account.</ResponseField>
+<ResponseField name="api_key" type="string">A fresh session API key. Store it securely -- it cannot be retrieved again.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/admin/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "you@example.com",
+    "password": "s3cure-passw0rd"
+  }'
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "tenant_id": "tenant_a1b2c3d4e5f6",
+  "api_key": "st_aBcDeFgHiJkLmNoPqRsTuVwXyZ..."
+}
+```
+```json 401
+{ "detail": "Invalid email or password." }
+```
+</ResponseExample>

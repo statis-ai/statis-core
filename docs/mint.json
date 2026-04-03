@@ -6,33 +6,39 @@
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#6366f1",
-    "light": "#818cf8",
-    "dark": "#4f46e5"
-  },
-  "topbarLinks": [
-    {
-      "name": "GitHub",
-      "url": "https://github.com/statis-ai/statis-core"
+    "primary": "#d4d4d4",
+    "light": "#ffffff",
+    "dark": "#888888",
+    "background": {
+      "dark": "#0a0a0a",
+      "light": "#ffffff"
     }
+  },
+  "font": {
+    "headings": { "family": "JetBrains Mono" },
+    "body": { "family": "JetBrains Mono" }
+  },
+  "modeToggle": {
+    "default": "dark"
+  },
+  "layout": "sidenav",
+  "backgroundImage": "/background.png",
+  "anchors": [],
+  "rounded": "default",
+  "topbarLinks": [
+    { "name": "GitHub", "url": "https://github.com/statis-ai/statis-sdk" },
+    { "name": "statis.dev", "url": "https://statis.dev" }
   ],
   "topbarCtaButton": {
-    "name": "Get Started",
-    "url": "https://statis.dev"
+    "name": "Console",
+    "url": "https://console.statis.dev"
   },
   "tabs": [
-    {
-      "name": "Guides",
-      "url": "guides"
-    },
-    {
-      "name": "SDKs",
-      "url": "sdks"
-    },
-    {
-      "name": "API Reference",
-      "url": "api-reference"
-    }
+    { "name": "Guides", "url": "guides" },
+    { "name": "Integrations", "url": "integrations" },
+    { "name": "SDKs", "url": "sdks" },
+    { "name": "API Reference", "url": "api-reference" },
+    { "name": "Use Cases", "url": "use-cases" }
   ],
   "api": {
     "baseUrl": "https://api.statis.dev",
@@ -46,7 +52,8 @@
       "group": "Getting Started",
       "pages": [
         "guides/introduction",
-        "guides/quickstart"
+        "guides/quickstart",
+        "guides/architecture"
       ]
     },
     {
@@ -59,33 +66,126 @@
       ]
     },
     {
-      "group": "Concepts",
+      "group": "Features",
       "pages": [
+        "guides/shadow-mode",
         "guides/escalation",
+        "guides/kill-switch",
+        "guides/webhooks",
+        "guides/policy-rules",
         "guides/adapters",
         "guides/console"
+      ]
+    },
+    {
+      "group": "Security & Compliance",
+      "pages": [
+        "guides/security/pii-masking",
+        "guides/security/threat-detection",
+        "guides/security/siem-export",
+        "guides/security/sso-oidc"
+      ]
+    },
+    {
+      "group": "Deployment",
+      "pages": [
+        "guides/deployment/self-hosting",
+        "guides/deployment/docker-compose"
+      ]
+    },
+    {
+      "group": "Integrations",
+      "pages": [
+        "integrations/crewai",
+        "integrations/langchain",
+        "integrations/mcp",
+        "integrations/python-sdk",
+        "integrations/node-sdk"
       ]
     },
     {
       "group": "SDKs",
       "pages": [
         "sdks/python",
-        "sdks/typescript"
+        "sdks/typescript",
+        "sdks/cli"
       ]
     },
     {
       "group": "API Reference",
       "pages": [
-        "api-reference/introduction",
+        "api-reference/introduction"
+      ]
+    },
+    {
+      "group": "Actions",
+      "pages": [
         "api-reference/endpoints/post-actions",
+        "api-reference/endpoints/get-actions",
         "api-reference/endpoints/get-action",
         "api-reference/endpoints/post-evaluate",
         "api-reference/endpoints/post-approve",
         "api-reference/endpoints/post-reject",
-        "api-reference/endpoints/get-escalations",
+        "api-reference/endpoints/get-escalations"
+      ]
+    },
+    {
+      "group": "Policy Rules",
+      "pages": [
+        "api-reference/endpoints/post-policy-rules",
+        "api-reference/endpoints/get-policy-rules",
+        "api-reference/endpoints/put-policy-rule",
+        "api-reference/endpoints/delete-policy-rule"
+      ]
+    },
+    {
+      "group": "Receipts",
+      "pages": [
         "api-reference/endpoints/get-receipt",
+        "api-reference/endpoints/get-receipt-verify"
+      ]
+    },
+    {
+      "group": "Events & State",
+      "pages": [
         "api-reference/endpoints/post-events",
-        "api-reference/endpoints/get-state"
+        "api-reference/endpoints/get-events",
+        "api-reference/endpoints/get-state",
+        "api-reference/endpoints/get-state-at"
+      ]
+    },
+    {
+      "group": "Webhooks",
+      "pages": [
+        "api-reference/endpoints/post-webhooks",
+        "api-reference/endpoints/get-webhooks",
+        "api-reference/endpoints/delete-webhook"
+      ]
+    },
+    {
+      "group": "Kill Switch",
+      "pages": [
+        "api-reference/endpoints/get-kill-switch",
+        "api-reference/endpoints/post-kill-switch-activate",
+        "api-reference/endpoints/post-kill-switch-deactivate"
+      ]
+    },
+    {
+      "group": "Admin",
+      "pages": [
+        "api-reference/endpoints/post-signup",
+        "api-reference/endpoints/post-login",
+        "api-reference/endpoints/get-me",
+        "api-reference/endpoints/post-api-keys",
+        "api-reference/endpoints/get-api-keys"
+      ]
+    },
+    {
+      "group": "Use Cases",
+      "pages": [
+        "use-cases/double-spend-swarm",
+        "use-cases/black-box-autopsy",
+        "use-cases/tone-deaf-ai"
       ]
     }
   ],

@@ -1,0 +1,146 @@
+---
+title: "CLI (statis init)"
+description: "Initialize a Statis project from the command line."
+---
+
+## Installation
+
+```bash
+pip install statis-ai
+```
+
+The `statis` CLI is included with the Python SDK.
+
+## Initialize a project
+
+```bash
+statis init
+```
+
+This creates a Statis project in your current directory with:
+
+| File | Purpose |
+|------|---------|
+| `statis.yaml` | Configuration file with API URL and default settings |
+| `policies/example.json` | Example policy rule for a retention offer action |
+| `agents/example_agent.py` | Example agent script using the Statis Python SDK |
+
+## Generated files
+
+### statis.yaml
+
+```yaml
+api_url: http://localhost:8000
+default_target_system: stripe
+shadow_mode: false
+```
+
+Set `api_url` to your Statis API endpoint. In production, this is your deployed API URL. For local development, use `http://localhost:8000`.
+
+### policies/example.json
+
+```json
+{
+  "rule_id": "example_retention_v1",
+  "action_type": "retention_offer",
+  "conditions": {
+    "churn_risk": true,
+    "ltv": {"$gte": 1000}
+  },
+  "decision": "APPROVED",
+  "priority": 10
+}
+```
+
+Upload this to Statis with:
+
+```bash
+curl -X POST http://localhost:8000/policy-rules \
+  -H "X-API-Key: st_..." \
+  -H "Content-Type: application/json" \
+  -d @policies/example.json
+```
+
+### agents/example_agent.py
+
+```python
+from statis import StatisClient, ActionDeniedError, ActionEscalatedError
+
+with StatisClient(api_key="st_...") as client:
+    try:
+        receipt = client.execute(
+            action_type="retention_offer",
+            target={"entity_type": "account", "entity_id": "acct-42"},
+            parameters={"discount_pct": 20},
+            agent_id="example-agent",
+            target_system="stripe",
+        )
+        print(f"Executed — hash: {receipt.hash}")
+
+    except ActionDeniedError as e:
+        print(f"Denied: {e.receipt.rule_id}")
+
+    except ActionEscalatedError as e:
+        print(f"Escalated: {e.action_id}")
+```
+
+## Quickstart from CLI
+
+<Steps>
+  <Step title="Install the SDK">
+    ```bash
+    pip install statis-ai
+    ```
+  </Step>
+  <Step title="Initialize the project">
+    ```bash
+    statis init
+    ```
+  </Step>
+  <Step title="Start the API">
+    If running locally:
+    ```bash
+    cd statis-core/api
+    fastapi run app/main.py
+    ```
+    Or use Docker Compose (see [Self-Hosting](/guides/deployment/self-hosting)).
+  </Step>
+  <Step title="Set your API key">
+    ```bash
+    export STATIS_API_KEY=st_...
+    ```
+  </Step>
+  <Step title="Upload the example policy">
+    ```bash
+    curl -X POST http://localhost:8000/policy-rules \
+      -H "X-API-Key: $STATIS_API_KEY" \
+      -H "Content-Type: application/json" \
+      -d @policies/example.json
+    ```
+  </Step>
+  <Step title="Run the example agent">
+    ```bash
+    python agents/example_agent.py
+    ```
+  </Step>
+</Steps>
+
+## Configuration
+
+The `statis.yaml` file supports:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `api_url` | string | Statis API endpoint |
+| `default_target_system` | string | Default `target_system` for actions |
+| `shadow_mode` | boolean | When `true`, all actions run in shadow mode by default |
+
+<Note>
+  The `STATIS_API_KEY` environment variable is used for authentication. Do not store API keys in `statis.yaml` or commit them to version control.
+</Note>
+
+## What's next
+
+- [Quickstart](/guides/quickstart) -- Full walkthrough of the propose-evaluate-execute-receipt flow
+- [Policy Rules](/guides/policy-rules) -- Write real policy rules for your agents
+- [Shadow Mode](/guides/shadow-mode) -- Test your agents without production risk

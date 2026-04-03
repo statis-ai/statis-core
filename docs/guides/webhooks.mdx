@@ -1,0 +1,143 @@
+---
+title: "Webhooks"
+description: "Subscribe to action and receipt events via HTTP callbacks."
+---
+
+## Overview
+
+Webhooks let you receive real-time HTTP callbacks when events occur in Statis. Register a URL, subscribe to event types, and Statis will POST a JSON payload to your endpoint whenever a matching event fires.
+
+## Creating a webhook
+
+```bash
+POST /webhooks
+X-API-Key: st_...
+
+{
+  "url": "https://your-app.com/statis/events",
+  "events": ["action.completed", "action.denied", "action.escalated", "receipt.minted"]
+}
+```
+
+Response:
+
+```json
+{
+  "webhook_id": "wh_abc123",
+  "url": "https://your-app.com/statis/events",
+  "events": ["action.completed", "action.denied", "action.escalated", "receipt.minted"],
+  "created_at": "2025-01-15T10:00:00Z"
+}
+```
+
+## Available events
+
+| Event | Fires when |
+|-------|-----------|
+| `action.completed` | An action finishes execution successfully |
+| `action.denied` | Policy engine denies an action |
+| `action.escalated` | Policy engine escalates an action to human review |
+| `receipt.minted` | A receipt is written (covers all terminal states) |
+
+<Note>
+  `receipt.minted` fires for every terminal action state -- approved and executed, denied, or failed. If you want a single event that captures everything, subscribe to `receipt.minted` alone.
+</Note>
+
+## Example payload
+
+```json
+{
+  "event": "action.completed",
+  "timestamp": "2025-01-15T10:30:00Z",
+  "data": {
+    "action_id": "act_abc123",
+    "action_type": "retention_offer",
+    "target": {
+      "entity_type": "account",
+      "entity_id": "acct-42"
+    },
+    "status": "COMPLETED",
+    "decision": "APPROVED",
+    "agent_id": "csm-agent-v2",
+    "target_system": "stripe",
+    "receipt_id": "rct_def456",
+    "receipt_hash": "sha256:a1b2c3..."
+  }
+}
+```
+
+## Delivery guarantees
+
+Statis retries failed deliveries with exponential backoff:
+
+| Attempt | Delay |
+|---------|-------|
+| 1 | Immediate |
+| 2 | 10 seconds |
+| 3 | 30 seconds |
+| 4 | 1 minute |
+| 5 | 5 minutes |
+
+A delivery is considered failed if your endpoint returns a non-2xx status code or does not respond within 10 seconds. After 5 failed attempts, the delivery is marked as failed and no further retries are made.
+
+<Warning>
+  Your webhook endpoint should return `200` quickly. Do heavy processing asynchronously -- if your endpoint takes longer than 10 seconds to respond, Statis will treat it as a failure and retry.
+</Warning>
+
+## Managing webhooks
+
+### List webhooks
+
+```bash
+GET /webhooks
+X-API-Key: st_...
+```
+
+Returns all registered webhooks for the tenant.
+
+### Delete a webhook
+
+```bash
+DELETE /webhooks/{webhook_id}
+X-API-Key: st_...
+```
+
+Returns `204` on success. Events will no longer be delivered to the deleted endpoint.
+
+## SDK usage
+
+<CodeGroup>
+```python Python
+from statis import StatisClient
+
+with StatisClient(api_key="st_...") as client:
+    # Create
+    webhook = client.create_webhook(
+        url="https://your-app.com/statis/events",
+        events=["action.completed", "receipt.minted"],
+    )
+
+    # List
+    webhooks = client.list_webhooks()
+
+    # Delete
+    client.delete_webhook(webhook.webhook_id)
+```
+```typescript TypeScript
+import { StatisClient } from "statis-ai";
+
+const client = new StatisClient({ api_key: "st_..." });
+
+// Create
+const webhook = await client.createWebhook({
+  url: "https://your-app.com/statis/events",
+  events: ["action.completed", "receipt.minted"],
+});
+
+// List
+const webhooks = await client.listWebhooks();
+
+// Delete
+await client.deleteWebhook(webhook.webhook_id);
+```
+</CodeGroup>

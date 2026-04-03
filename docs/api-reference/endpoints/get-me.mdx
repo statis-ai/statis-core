@@ -1,0 +1,28 @@
+---
+title: "Get Current User"
+api: "GET /admin/me"
+description: "Return the tenant ID, role, and agent ID associated with the current API key."
+---
+
+## Response
+
+<ResponseField name="tenant_id" type="string">The tenant this API key belongs to.</ResponseField>
+<ResponseField name="role" type="string | null">The RBAC role assigned to this key (e.g. `"admin"`, `"agent"`), or `null` if unscoped.</ResponseField>
+<ResponseField name="agent_id" type="string | null">The agent ID bound to this key, or `null` if unscoped.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl https://api.statis.dev/admin/me \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "tenant_id": "tenant_a1b2c3d4e5f6",
+  "role": "admin",
+  "agent_id": null
+}
+```
+</ResponseExample>

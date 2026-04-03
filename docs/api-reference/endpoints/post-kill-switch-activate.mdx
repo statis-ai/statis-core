@@ -1,0 +1,26 @@
+---
+title: "Activate Kill Switch"
+api: "POST /kill-switch/activate"
+description: "Activate the kill switch. All subsequent action evaluations will be denied with reason `kill_switch_active` until deactivated."
+---
+
+## Response
+
+<ResponseField name="active" type="boolean">Always `true` after activation.</ResponseField>
+<ResponseField name="activated_at" type="string">ISO 8601 timestamp of activation.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl -X POST https://api.statis.dev/kill-switch/activate \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+{
+  "active": true,
+  "activated_at": "2024-01-15T10:00:00Z"
+}
+```
+</ResponseExample>

@@ -1,0 +1,109 @@
+---
+title: "Architecture"
+description: "How Statis fits between your agents and production systems."
+---
+
+## System Diagram
+
+```
+┌──────────────────┐
+│   AI Agent        │  (CrewAI, LangChain, MCP, custom)
+└────────┬─────────┘
+         │  POST /actions
+         ▼
+┌──────────────────────────────────────────────────────┐
+│  Statis API  (FastAPI)                                │
+│                                                       │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │ Action      │  │ Policy       │  │ Threat       │ │
+│  │ Contract    │→ │ Engine       │→ │ Detection    │ │
+│  └─────────────┘  └──────────────┘  └──────────────┘ │
+│                                                       │
+│  ┌─────────────┐  ┌──────────────┐  ┌──────────────┐ │
+│  │ PII Masking │  │ Kill Switch  │  │ Webhooks     │ │
+│  └─────────────┘  └──────────────┘  └──────────────┘ │
+└────────┬─────────────────────────────────────────────┘
+         │
+         ▼
+┌──────────────────┐        ┌──────────────────┐
+│  Execution       │───────→│  Adapters         │
+│  Worker          │        │  (Stripe, Airflow,│
+│  (distributed    │        │   Salesforce, MCP)│
+│   lock)          │        └────────┬─────────┘
+└────────┬─────────┘                 │
+         │                           ▼
+         │                  ┌──────────────────┐
+         │                  │  Production       │
+         │                  │  Systems          │
+         ▼                  └──────────────────┘
+┌──────────────────┐
+│  Receipt Ledger  │  SHA-256 tamper-evident
+│  (PostgreSQL)    │
+└──────────────────┘
+         │
+         ▼
+┌──────────────────┐
+│  Console UI      │  Escalation queue, audit trail, entity explorer
+│  (Next.js)       │
+└──────────────────┘
+```
+
+## Data Flow
+
+Every agent action follows a four-step pipeline:
+
+<Steps>
+  <Step title="Propose">
+    Agent calls `POST /actions` with an action contract: `action_type`, `target`, `parameters`, `agent_id`, `target_system`. PII masking and threat detection run as middleware before the action is persisted.
+  </Step>
+  <Step title="Evaluate">
+    `POST /actions/{id}/evaluate` runs the action through the policy engine. Deterministic rules match on `action_type` and conditions against entity state. Result: **APPROVED**, **DENIED**, or **ESCALATED**.
+  </Step>
+  <Step title="Execute">
+    The execution worker picks up approved actions. A distributed lock (PostgreSQL advisory lock keyed on `action_id`) guarantees exactly-once execution. The worker routes to the correct adapter based on `target_system`.
+  </Step>
+  <Step title="Receipt">
+    A tamper-evident receipt is written with a SHA-256 hash covering: action contract, policy decision, execution result, and timestamps. This is the immutable audit record.
+  </Step>
+</Steps>
+
+## Components
+
+| Component | Tech | Role |
+|-----------|------|------|
+| **API** | FastAPI (Python) | REST API, middleware pipeline, policy evaluation |
+| **Worker** | Python process | Polls for approved actions, acquires locks, calls adapters |
+| **Console** | Next.js | Escalation queue, entity explorer, audit trail, kill switch UI |
+| **Adapters** | Python classes | Connectors to external systems (Stripe, Airflow, MCP, custom) |
+
+## Database Design
+
+Statis uses PostgreSQL (hosted on [Neon](https://neon.tech)) with these core tables:
+
+| Table | Purpose |
+|-------|---------|
+| `tenants` | Multi-tenant isolation. Every row in every table belongs to a tenant. |
+| `api_keys` | Tenant-scoped API keys. The `X-API-Key` header resolves to a tenant. |
+| `actions` | Action contracts. Stores proposal, status, policy decision, execution result. |
+| `receipts` | Tamper-evident ledger. SHA-256 hash, entity state snapshot, full audit record. |
+| `policy_rules` | Versioned deterministic rules. Conditions, decision, priority. |
+| `entity_events` | Event log for entity state materialization. |
+| `materialized_states` | Current state per entity, built from events. |
+| `escalation_reviews` | Human review decisions for escalated actions. |
+| `webhooks` | Registered webhook endpoints and event subscriptions. |
+
+Migrations are managed with Alembic. Run `alembic upgrade head` to apply.
+
+## Auth Model
+
+Authentication is tenant-scoped API keys:
+
+1. Every request includes `X-API-Key: st_...` header.
+2. The API resolves the key to a `tenant_id`. All queries are scoped to that tenant.
+3. There is no cross-tenant access. A key can only read and write its own tenant's data.
+
+<Note>
+  API keys are created via `scripts/seed_admin.py` or the admin API. Keys are prefixed with `st_` for easy identification in logs and environment variables.
+</Note>
+
+For enterprise SSO, see the [SSO / OIDC guide](/guides/security/sso-oidc).

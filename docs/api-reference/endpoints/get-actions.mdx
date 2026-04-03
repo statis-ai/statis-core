@@ -1,0 +1,66 @@
+---
+title: "List Actions"
+api: "GET /actions"
+description: "List action contracts, optionally filtered by entity or status."
+---
+
+## Query parameters
+
+<ParamField query="entity_type" type="string" optional>
+  Filter by target entity type (e.g. `"account"`).
+</ParamField>
+
+<ParamField query="entity_id" type="string" optional>
+  Filter by target entity ID.
+</ParamField>
+
+<ParamField query="status" type="string" optional>
+  Filter by action status. One of `PROPOSED`, `EVALUATING`, `APPROVED`, `DENIED`, `ESCALATED`, `EXECUTING`, `COMPLETED`, `FAILED`, `SHADOW_COMPLETE`.
+</ParamField>
+
+<ParamField query="limit" type="integer" optional>
+  Maximum number of results to return. Min 1, max 200, default 50.
+</ParamField>
+
+## Response
+
+Returns an array of action objects, ordered by `created_at` descending.
+
+<ResponseField name="action_id" type="string" />
+<ResponseField name="proposed_by" type="string" />
+<ResponseField name="action_type" type="string" />
+<ResponseField name="target_entity" type="object" />
+<ResponseField name="target_system" type="string" />
+<ResponseField name="parameters" type="object" />
+<ResponseField name="context" type="object" />
+<ResponseField name="status" type="string" />
+<ResponseField name="mode" type="string | null">`live` or `shadow`.</ResponseField>
+<ResponseField name="created_at" type="string">ISO 8601 timestamp.</ResponseField>
+<ResponseField name="updated_at" type="string">ISO 8601 timestamp.</ResponseField>
+
+<RequestExample>
+```bash cURL
+curl https://api.statis.dev/actions?status=COMPLETED&limit=10 \
+  -H "X-API-Key: st_..."
+```
+</RequestExample>
+
+<ResponseExample>
+```json 200
+[
+  {
+    "action_id": "act-abc123",
+    "proposed_by": "csm-agent-v2",
+    "action_type": "retention_offer",
+    "target_entity": { "entity_type": "account", "entity_id": "acct-42" },
+    "target_system": "stripe",
+    "parameters": { "discount_pct": 20 },
+    "context": {},
+    "status": "COMPLETED",
+    "mode": "live",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:05Z"
+  }
+]
+```
+</ResponseExample>

@@ -1,0 +1,95 @@
+---
+title: "Threat Detection"
+description: "Real-time security scanning of action proposals."
+---
+
+## Overview
+
+The ThreatDetector middleware scans every `POST /actions` request for injection attacks and malicious payloads before the action is persisted. If a threat is detected, the action is flagged and logged.
+
+## What it scans
+
+The ThreatDetector inspects all string values in `parameters`, recursively traversing nested objects and arrays. It checks for:
+
+| Threat type | Examples |
+|-------------|----------|
+| **SQL injection** | `'; DROP TABLE --`, `' OR 1=1 --`, `UNION SELECT` |
+| **Command injection** | `; rm -rf /`, `$(curl ...)`, backtick execution |
+| **Path traversal** | `../../etc/passwd`, `..\\windows\\system32` |
+| **XSS** | `<script>alert(1)</script>`, `javascript:`, `onerror=` |
+
+## How it works
+
+```
+POST /actions
+  │
+  ▼
+ThreatDetector middleware
+  │
+  ├─ Clean → action persisted normally
+  │
+  └─ Threat detected → action flagged, threat logged
+```
+
+<Note>
+  Threat detection does not block the action by default -- it flags and logs the threat. This allows you to monitor for threats in shadow mode before enabling hard blocking. To deny flagged actions automatically, set `THREAT_DETECTION_BLOCK=true` in your environment.
+</Note>
+
+## Threat logs
+
+Query detected threats via the API:
+
+```bash
+GET /threat-logs
+X-API-Key: st_...
+```
+
+Response:
+
+```json
+[
+  {
+    "threat_id": "thr_abc123",
+    "action_id": "act_def456",
+    "threat_type": "sql_injection",
+    "severity": "HIGH",
+    "matched_pattern": "' OR 1=1 --",
+    "parameter_path": "parameters.query.filter",
+    "detected_at": "2025-01-15T10:30:00Z"
+  }
+]
+```
+
+## Severity levels
+
+| Severity | Meaning |
+|----------|---------|
+| **CRITICAL** | Active exploitation attempt (e.g., command injection with known payload) |
+| **HIGH** | Strong match on injection pattern (e.g., SQL injection with terminator) |
+| **MEDIUM** | Partial match that could be a false positive (e.g., path with `..`) |
+| **LOW** | Weak signal, informational (e.g., HTML tags in a text field) |
+
+## Monitoring
+
+Threat logs are visible in the Console under the **Security** section. Each entry shows:
+
+- Action ID (linked to the full action detail)
+- Threat type and severity
+- The matched pattern and where it was found in the parameters
+- Timestamp
+
+<Warning>
+  If you see repeated CRITICAL or HIGH severity threats from the same `agent_id`, investigate immediately. This may indicate a prompt injection attack against your agent, causing it to pass malicious payloads through to Statis.
+</Warning>
+
+## Configuration
+
+| Environment variable | Default | Description |
+|---------------------|---------|-------------|
+| `THREAT_DETECTION_ENABLED` | `true` | Enable or disable threat scanning |
+| `THREAT_DETECTION_BLOCK` | `false` | When `true`, deny actions with detected threats |
+| `THREAT_LOG_RETENTION_DAYS` | `90` | Days to retain threat log entries |
+
+## Integration with SIEM
+
+Threat detection events can be streamed to your SIEM via the [SIEM Export](/guides/security/siem-export) integration. This lets your SOC team monitor for agent-based attacks alongside your existing security telemetry.
