@@ -53,7 +53,7 @@ export function ProblemSection() {
               <div className="px-4 py-4 font-mono text-[11px] leading-[1.9]">
                 {ERROR_LINES.map(({ ts, key, val, warn, muted }) => (
                   <div key={key} className="flex gap-3">
-                    <span style={{ color: "#1e1e1e", shrink: 0 }}>[{ts}]</span>
+                    <span style={{ color: "#1e1e1e", flexShrink: 0 }}>[{ts}]</span>
                     <span style={{ color: "#2e2e2e", minWidth: "88px" }}>{key}</span>
                     <span style={{
                       color: warn ? "#aa4040" : muted ? "#2e2e2e" : "#555",
