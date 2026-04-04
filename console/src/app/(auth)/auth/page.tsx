@@ -13,16 +13,16 @@ const SLIDES = [
     headline: "Every action evaluated before it executes.",
     sub: "Deterministic policy rules act as a circuit breaker — approve, deny, or escalate in under 5 ms.",
     visual: (
-      <div className="bg-[#0d0d0d] rounded border border-[#1a1a1a] p-4 font-mono text-[11px] space-y-1.5">
-        <div className="text-[#444444]"># churn_retention_v1</div>
-        <div className="text-[#888888]"><span className="text-sky-400">if</span> action.type == <span className="text-amber-400">&quot;apply_discount&quot;</span>:</div>
-        <div className="text-[#888888] pl-4"><span className="text-sky-400">require</span> entity.ltv &gt;= <span className="text-emerald-400">500</span></div>
-        <div className="text-[#888888] pl-4"><span className="text-sky-400">require</span> discount &lt;= <span className="text-emerald-400">0.30</span></div>
-        <div className="text-[#888888] pl-4"><span className="text-sky-400">max_per_day</span>: <span className="text-emerald-400">3</span></div>
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#1a1a1a]">
+      <div className="bg-white rounded border border-black/[0.08] p-4 font-mono text-[11px] space-y-1.5 shadow-sm">
+        <div className="text-[#999]"># churn_retention_v1</div>
+        <div className="text-[#555]"><span className="text-sky-600">if</span> action.type == <span className="text-amber-600">&quot;apply_discount&quot;</span>:</div>
+        <div className="text-[#555] pl-4"><span className="text-sky-600">require</span> entity.ltv &gt;= <span className="text-emerald-600">500</span></div>
+        <div className="text-[#555] pl-4"><span className="text-sky-600">require</span> discount &lt;= <span className="text-emerald-600">0.30</span></div>
+        <div className="text-[#555] pl-4"><span className="text-sky-600">max_per_day</span>: <span className="text-emerald-600">3</span></div>
+        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-black/[0.06]">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-          <span className="text-emerald-400">APPROVED</span>
-          <span className="text-[#333] ml-auto">3.2 ms</span>
+          <span className="text-emerald-600 font-semibold">APPROVED</span>
+          <span className="text-[#bbb] ml-auto">3.2 ms</span>
         </div>
       </div>
     ),
@@ -32,26 +32,26 @@ const SLIDES = [
     headline: "Tamper-evident records for every outcome.",
     sub: "A SHA-256 hash is written atomically at execution time — immutable proof of what your agent did and why.",
     visual: (
-      <div className="bg-[#0d0d0d] rounded border border-[#1a1a1a] p-4 font-mono text-[11px] space-y-2">
+      <div className="bg-white rounded border border-black/[0.08] p-4 font-mono text-[11px] space-y-2 shadow-sm">
         <div className="flex justify-between">
-          <span className="text-[#444444]">receipt_id</span>
-          <span className="text-[#888888]">rcpt_9xKm2p</span>
+          <span className="text-[#999]">receipt_id</span>
+          <span className="text-[#555]">rcpt_9xKm2p</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-[#444444]">action</span>
-          <span className="text-amber-400">issue_refund</span>
+          <span className="text-[#999]">action</span>
+          <span className="text-amber-600">issue_refund</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-[#444444]">entity</span>
-          <span className="text-[#888888]">cust-771</span>
+          <span className="text-[#999]">entity</span>
+          <span className="text-[#555]">cust-771</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-[#444444]">amount</span>
-          <span className="text-emerald-400">$49.00</span>
+          <span className="text-[#999]">amount</span>
+          <span className="text-emerald-600">$49.00</span>
         </div>
-        <div className="pt-2 border-t border-[#1a1a1a]">
-          <div className="text-[#444444] mb-1">sha256</div>
-          <div className="text-[#555555] break-all leading-relaxed">a3f9c2e1b847d...</div>
+        <div className="pt-2 border-t border-black/[0.06]">
+          <div className="text-[#999] mb-1">sha256</div>
+          <div className="text-[#aaa] break-all leading-relaxed">a3f9c2e1b847d...</div>
         </div>
       </div>
     ),
@@ -61,29 +61,29 @@ const SLIDES = [
     headline: "Humans stay in the loop for high-stakes actions.",
     sub: "Flag actions above a risk threshold for operator review. Approve or deny with a full audit trail.",
     visual: (
-      <div className="bg-[#0d0d0d] rounded border border-[#1a1a1a] overflow-hidden">
-        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-[#1a1a1a]">
+      <div className="bg-white rounded border border-black/[0.08] overflow-hidden shadow-sm">
+        <div className="flex items-center gap-2 px-4 py-2.5 border-b border-black/[0.06]">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-          <span className="text-[11px] text-[#888888] font-mono">2 pending escalations</span>
+          <span className="text-[11px] text-[#888] font-mono">2 pending escalations</span>
         </div>
-        <div className="divide-y divide-[#1a1a1a]">
+        <div className="divide-y divide-black/[0.05]">
           {[
             { id: "esc_4Lp", action: "provision_instance", entity: "tenant-9", risk: "HIGH" },
             { id: "esc_2Qr", action: "update_account", entity: "acct-88", risk: "MED" },
           ].map((e) => (
             <div key={e.id} className="px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <div className="text-[11px] font-mono text-[#d4d4d4] truncate">{e.action}</div>
-                <div className="text-[10px] text-[#444444]">{e.entity}</div>
+                <div className="text-[11px] font-mono text-[#222] truncate">{e.action}</div>
+                <div className="text-[10px] text-[#999]">{e.entity}</div>
               </div>
               <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded border ${
                 e.risk === "HIGH"
-                  ? "bg-red-500/15 text-red-400 border-red-500/20"
-                  : "bg-amber-500/15 text-amber-400 border-amber-500/20"
+                  ? "bg-red-50 text-red-600 border-red-200"
+                  : "bg-amber-50 text-amber-600 border-amber-200"
               }`}>{e.risk}</span>
               <div className="flex gap-1.5">
-                <button className="text-[10px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Approve</button>
-                <button className="text-[10px] px-2 py-0.5 rounded bg-[#1a1a1a] text-[#444444] border border-[#222]">Deny</button>
+                <button className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Approve</button>
+                <button className="text-[10px] px-2 py-0.5 rounded bg-[#f5f5f5] text-[#888] border border-black/[0.08]">Deny</button>
               </div>
             </div>
           ))}
@@ -96,19 +96,19 @@ const SLIDES = [
     headline: "Real-time stream of every agent event.",
     sub: "Every trigger, evaluation, and execution is logged. Queryable by entity, action type, or policy.",
     visual: (
-      <div className="bg-[#0d0d0d] rounded border border-[#1a1a1a] overflow-hidden font-mono text-[11px]">
-        <div className="px-4 py-2.5 border-b border-[#1a1a1a] text-[#444444]">event stream</div>
-        <div className="divide-y divide-[#111]">
+      <div className="bg-white rounded border border-black/[0.08] overflow-hidden font-mono text-[11px] shadow-sm">
+        <div className="px-4 py-2.5 border-b border-black/[0.06] text-[#999]">event stream</div>
+        <div className="divide-y divide-black/[0.04]">
           {[
-            { ts: "14:32:01", type: "ACTION_EXECUTED", label: "issue_refund", color: "text-emerald-400" },
-            { ts: "14:31:58", type: "POLICY_EVALUATED", label: "churn_retention_v1", color: "text-sky-400" },
-            { ts: "14:31:55", type: "ACTION_DENIED", label: "apply_discount", color: "text-red-400" },
-            { ts: "14:31:40", type: "ESCALATION_RAISED", label: "provision_instance", color: "text-amber-400" },
+            { ts: "14:32:01", type: "ACTION_EXECUTED", label: "issue_refund", color: "text-emerald-600" },
+            { ts: "14:31:58", type: "POLICY_EVALUATED", label: "churn_retention_v1", color: "text-sky-600" },
+            { ts: "14:31:55", type: "ACTION_DENIED", label: "apply_discount", color: "text-red-500" },
+            { ts: "14:31:40", type: "ESCALATION_RAISED", label: "provision_instance", color: "text-amber-600" },
           ].map((ev, i) => (
             <div key={i} className="flex items-center gap-3 px-4 py-2.5">
-              <span className="text-[#333] shrink-0">{ev.ts}</span>
+              <span className="text-[#bbb] shrink-0">{ev.ts}</span>
               <span className={`shrink-0 ${ev.color}`}>{ev.type}</span>
-              <span className="text-[#555] truncate">{ev.label}</span>
+              <span className="text-[#999] truncate">{ev.label}</span>
             </div>
           ))}
         </div>
@@ -230,23 +230,23 @@ export default function AuthPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-[#0a0a0a]"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#f7f7f5]"
           >
             <div className="w-full max-w-lg px-6">
               <div className="flex items-center gap-2 mb-8">
-                <span className="font-semibold text-[15px] tracking-tight text-white">
+                <span className="font-semibold text-[15px] tracking-tight text-[#0a0a0a]">
                   statis
-                  <span className="inline-block ml-[1px] animate-pulse" style={{ width: "7px", height: "13px", background: "#ffffff" }} />
+                  <span className="inline-block ml-[1px] animate-pulse" style={{ width: "7px", height: "13px", background: "#0a0a0a" }} />
                 </span>
-                <span className="text-[#444444] text-sm font-mono ml-2">Setting up your console...</span>
+                <span className="text-[#999] text-sm font-mono ml-2">Setting up your console...</span>
               </div>
 
-              <div className="bg-[#111111] rounded overflow-hidden border border-[#1a1a1a] shadow-2xl">
-                <div className="flex items-center gap-1.5 px-4 py-3 border-b border-[#1a1a1a]">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#333]" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#262626]" />
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#1f1f1f]" />
-                  <span className="ml-2 text-[11px] text-[#444444] font-mono">statis bootstrap</span>
+              <div className="bg-white rounded-lg overflow-hidden border border-black/[0.08] shadow-lg">
+                <div className="flex items-center gap-1.5 px-4 py-3 border-b border-black/[0.06] bg-[#f9f9f9]">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#e5e5e5]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#e5e5e5]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#e5e5e5]" />
+                  <span className="ml-2 text-[11px] text-[#999] font-mono">statis bootstrap</span>
                 </div>
                 <div className="p-5 font-mono text-[13px] min-h-[200px] space-y-2">
                   <AnimatePresence>
@@ -259,12 +259,12 @@ export default function AuthPage() {
                           transition={{ duration: 0.3 }}
                           className="flex items-center gap-3"
                         >
-                          <span className="text-[#d4d4d4]">$</span>
-                          <span className={i === SETUP_STEPS.length - 1 ? "text-[#d4d4d4] font-medium" : "text-[#888888]"}>
+                          <span className="text-[#bbb]">$</span>
+                          <span className={i === SETUP_STEPS.length - 1 ? "text-[#0a0a0a] font-medium" : "text-[#666]"}>
                             {step}
                           </span>
                           {i < SETUP_STEPS.length - 1 && (
-                            <CheckCircle2 size={12} className="text-emerald-400 shrink-0 ml-auto" />
+                            <CheckCircle2 size={12} className="text-emerald-500 shrink-0 ml-auto" />
                           )}
                         </motion.div>
                       ) : null
@@ -274,7 +274,7 @@ export default function AuthPage() {
                     <motion.span
                       animate={{ opacity: [1, 0] }}
                       transition={{ duration: 0.6, repeat: Infinity }}
-                      className="inline-block w-1.5 h-4 bg-[#444444] rounded-sm ml-4"
+                      className="inline-block w-1.5 h-4 bg-[#ccc] rounded-sm ml-4"
                     />
                   )}
                 </div>
@@ -284,7 +284,7 @@ export default function AuthPage() {
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center text-sm text-[#444444] mt-6"
+                  className="text-center text-sm text-[#999] mt-6"
                 >
                   Redirecting to your console...
                 </motion.p>
@@ -294,14 +294,14 @@ export default function AuthPage() {
         )}
       </AnimatePresence>
 
-      {/* Left — sliding feature panel */}
-      <div className="hidden lg:flex w-[520px] shrink-0 flex-col justify-between p-14 border-r border-[#1a1a1a] relative z-10 overflow-hidden">
+      {/* Left — sliding feature panel (light) */}
+      <div className="hidden lg:flex w-[520px] shrink-0 flex-col justify-between p-14 border-r border-black/[0.08] relative z-10 overflow-hidden bg-[#f7f7f5]">
         <div>
           {/* Logo */}
           <div className="flex items-center gap-2 mb-14">
-            <span className="text-lg font-semibold tracking-tight text-white">
+            <span className="text-lg font-semibold tracking-tight text-[#0a0a0a]">
               statis
-              <span className="inline-block ml-[1px] animate-pulse" style={{ width: "8px", height: "16px", background: "#ffffff" }} />
+              <span className="inline-block ml-[1px] animate-pulse" style={{ width: "8px", height: "16px", background: "#0a0a0a" }} />
             </span>
           </div>
 
@@ -315,13 +315,13 @@ export default function AuthPage() {
                 exit={{ opacity: 0, x: -24 }}
                 transition={{ duration: 0.4, ease: "easeInOut" }}
               >
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] border border-[#1a1a1a] text-[10px] font-semibold tracking-[0.15em] text-[#444444] uppercase mb-5">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/[0.05] border border-black/[0.08] text-[10px] font-semibold tracking-[0.15em] text-[#777] uppercase mb-5">
                   {SLIDES[slideIndex].tag}
                 </div>
-                <h2 className="text-[24px] font-semibold text-white leading-[1.25] tracking-tight mb-3">
+                <h2 className="text-[24px] font-semibold text-[#0a0a0a] leading-[1.25] tracking-tight mb-3">
                   {SLIDES[slideIndex].headline}
                 </h2>
-                <p className="text-[13px] text-[#555555] leading-relaxed mb-8 max-w-[360px]">
+                <p className="text-[13px] text-[#777] leading-relaxed mb-8 max-w-[360px]">
                   {SLIDES[slideIndex].sub}
                 </p>
                 <div className="max-w-[380px]">
@@ -341,13 +341,13 @@ export default function AuthPage() {
                 onClick={() => setSlideIndex(i)}
                 className={`rounded-full transition-all duration-300 ${
                   i === slideIndex
-                    ? "w-5 h-1.5 bg-[#888888]"
-                    : "w-1.5 h-1.5 bg-[#2a2a2a] hover:bg-[#3a3a3a]"
+                    ? "w-5 h-1.5 bg-[#888]"
+                    : "w-1.5 h-1.5 bg-[#ccc] hover:bg-[#aaa]"
                 }`}
               />
             ))}
           </div>
-          <p className="text-[11px] text-[#333]">
+          <p className="text-[11px] text-[#bbb]">
             &copy; {new Date().getFullYear()} Statis, Inc.
           </p>
         </div>
