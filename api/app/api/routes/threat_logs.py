@@ -27,15 +27,12 @@ class ThreatLogOut(BaseModel):
 def list_threat_logs(
     limit: int = Query(default=100, le=500),
     offset: int = Query(default=0, ge=0),
+    threat_level: str | None = Query(default=None),
     db: Session = Depends(get_db),
     auth: AuthContext = Depends(get_auth_context),
 ) -> list[ThreatLogOut]:
-    logs = (
-        db.query(ThreatLog)
-        .filter(ThreatLog.tenant_id == auth.tenant_id)
-        .order_by(ThreatLog.scanned_at.desc())
-        .limit(limit)
-        .offset(offset)
-        .all()
-    )
+    q = db.query(ThreatLog).filter(ThreatLog.tenant_id == auth.tenant_id)
+    if threat_level is not None:
+        q = q.filter(ThreatLog.threat_level == threat_level)
+    logs = q.order_by(ThreatLog.scanned_at.desc()).limit(limit).offset(offset).all()
     return [ThreatLogOut.model_validate(log) for log in logs]

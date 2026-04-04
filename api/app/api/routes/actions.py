@@ -1,8 +1,11 @@
+import types
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import httpx
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -15,6 +18,9 @@ from app.models.escalation_review import EscalationReview
 from app.models.policy_rule import PolicyRule
 from app.models.receipt import Receipt
 from app.models.threat_log import ThreatLog
+from app.models.agent import Agent
+from app.models.webhook import Webhook
+from app.notifications.slack import SlackNotifier
 from app.policy.evaluator import PolicyEvaluator, RuleSpec
 from app.schemas.actions import ActionAccepted, ActionCompleteIn, ActionIn, ActionOut, ActionStatus
 from app.schemas.escalation import EscalatedActionOut, EscalationReviewIn, EscalationReviewOut
@@ -26,6 +32,44 @@ from app.utils.hashing import canonical_state_hash
 router = APIRouter(tags=["actions"])
 _threat_detector = ThreatDetector()
 _pii_masker = PIIMasker()
+_slack = SlackNotifier()
+
+
+def _fire_escalation_webhooks(db: Session, contract: "ActionContract") -> None:
+    """POST to all tenant webhooks subscribed to 'action.escalated'.
+
+    The execution worker handles completed/failed webhooks; ESCALATED actions
+    never reach the worker, so we fire from here instead.  Fire-and-forget —
+    failures are logged but never re-raised.
+    """
+    webhooks = (
+        db.query(Webhook)
+        .filter(
+            Webhook.tenant_id == contract.tenant_id,
+            Webhook.is_active.is_(True),
+        )
+        .all()
+    )
+    payload = {
+        "event": "action.escalated",
+        "action_id": contract.action_id,
+        "action_type": contract.action_type,
+        "proposed_by": contract.proposed_by,
+        "tenant_id": contract.tenant_id,
+    }
+    for wh in webhooks:
+        if "action.escalated" not in (wh.events or []):
+            continue
+        try:
+            httpx.post(wh.url, json=payload, timeout=5.0)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Escalation webhook delivery failed url=%s action_id=%s",
+                wh.url,
+                contract.action_id,
+                exc_info=True,
+            )
 
 
 @router.post("/actions", response_model=ActionAccepted, status_code=status.HTTP_201_CREATED)
@@ -80,6 +124,43 @@ def propose_action(
 
     # Mask PII/sensitive fields before persisting — raw payload is never stored
     masked_parameters = _pii_masker.mask(action_in.parameters)
+
+    # Agent enforcement — opt-in. Unregistered proposed_by strings pass through unchanged.
+    registered_agent = (
+        db.query(Agent)
+        .filter(
+            Agent.agent_id == action_in.proposed_by,
+            Agent.tenant_id == auth.tenant_id,
+        )
+        .first()
+    )
+    if registered_agent is not None:
+        if not registered_agent.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Agent '{action_in.proposed_by}' is deactivated",
+            )
+        if registered_agent.allowed_action_types and action_in.action_type not in registered_agent.allowed_action_types:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Agent '{action_in.proposed_by}' is not permitted to propose action type '{action_in.action_type}'",
+            )
+        if registered_agent.rate_limit_per_hour is not None:
+            window_start = datetime.now(timezone.utc) - timedelta(hours=1)
+            recent_count = (
+                db.query(ActionContract)
+                .filter(
+                    ActionContract.proposed_by == action_in.proposed_by,
+                    ActionContract.tenant_id == auth.tenant_id,
+                    ActionContract.created_at >= window_start,
+                )
+                .count()
+            )
+            if recent_count >= registered_agent.rate_limit_per_hour:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail=f"Agent '{action_in.proposed_by}' has exceeded its rate limit of {registered_agent.rate_limit_per_hour} actions/hour",
+                )
 
     contract = ActionContract(
         action_id=action_in.action_id,
@@ -146,6 +227,58 @@ def get_action(
             detail=f"Action '{action_id}' not found",
         )
     return ActionOut.model_validate(contract)
+
+
+class SimulateRequest(BaseModel):
+    action_type: str
+    parameters: dict[str, Any] = {}
+    context: dict[str, Any] = {}
+    entity_state: dict[str, Any] = {}
+    proposed_by: str = "simulator"
+
+
+class SimulateResponse(BaseModel):
+    decision: str
+    rule_id: str | None
+    rule_version: str | None
+    reason: str
+
+
+@router.post("/actions/simulate", response_model=SimulateResponse)
+def simulate_action(
+    body: SimulateRequest,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> SimulateResponse:
+    """Dry-run policy evaluation. No DB writes, no receipt, no lock."""
+    rules = (
+        db.query(PolicyRule)
+        .filter(PolicyRule.tenant_id == auth.tenant_id, PolicyRule.active.is_(True))
+        .all()
+    )
+    rule_specs = [
+        RuleSpec(
+            rule_id=r.rule_id,
+            rule_version=r.rule_version,
+            action_type=r.action_type,
+            conditions=r.conditions or {},
+            decision=r.decision,
+            priority=r.priority,
+        )
+        for r in rules
+    ]
+    mock_action = types.SimpleNamespace(
+        action_type=body.action_type,
+        parameters=body.parameters,
+        context=body.context,
+    )
+    decision = PolicyEvaluator().evaluate(mock_action, body.entity_state, [], rule_specs)
+    return SimulateResponse(
+        decision=decision.decision,
+        rule_id=decision.rule_id,
+        rule_version=decision.rule_version,
+        reason=decision.reason,
+    )
 
 
 @router.post("/actions/{action_id}/evaluate", response_model=EvaluateResponse)
@@ -349,6 +482,16 @@ def evaluate_action(
     contract.updated_at = datetime.now(timezone.utc)
     db.add(receipt)
     db.commit()
+
+    # Fire escalation notifications after commit — Slack + outbound webhooks.
+    if decision.decision == "ESCALATED":
+        _slack.notify_escalation(
+            action_id=action_id,
+            action_type=contract.action_type,
+            proposed_by=contract.proposed_by,
+            tenant_id=auth.tenant_id,
+        )
+        _fire_escalation_webhooks(db, contract)
 
     return EvaluateResponse(
         action_id=action_id,
