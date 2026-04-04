@@ -67,7 +67,7 @@ export function Hero() {
           {/* CTAs */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-4" style={{ position: "relative", zIndex: 1 }}>
             <a
-              href="https://console.statis.dev"
+              href="https://console.statis.dev/auth?mode=signup"
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs px-5 py-2.5 rounded font-medium"

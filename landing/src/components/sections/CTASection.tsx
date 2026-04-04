@@ -42,7 +42,7 @@ export function CTASection() {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a
-              href="https://console.statis.dev"
+              href="https://console.statis.dev/auth?mode=signup"
               target="_blank"
               rel="noopener noreferrer"
               className="navbar-cta-btn rounded text-sm font-mono px-6 py-3 transition-all"

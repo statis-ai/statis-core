@@ -54,7 +54,7 @@ export function NavbarV2() {
           )}
 
           <a
-            href="https://console.statis.dev"
+            href="https://console.statis.dev/auth?mode=signin"
             target="_blank"
             rel="noopener noreferrer"
             className="hidden text-xs font-mono text-[#52525b] hover:text-white transition-colors sm:inline"
@@ -63,7 +63,7 @@ export function NavbarV2() {
           </a>
 
           <a
-            href="https://console.statis.dev"
+            href="https://console.statis.dev/auth?mode=signup"
             target="_blank"
             rel="noopener noreferrer"
             className="navbar-cta-btn rounded text-xs font-mono px-3.5 py-1.5 transition-all"

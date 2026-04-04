@@ -32,10 +32,10 @@ export function Navbar() {
              className="link hidden sm:inline text-xs">Docs</a>
           <a href="https://github.com/statis-ai/statis-sdk" target="_blank" rel="noopener noreferrer"
              className="link hidden sm:inline text-xs">GitHub</a>
-          <a href="https://console.statis.dev" target="_blank" rel="noopener noreferrer"
+          <a href="https://console.statis.dev/auth?mode=signin" target="_blank" rel="noopener noreferrer"
              className="link-muted hidden sm:inline text-xs">Log In</a>
           <a
-            href="https://console.statis.dev"
+            href="https://console.statis.dev/auth?mode=signup"
             target="_blank"
             rel="noopener noreferrer"
             className="navbar-cta-btn text-xs font-mono px-3.5 py-1.5 rounded transition-all"
