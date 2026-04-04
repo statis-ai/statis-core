@@ -1,3 +1,7 @@
+# Statis Dogfood Policy Rules
+# Applied via: statis apply dogfood/policies.yaml
+# 12 rules across 7 action types, governing CI, deploys, releases, and notifications.
+
 rules:
   # -- PR Merge Governance --
   - rule_id: dogfood_merge_ci_passed
