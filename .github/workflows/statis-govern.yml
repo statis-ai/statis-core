@@ -145,23 +145,56 @@ jobs:
           echo "Statis decision: ${DECISION} (rule=${RULE_ID}, reason=${REASON})"
 
       - name: Enforce decision
+        id: enforce
         env:
           DECISION: ${{ steps.evaluate.outputs.decision }}
           RULE_ID: ${{ steps.evaluate.outputs.rule_id }}
           REASON: ${{ steps.evaluate.outputs.reason }}
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
         run: |
+          ACTION_ID="${{ steps.propose.outputs.action_id }}"
           echo "::notice title=Statis Policy::Decision: ${DECISION} | Rule: ${RULE_ID} | Reason: ${REASON}"
 
           if [[ "$DECISION" == "APPROVED" ]]; then
             echo "Policy approved — merge is permitted."
+            echo "final_decision=APPROVED" >> "$GITHUB_OUTPUT"
             exit 0
-          elif [[ "$DECISION" == "ESCALATED" ]]; then
-            echo "::error title=Statis Policy::Action escalated for human review. Check the Statis Console."
-            exit 1
-          else
+          elif [[ "$DECISION" == "DENIED" ]]; then
             echo "::error title=Statis Policy::Merge denied by policy. Rule: ${RULE_ID}. Reason: ${REASON}"
+            echo "final_decision=DENIED" >> "$GITHUB_OUTPUT"
             exit 1
           fi
+
+          # ESCALATED — wait for human review via Statis Console
+          echo "::warning title=Statis Policy::Action escalated. Waiting for human review in the Statis Console..."
+          echo "Polling action status every 15s (timeout: 10 minutes)..."
+
+          TIMEOUT=600
+          ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            sleep 15
+            ELAPSED=$((ELAPSED + 15))
+
+            STATUS=$(curl -s "${STATIS_BASE_URL}/actions/${ACTION_ID}" \
+              -H "X-API-Key: ${STATIS_API_KEY}" | jq -r '.status')
+
+            echo "  [${ELAPSED}s] Action status: ${STATUS}"
+
+            if [[ "$STATUS" == "APPROVED" || "$STATUS" == "EXECUTING" || "$STATUS" == "COMPLETED" ]]; then
+              echo "Action approved via Console — merge is permitted."
+              echo "final_decision=APPROVED" >> "$GITHUB_OUTPUT"
+              exit 0
+            elif [[ "$STATUS" == "DENIED" ]]; then
+              echo "::error title=Statis Policy::Action rejected via Console."
+              echo "final_decision=DENIED" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+          done
+
+          echo "::error title=Statis Policy::Timed out waiting for human review (10 min). Re-run the check after approving in Console."
+          echo "final_decision=TIMEOUT" >> "$GITHUB_OUTPUT"
+          exit 1
 
       - name: Post receipt to PR
         if: always() && steps.evaluate.outputs.decision != ''
@@ -169,21 +202,39 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           ACTION_ID="${{ steps.propose.outputs.action_id }}"
-          DECISION="${{ steps.evaluate.outputs.decision }}"
+          INITIAL="${{ steps.evaluate.outputs.decision }}"
+          FINAL="${{ steps.enforce.outputs.final_decision }}"
+          DECISION="${FINAL:-$INITIAL}"
           RULE_ID="${{ steps.evaluate.outputs.rule_id }}"
           REASON="${{ steps.evaluate.outputs.reason }}"
 
-          ICON="$([ "$DECISION" = "APPROVED" ] && echo "white_check_mark" || ([ "$DECISION" = "ESCALATED" ] && echo "warning" || echo "x"))"
+          if [ "$DECISION" = "APPROVED" ]; then
+            ICON="white_check_mark"
+          elif [ "$DECISION" = "TIMEOUT" ]; then
+            ICON="hourglass"
+          else
+            ICON="x"
+          fi
+
+          if [ "$INITIAL" = "ESCALATED" ] && [ "$FINAL" = "APPROVED" ]; then
+            EXTRA="| Flow | Escalated → Approved via Console |"
+          elif [ "$INITIAL" = "ESCALATED" ] && [ "$FINAL" = "TIMEOUT" ]; then
+            EXTRA="| Flow | Escalated → Timed out (re-run after Console approval) |"
+          else
+            EXTRA=""
+          fi
 
           BODY=":${ICON}: **Statis Policy Receipt**
 
           | Field | Value |
           |-------|-------|
           | Action ID | \`${ACTION_ID}\` |
-          | Decision | **${DECISION}** |
+          | Initial Decision | **${INITIAL}** |
+          | Final Decision | **${DECISION}** |
           | Rule | \`${RULE_ID}\` |
           | Reason | ${REASON} |
           | Agent | \`ci-gate-agent\` |
+          ${EXTRA}
 
           [View in Console](https://console.statis.dev)"
 
