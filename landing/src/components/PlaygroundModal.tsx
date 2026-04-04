@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useMotionTemplate, useSpring, useTransform } from "framer-motion";
 import { createPortal } from "react-dom";
 
 /* ─── Data ─────────────────────────────────────────────────────── */
@@ -188,16 +188,16 @@ function ParticleField() {
       bs: number; bp: number; depth: number;
     }
 
-    const particles: P[] = Array.from({ length: 450 }, () => ({
+    const particles: P[] = Array.from({ length: 320 }, () => ({
       x: Math.random() * W,
       y: Math.random() * H,
       shape: Math.floor(Math.random() * 3), // 0=dot 1=cross 2=square
-      size: 0.5 + Math.random() * 1.4,
+      size: 1.0 + Math.random() * 2.0,
       gray: Math.random(),
-      baseAlpha: 0.035 + Math.random() * 0.1,
-      bs: 0.15 + Math.random() * 1.8,  // blink speed
+      baseAlpha: 0.14 + Math.random() * 0.22,
+      bs: 0.2 + Math.random() * 1.4,   // blink speed
       bp: Math.random() * Math.PI * 2, // blink phase
-      depth: 0.1 + Math.random() * 2.2,
+      depth: 0.3 + Math.random() * 2.8,
     }));
 
     let t = 0;
@@ -209,10 +209,10 @@ function ParticleField() {
 
       for (const p of particles) {
         const blink = 0.5 + 0.5 * Math.sin(t * p.bs + p.bp);
-        const alpha = p.baseAlpha * (0.25 + 0.75 * blink);
-        const gv = Math.floor(148 + p.gray * 72); // 148–220
-        const px  = p.x + (mx - cx) * p.depth * 0.013;
-        const py  = p.y + (my - cy) * p.depth * 0.013;
+        const alpha = p.baseAlpha * (0.3 + 0.7 * blink);
+        const gv = Math.floor(85 + p.gray * 80); // 85–165, dark enough to see on cream
+        const px  = p.x + (mx - cx) * p.depth * 0.022;
+        const py  = p.y + (my - cy) * p.depth * 0.022;
         const s   = p.size;
 
         ctx.globalAlpha = alpha;
@@ -832,11 +832,24 @@ function ModalInner({ onClose }: { onClose: () => void }) {
   const [tab, setTab]             = useState<"human"|"agent">("human");
   const [showLinks, setShowLinks] = useState(false);
 
-  const mouseX  = useMotionValue(0);
-  const mouseY  = useMotionValue(0);
-  const springX = useSpring(mouseX, { stiffness:55, damping:28 });
-  const springY = useSpring(mouseY, { stiffness:55, damping:28 });
-  const gradBg  = useMotionTemplate`radial-gradient(700px at ${springX}px ${springY}px, rgba(200,92,26,0.09), transparent 75%)`;
+  const mouseX = useMotionValue(720);
+  const mouseY = useMotionValue(400);
+
+  // Fast blob — tight follow
+  const fastX = useSpring(mouseX, { stiffness:70, damping:22 });
+  const fastY = useSpring(mouseY, { stiffness:70, damping:22 });
+  // Slow blob — lags behind
+  const slowX = useSpring(mouseX, { stiffness:18, damping:30 });
+  const slowY = useSpring(mouseY, { stiffness:18, damping:30 });
+
+  // 3D tilt springs
+  const rawTiltX = useTransform(mouseY, [0, 900], [5, -5]);
+  const rawTiltY = useTransform(mouseX, [0, 1440], [-6, 6]);
+  const tiltX = useSpring(rawTiltX, { stiffness:55, damping:22 });
+  const tiltY = useSpring(rawTiltY, { stiffness:55, damping:22 });
+
+  const blob1 = useMotionTemplate`radial-gradient(420px at ${fastX}px ${fastY}px, rgba(200,92,26,0.18), transparent 70%)`;
+  const blob2 = useMotionTemplate`radial-gradient(780px at ${slowX}px ${slowY}px, rgba(210,130,30,0.09), transparent 72%)`;
 
   useEffect(() => { setShowLinks(false); }, [tab]);
 
@@ -851,14 +864,34 @@ function ModalInner({ onClose }: { onClose: () => void }) {
       initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
       transition={{ duration:0.2 }}
       className="fixed inset-0 z-[100] overflow-hidden"
-      style={{ background:"#f0ede6" }}
+      style={{ background:"#ede9e0" }}
       onMouseMove={(e) => { mouseX.set(e.clientX); mouseY.set(e.clientY); }}
     >
       {/* Canvas particle field */}
       <ParticleField />
 
-      {/* Mouse-tracking radial gradient */}
-      <motion.div className="absolute inset-0 pointer-events-none" style={{ background:gradBg }} />
+      {/* Drifting autonomous blob — slow organic movement */}
+      <div className="absolute pointer-events-none" style={{ top:"10%", left:"5%", width:560, height:560 }}>
+        <motion.div
+          className="w-full h-full rounded-full"
+          style={{ background:"radial-gradient(circle, rgba(200,92,26,0.08), transparent 70%)", filter:"blur(40px)" }}
+          animate={{ x:[0,220,-80,160,0], y:[0,-180,130,-90,0] }}
+          transition={{ duration:28, repeat:Infinity, ease:"easeInOut" }}
+        />
+      </div>
+      <div className="absolute pointer-events-none" style={{ bottom:"5%", right:"8%", width:420, height:420 }}>
+        <motion.div
+          className="w-full h-full rounded-full"
+          style={{ background:"radial-gradient(circle, rgba(180,110,20,0.07), transparent 70%)", filter:"blur(50px)" }}
+          animate={{ x:[0,-160,80,-120,0], y:[0,120,-80,100,0] }}
+          transition={{ duration:22, repeat:Infinity, ease:"easeInOut", delay:4 }}
+        />
+      </div>
+
+      {/* Fast mouse blob */}
+      <motion.div className="absolute inset-0 pointer-events-none" style={{ background:blob1 }} />
+      {/* Slow trailing blob */}
+      <motion.div className="absolute inset-0 pointer-events-none" style={{ background:blob2 }} />
 
       {/* Close button */}
       <button
@@ -893,15 +926,19 @@ function ModalInner({ onClose }: { onClose: () => void }) {
         {/* Terminal + links wrapper */}
         <div className="relative" style={{ width:"560px" }}>
 
-          {/* Main terminal */}
-          <div className="relative flex flex-col"
+          {/* Main terminal — 3D tilt follows mouse */}
+          <motion.div
+               className="relative flex flex-col"
                style={{
                  height:"460px",
                  background:"#f7f6f2",
                  borderRadius:"12px",
                  border:"1px solid #d4d0c8",
-                 boxShadow:"0 4px 24px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04)",
+                 boxShadow:"0 8px 40px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.05)",
                  overflow:"hidden",
+                 rotateX: tiltX,
+                 rotateY: tiltY,
+                 transformPerspective: 1200,
                }}>
             {/* Title bar */}
             <div className="flex items-center gap-3 px-4 py-3 shrink-0"
@@ -927,7 +964,7 @@ function ModalInner({ onClose }: { onClose: () => void }) {
                   : <AgentTab />}
               </motion.div>
             </AnimatePresence>
-          </div>
+          </motion.div>
 
           {/* Links floating terminal */}
           {tab === "human" && <LinksTerminal show={showLinks} />}
