@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: "Statis Console",
   description: "Agent execution inspector for the Statis platform.",
   icons: {
-    icon: "/favicon-32.png",
+    icon: "/favicon.svg",
   },
 };
 
