@@ -9,20 +9,18 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.api_key import ApiKey
 from app.models.user import User
 from app.api.deps import AuthContext, get_auth_context
+from app.limiter import limiter
 
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 _rate_limit_auth = os.getenv("RATE_LIMIT_AUTH", "10/minute")
-limiter = Limiter(key_func=get_remote_address)
 
 _pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

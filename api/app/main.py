@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from app.limiter import limiter
 
 from app.api.routes.actions import router as actions_router
 from app.api.routes.events import router as events_router
@@ -17,6 +17,8 @@ from app.api.routes.kill_switch import router as kill_switch_router
 from app.api.routes.webhooks import router as webhooks_router
 from app.api.routes.threat_logs import router as threat_logs_router
 from app.api.routes.auth_oidc import router as auth_oidc_router
+from app.api.routes.agents import router as agents_router
+from app.api.routes.analytics import router as analytics_router
 
 import os
 
@@ -27,12 +29,8 @@ import os
 # Auth endpoints (signup/login): 10 requests/minute per IP.
 # ---------------------------------------------------------------------------
 _rate_limit_default = os.getenv("RATE_LIMIT_DEFAULT", "100/minute")
-_rate_limit_auth = os.getenv("RATE_LIMIT_AUTH", "10/minute")
 
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=[_rate_limit_default],
-)
+limiter.default_limits = [_rate_limit_default]
 
 app = FastAPI(title="Statis API")
 app.state.limiter = limiter
@@ -48,14 +46,19 @@ _frontend_url = os.getenv("FRONTEND_URL", "")
 _app_env = os.getenv("APP_ENV", "development")
 _origins = [u.strip() for u in _frontend_url.split(",") if u.strip()]
 
-if _app_env != "production" or not _origins:
+if _app_env == "production":
+    if not _origins:
+        raise ValueError(
+            "FRONTEND_URL must be set when APP_ENV=production. "
+            "Set it to a comma-separated list of allowed CORS origins."
+        )
+    # Production: use only the explicitly configured FRONTEND_URL values.
+    allow_origins = _origins
+else:
     # Development / staging: include localhost defaults so local UIs work
     # without requiring FRONTEND_URL to be set.
     _defaults = ["http://localhost:3000", "http://localhost:3001"]
     allow_origins = list(dict.fromkeys(_origins + _defaults))
-else:
-    # Production: use only the explicitly configured FRONTEND_URL values.
-    allow_origins = _origins
 
 app.add_middleware(
     CORSMiddleware,
@@ -77,6 +80,8 @@ app.include_router(kill_switch_router)
 app.include_router(webhooks_router)
 app.include_router(threat_logs_router)
 app.include_router(auth_oidc_router)
+app.include_router(analytics_router)
+app.include_router(agents_router)
 
 
 @app.get("/health")
