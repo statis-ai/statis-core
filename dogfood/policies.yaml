@@ -1,0 +1,98 @@
+rules:
+  # -- PR Merge Governance --
+  - rule_id: dogfood_merge_ci_passed
+    action_type: github_merge_pr
+    conditions:
+      ci_status: "passed"
+      approvals_gte: 1
+    decision: APPROVED
+    priority: 20
+    active: true
+    description: "Auto-approve merge when CI passes and 1+ approvals"
+
+  - rule_id: dogfood_merge_default
+    action_type: github_merge_pr
+    conditions: {}
+    decision: ESCALATED
+    priority: 5
+    active: true
+    description: "Escalate merges without CI pass or approvals"
+
+  # -- Deployments --
+  - rule_id: dogfood_deploy_staging
+    action_type: github_trigger_workflow
+    conditions:
+      environment: "staging"
+    decision: APPROVED
+    priority: 20
+    active: true
+    description: "Auto-approve staging deploys"
+
+  - rule_id: dogfood_deploy_production
+    action_type: github_trigger_workflow
+    conditions:
+      environment: "production"
+    decision: ESCALATED
+    priority: 20
+    active: true
+    description: "Production deploys require human review"
+
+  - rule_id: dogfood_deploy_deny_unknown
+    action_type: github_trigger_workflow
+    conditions: {}
+    decision: DENIED
+    priority: 1
+    active: true
+    description: "Deny workflow triggers that don't match staging or production"
+
+  # -- Releases --
+  - rule_id: dogfood_release_approved
+    action_type: github_create_release
+    conditions:
+      operator_approved: true
+    decision: APPROVED
+    priority: 20
+    active: true
+    description: "Approve releases with operator attestation"
+
+  - rule_id: dogfood_release_default
+    action_type: github_create_release
+    conditions: {}
+    decision: ESCALATED
+    priority: 5
+    active: true
+    description: "Escalate unapproved releases"
+
+  # -- Linear (always safe) --
+  - rule_id: dogfood_linear_create
+    action_type: linear_create_issue
+    conditions: {}
+    decision: APPROVED
+    priority: 10
+    active: true
+    description: "Allow issue creation"
+
+  - rule_id: dogfood_linear_update
+    action_type: linear_update_issue
+    conditions: {}
+    decision: APPROVED
+    priority: 10
+    active: true
+    description: "Allow issue updates"
+
+  # -- Slack (always safe) --
+  - rule_id: dogfood_slack_notify
+    action_type: slack_send_message
+    conditions: {}
+    decision: APPROVED
+    priority: 10
+    active: true
+    description: "Allow Slack notifications"
+
+  - rule_id: dogfood_slack_update
+    action_type: slack_update_message
+    conditions: {}
+    decision: APPROVED
+    priority: 10
+    active: true
+    description: "Allow Slack message updates"

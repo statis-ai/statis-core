@@ -36,6 +36,7 @@ def _bootstrap() -> None:
         reduce_sentiment_updated,
         reduce_ticket_updated,
     )
+    from app.reducers.pull_request import reduce_pr_status_updated
 
     register("support.ticket_updated", reduce_ticket_updated)
     register("support.incident_reported", reduce_incident_reported)
@@ -46,6 +47,7 @@ def _bootstrap() -> None:
     register("csm.escalation_requested", reduce_escalation_requested)
     register("account.churn_risk_updated", reduce_churn_risk_updated)
     register("account.schema_migrated", reduce_schema_migrated)
+    register("github.pr_status_updated", reduce_pr_status_updated)
 
 
 _bootstrap()

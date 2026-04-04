@@ -1,0 +1,145 @@
+# Statis dogfeed — post-merge deployment orchestration.
+#
+# On every push to main (after merge), this workflow:
+#   1. deploy-agent proposes a staging deployment via Statis
+#   2. notify-agent sends a Slack notification via Statis
+#   3. issue-triage-agent creates a Linear tracking issue via Statis
+#
+# All three actions are routed through Statis policy evaluation.
+# Adapter execution is handled async by the Statis worker.
+#
+# Required repository secrets:
+#   STATIS_API_KEY  — your Statis tenant API key
+#   STATIS_BASE_URL — e.g. https://statis-core.onrender.com
+
+name: Statis post-merge deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  statis-deploy:
+    name: Deploy orchestration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to staging
+        id: deploy
+        env:
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
+        run: |
+          ACTION_ID="deploy-staging-${GITHUB_SHA:0:8}-${GITHUB_RUN_ID}"
+
+          # Propose
+          HTTP_STATUS=$(curl -s -o /tmp/propose.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/actions" \
+            -H "X-API-Key: ${STATIS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"action_id\": \"${ACTION_ID}\",
+              \"action_type\": \"github_trigger_workflow\",
+              \"proposed_by\": \"deploy-agent\",
+              \"target_system\": \"github\",
+              \"parameters\": {
+                \"environment\": \"staging\",
+                \"workflow_id\": \"deploy.yml\",
+                \"ref\": \"main\",
+                \"owner\": \"${{ github.repository_owner }}\",
+                \"repo\": \"${GITHUB_REPOSITORY##*/}\"
+              },
+              \"context\": {
+                \"sha\": \"${GITHUB_SHA}\",
+                \"actor\": \"${{ github.actor }}\",
+                \"trigger\": \"post-merge\"
+              }
+            }")
+
+          if [[ "$HTTP_STATUS" != "201" && "$HTTP_STATUS" != "409" ]]; then
+            echo "::warning::Deploy propose failed: HTTP $HTTP_STATUS"
+            cat /tmp/propose.json
+            exit 0
+          fi
+
+          # Evaluate
+          HTTP_STATUS=$(curl -s -o /tmp/eval.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/actions/${ACTION_ID}/evaluate" \
+            -H "X-API-Key: ${STATIS_API_KEY}")
+
+          DECISION=$(jq -r '.decision // "UNKNOWN"' /tmp/eval.json)
+          echo "::notice title=Statis Deploy::Staging deploy decision: ${DECISION}"
+          echo "decision=${DECISION}" >> "$GITHUB_OUTPUT"
+
+      - name: Notify via Slack
+        if: always()
+        env:
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
+        run: |
+          DEPLOY_DECISION="${{ steps.deploy.outputs.decision }}"
+          ACTION_ID="notify-deploy-${GITHUB_SHA:0:8}-${GITHUB_RUN_ID}"
+
+          # Propose
+          curl -s -o /tmp/propose.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/actions" \
+            -H "X-API-Key: ${STATIS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"action_id\": \"${ACTION_ID}\",
+              \"action_type\": \"slack_send_message\",
+              \"proposed_by\": \"notify-agent\",
+              \"target_system\": \"slack\",
+              \"parameters\": {
+                \"channel\": \"#statis-deployments\",
+                \"text\": \"Staging deploy triggered for \`${GITHUB_SHA:0:8}\` (decision: ${DEPLOY_DECISION})\"
+              },
+              \"context\": {
+                \"sha\": \"${GITHUB_SHA}\",
+                \"trigger\": \"post-merge\"
+              }
+            }"
+
+          # Evaluate
+          curl -s -o /tmp/eval.json \
+            -X POST "${STATIS_BASE_URL}/actions/${ACTION_ID}/evaluate" \
+            -H "X-API-Key: ${STATIS_API_KEY}"
+
+          DECISION=$(jq -r '.decision // "UNKNOWN"' /tmp/eval.json)
+          echo "::notice title=Statis Notify::Slack notification decision: ${DECISION}"
+
+      - name: Create Linear tracking issue
+        if: always()
+        env:
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
+        run: |
+          ACTION_ID="linear-deploy-${GITHUB_SHA:0:8}-${GITHUB_RUN_ID}"
+
+          # Propose
+          curl -s -o /tmp/propose.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/actions" \
+            -H "X-API-Key: ${STATIS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"action_id\": \"${ACTION_ID}\",
+              \"action_type\": \"linear_create_issue\",
+              \"proposed_by\": \"issue-triage-agent\",
+              \"target_system\": \"linear\",
+              \"parameters\": {
+                \"title\": \"Deploy tracking: ${GITHUB_SHA:0:8}\",
+                \"description\": \"Staging deploy triggered by merge to main.\\nCommit: ${GITHUB_SHA}\\nActor: ${{ github.actor }}\"
+              },
+              \"context\": {
+                \"sha\": \"${GITHUB_SHA}\",
+                \"trigger\": \"post-merge\"
+              }
+            }"
+
+          # Evaluate
+          curl -s -o /tmp/eval.json \
+            -X POST "${STATIS_BASE_URL}/actions/${ACTION_ID}/evaluate" \
+            -H "X-API-Key: ${STATIS_API_KEY}"
+
+          DECISION=$(jq -r '.decision // "UNKNOWN"' /tmp/eval.json)
+          echo "::notice title=Statis Linear::Issue creation decision: ${DECISION}"

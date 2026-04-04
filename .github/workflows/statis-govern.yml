@@ -1,0 +1,190 @@
+# Statis dogfeed workflow — gates merges to main through Statis policy evaluation.
+#
+# On every PR targeting main, this workflow:
+#   1. Seeds entity state (CI status + approvals) via POST /events
+#   2. Proposes a github_merge_pr action to Statis
+#   3. Evaluates it against the active policy rules
+#   4. Fails the check if the decision is DENIED or ESCALATED
+#   5. Posts the policy receipt as a PR comment
+#
+# Required repository secrets:
+#   STATIS_API_KEY  — your Statis tenant API key
+#   STATIS_BASE_URL — e.g. https://statis-core.onrender.com  (no trailing slash)
+#
+# The action is keyed by PR number so repeated runs are idempotent (409 -> re-evaluate).
+
+name: Statis governance check
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  statis-policy:
+    name: Policy evaluation
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      statuses: write
+
+    steps:
+      - name: Seed PR entity state
+        env:
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get CI status from check suites
+          CI_STATUS=$(gh api repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha }}/check-suites \
+            --jq '[.check_suites[] | select(.app.slug != "github-actions")] | if all(.conclusion == "success") then "passed" else "pending" end' 2>/dev/null || echo "pending")
+
+          # Get approval count
+          APPROVALS=$(gh api repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/reviews \
+            --jq '[.[] | select(.state == "APPROVED")] | length' 2>/dev/null || echo "0")
+
+          EVENT_ID="pr-status-${{ github.event.pull_request.number }}-${{ github.run_id }}"
+
+          echo "Seeding entity state: ci_status=${CI_STATUS}, approvals=${APPROVALS}"
+
+          HTTP_STATUS=$(curl -s -o /tmp/event_resp.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/events" \
+            -H "X-API-Key: ${STATIS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"event_id\": \"${EVENT_ID}\",
+              \"event_type\": \"github.pr_status_updated\",
+              \"entity_type\": \"pull_request\",
+              \"entity_id\": \"${{ github.event.pull_request.number }}\",
+              \"payload\": {
+                \"ci_status\": \"${CI_STATUS}\",
+                \"approvals\": ${APPROVALS},
+                \"author\": \"${{ github.event.pull_request.user.login }}\",
+                \"title\": $(echo '${{ github.event.pull_request.title }}' | jq -Rs .),
+                \"head_sha\": \"${{ github.event.pull_request.head.sha }}\"
+              }
+            }")
+
+          cat /tmp/event_resp.json
+          # 201 = new event, 200 = duplicate (idempotent) — both OK
+          if [[ "$HTTP_STATUS" != "201" && "$HTTP_STATUS" != "200" ]]; then
+            echo "::warning::Event seeding failed with HTTP $HTTP_STATUS (non-fatal)"
+          fi
+
+      - name: Propose action
+        id: propose
+        env:
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          ACTION_ID="statis-gh-pr-${PR_NUMBER}-${SHA:0:8}"
+          OWNER="${REPO%%/*}"
+          REPO_NAME="${REPO##*/}"
+
+          HTTP_STATUS=$(curl -s -o /tmp/propose_resp.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/actions" \
+            -H "X-API-Key: ${STATIS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"action_id\": \"${ACTION_ID}\",
+              \"action_type\": \"github_merge_pr\",
+              \"proposed_by\": \"ci-gate-agent\",
+              \"target_system\": \"github\",
+              \"target_entity\": {\"entity_type\": \"pull_request\", \"entity_id\": \"${PR_NUMBER}\"},
+              \"parameters\": {
+                \"owner\": \"${OWNER}\",
+                \"repo\": \"${REPO_NAME}\",
+                \"pull_number\": ${PR_NUMBER}
+              },
+              \"context\": {
+                \"sha\": \"${SHA}\",
+                \"actor\": \"${ACTOR}\",
+                \"workflow\": \"${{ github.workflow }}\"
+              }
+            }")
+
+          cat /tmp/propose_resp.json
+          # 201 = new, 409 = already exists (idempotent re-run) — both are OK
+          if [[ "$HTTP_STATUS" != "201" && "$HTTP_STATUS" != "409" ]]; then
+            echo "Propose failed with HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          echo "action_id=${ACTION_ID}" >> "$GITHUB_OUTPUT"
+
+      - name: Evaluate action
+        id: evaluate
+        env:
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
+        run: |
+          ACTION_ID="${{ steps.propose.outputs.action_id }}"
+
+          HTTP_STATUS=$(curl -s -o /tmp/eval_resp.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/actions/${ACTION_ID}/evaluate" \
+            -H "X-API-Key: ${STATIS_API_KEY}" \
+            -H "Content-Type: application/json")
+
+          cat /tmp/eval_resp.json
+          if [[ "$HTTP_STATUS" != "200" ]]; then
+            echo "Evaluate failed with HTTP $HTTP_STATUS"
+            exit 1
+          fi
+
+          DECISION=$(jq -r '.decision' /tmp/eval_resp.json)
+          RULE_ID=$(jq -r '.rule_id // "none"' /tmp/eval_resp.json)
+          REASON=$(jq -r '.reason' /tmp/eval_resp.json)
+
+          echo "decision=${DECISION}" >> "$GITHUB_OUTPUT"
+          echo "rule_id=${RULE_ID}" >> "$GITHUB_OUTPUT"
+          echo "reason=${REASON}" >> "$GITHUB_OUTPUT"
+
+          echo "Statis decision: ${DECISION} (rule=${RULE_ID}, reason=${REASON})"
+
+      - name: Enforce decision
+        env:
+          DECISION: ${{ steps.evaluate.outputs.decision }}
+          RULE_ID: ${{ steps.evaluate.outputs.rule_id }}
+          REASON: ${{ steps.evaluate.outputs.reason }}
+        run: |
+          echo "::notice title=Statis Policy::Decision: ${DECISION} | Rule: ${RULE_ID} | Reason: ${REASON}"
+
+          if [[ "$DECISION" == "APPROVED" ]]; then
+            echo "Policy approved — merge is permitted."
+            exit 0
+          elif [[ "$DECISION" == "ESCALATED" ]]; then
+            echo "::error title=Statis Policy::Action escalated for human review. Check the Statis Console."
+            exit 1
+          else
+            echo "::error title=Statis Policy::Merge denied by policy. Rule: ${RULE_ID}. Reason: ${REASON}"
+            exit 1
+          fi
+
+      - name: Post receipt to PR
+        if: always() && steps.evaluate.outputs.decision != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ACTION_ID="${{ steps.propose.outputs.action_id }}"
+          DECISION="${{ steps.evaluate.outputs.decision }}"
+          RULE_ID="${{ steps.evaluate.outputs.rule_id }}"
+          REASON="${{ steps.evaluate.outputs.reason }}"
+
+          ICON="$([ "$DECISION" = "APPROVED" ] && echo "white_check_mark" || ([ "$DECISION" = "ESCALATED" ] && echo "warning" || echo "x"))"
+
+          BODY=":${ICON}: **Statis Policy Receipt**
+
+          | Field | Value |
+          |-------|-------|
+          | Action ID | \`${ACTION_ID}\` |
+          | Decision | **${DECISION}** |
+          | Rule | \`${RULE_ID}\` |
+          | Reason | ${REASON} |
+          | Agent | \`ci-gate-agent\` |
+
+          [View in Console](https://console.statis.dev)"
+
+          gh pr comment ${{ github.event.pull_request.number }} --body "$BODY"

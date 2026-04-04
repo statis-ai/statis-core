@@ -1,0 +1,121 @@
+# Statis dogfeed — release orchestration via Statis policy engine.
+#
+# Manually dispatched with a version input. Routes through Statis:
+#   1. release-agent proposes github_create_release (operator_approved)
+#   2. notify-agent sends a Slack announcement
+#
+# Required repository secrets:
+#   STATIS_API_KEY  — your Statis tenant API key
+#   STATIS_BASE_URL — e.g. https://statis-core.onrender.com
+
+name: Statis release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g. v0.3.0)"
+        required: true
+        type: string
+
+jobs:
+  statis-release:
+    name: Release orchestration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Create release
+        id: release
+        env:
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
+        run: |
+          VERSION="${{ inputs.version }}"
+          ACTION_ID="release-${VERSION}-${GITHUB_RUN_ID}"
+          OWNER="${GITHUB_REPOSITORY%%/*}"
+          REPO="${GITHUB_REPOSITORY##*/}"
+
+          # Propose
+          HTTP_STATUS=$(curl -s -o /tmp/propose.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/actions" \
+            -H "X-API-Key: ${STATIS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"action_id\": \"${ACTION_ID}\",
+              \"action_type\": \"github_create_release\",
+              \"proposed_by\": \"release-agent\",
+              \"target_system\": \"github\",
+              \"parameters\": {
+                \"owner\": \"${OWNER}\",
+                \"repo\": \"${REPO}\",
+                \"tag_name\": \"${VERSION}\",
+                \"name\": \"${VERSION}\",
+                \"generate_release_notes\": true
+              },
+              \"context\": {
+                \"operator_approved\": true,
+                \"sha\": \"${GITHUB_SHA}\",
+                \"actor\": \"${{ github.actor }}\",
+                \"trigger\": \"manual-dispatch\"
+              }
+            }")
+
+          cat /tmp/propose.json
+          if [[ "$HTTP_STATUS" != "201" && "$HTTP_STATUS" != "409" ]]; then
+            echo "Release propose failed: HTTP $HTTP_STATUS"
+            exit 1
+          fi
+
+          # Evaluate
+          HTTP_STATUS=$(curl -s -o /tmp/eval.json -w "%{http_code}" \
+            -X POST "${STATIS_BASE_URL}/actions/${ACTION_ID}/evaluate" \
+            -H "X-API-Key: ${STATIS_API_KEY}")
+
+          cat /tmp/eval.json
+          DECISION=$(jq -r '.decision' /tmp/eval.json)
+          RULE_ID=$(jq -r '.rule_id // "none"' /tmp/eval.json)
+
+          echo "decision=${DECISION}" >> "$GITHUB_OUTPUT"
+          echo "::notice title=Statis Release::Release ${VERSION} decision: ${DECISION} (rule: ${RULE_ID})"
+
+          if [[ "$DECISION" != "APPROVED" ]]; then
+            echo "::error title=Statis Release::Release ${VERSION} was not approved. Decision: ${DECISION}"
+            exit 1
+          fi
+
+      - name: Announce release
+        if: steps.release.outputs.decision == 'APPROVED'
+        env:
+          STATIS_API_KEY: ${{ secrets.STATIS_API_KEY }}
+          STATIS_BASE_URL: ${{ secrets.STATIS_BASE_URL }}
+        run: |
+          VERSION="${{ inputs.version }}"
+          ACTION_ID="notify-release-${VERSION}-${GITHUB_RUN_ID}"
+
+          # Propose
+          curl -s -o /tmp/propose.json \
+            -X POST "${STATIS_BASE_URL}/actions" \
+            -H "X-API-Key: ${STATIS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"action_id\": \"${ACTION_ID}\",
+              \"action_type\": \"slack_send_message\",
+              \"proposed_by\": \"notify-agent\",
+              \"target_system\": \"slack\",
+              \"parameters\": {
+                \"channel\": \"#statis-releases\",
+                \"text\": \"Released ${VERSION} — https://github.com/${GITHUB_REPOSITORY}/releases/tag/${VERSION}\"
+              },
+              \"context\": {
+                \"version\": \"${VERSION}\",
+                \"trigger\": \"release\"
+              }
+            }"
+
+          # Evaluate
+          curl -s -o /tmp/eval.json \
+            -X POST "${STATIS_BASE_URL}/actions/${ACTION_ID}/evaluate" \
+            -H "X-API-Key: ${STATIS_API_KEY}"
+
+          DECISION=$(jq -r '.decision // "UNKNOWN"' /tmp/eval.json)
+          echo "::notice title=Statis Notify::Release announcement decision: ${DECISION}"

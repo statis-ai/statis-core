@@ -1,0 +1,32 @@
+[
+  {
+    "agent_id": "ci-gate-agent",
+    "name": "CI Gate Agent",
+    "allowed_action_types": ["github_merge_pr"],
+    "rate_limit_per_hour": 60
+  },
+  {
+    "agent_id": "deploy-agent",
+    "name": "Deploy Agent",
+    "allowed_action_types": ["github_trigger_workflow"],
+    "rate_limit_per_hour": 10
+  },
+  {
+    "agent_id": "release-agent",
+    "name": "Release Agent",
+    "allowed_action_types": ["github_create_release", "github_trigger_workflow"],
+    "rate_limit_per_hour": 10
+  },
+  {
+    "agent_id": "issue-triage-agent",
+    "name": "Issue Triage Agent",
+    "allowed_action_types": ["linear_create_issue", "linear_update_issue"],
+    "rate_limit_per_hour": 30
+  },
+  {
+    "agent_id": "notify-agent",
+    "name": "Notification Agent",
+    "allowed_action_types": ["slack_send_message", "slack_update_message"],
+    "rate_limit_per_hour": 60
+  }
+]
