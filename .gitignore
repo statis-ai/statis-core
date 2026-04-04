@@ -68,3 +68,4 @@ sdk-ts/dist/
 # Archived / unused files
 landing/public/_archive/
 landing/src/components/_archive/
+.vercel

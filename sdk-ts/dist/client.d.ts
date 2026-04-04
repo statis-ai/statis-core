@@ -1,4 +1,4 @@
-import { ExecuteOptions, ProposeOptions, Receipt } from "./types";
+import { ExecuteOptions, ProposeOptions, Receipt, SimulateOptions, SimulateResult } from "./types";
 export declare class StatisClient {
     private readonly baseUrl;
     private readonly headers;
@@ -20,6 +20,8 @@ export declare class StatisClient {
      * @throws {ActionTimeoutError} if execution doesn't complete within timeout
      */
     execute(options: ExecuteOptions): Promise<Receipt>;
+    /** Dry-run policy evaluation. No DB writes, no receipt. */
+    simulate(options: SimulateOptions): Promise<SimulateResult>;
     /** Return the current status string for an action (e.g. 'ESCALATED', 'COMPLETED'). */
     getActionStatus(action_id: string): Promise<string>;
     /** Fetch the receipt for a completed (or denied) action. */

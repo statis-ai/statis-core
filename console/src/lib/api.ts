@@ -217,10 +217,11 @@ export interface ReceiptVerifyResult {
 export interface ThreatLog {
   id: string;
   action_id: string;
-  threat_type: string;
-  severity: string;
-  details: Record<string, unknown>;
-  created_at: string;
+  tenant_id: string;
+  threat_types: string[];
+  threat_level: "critical" | "high" | "medium" | "low";
+  details: string | null;
+  scanned_at: string;
 }
 
 export interface AdminMe {
@@ -399,9 +400,108 @@ export function deactivateKillSwitch(): Promise<KillSwitchStatus> {
 
 // ── Threat Logs ──────────────────────────────────────────────
 
-export function fetchThreatLogs(limit?: number): Promise<ThreatLog[]> {
-  const qs = limit ? `?limit=${limit}` : "";
+export function fetchThreatLogs(opts?: {
+  limit?: number;
+  offset?: number;
+  threat_level?: string;
+}): Promise<ThreatLog[]> {
+  const params = new URLSearchParams();
+  if (opts?.limit) params.set("limit", String(opts.limit));
+  if (opts?.offset) params.set("offset", String(opts.offset));
+  if (opts?.threat_level) params.set("threat_level", opts.threat_level);
+  const qs = params.toString() ? `?${params.toString()}` : "";
   return json<ThreatLog[]>(`${BASE}/threat-logs${qs}`);
+}
+
+// ── Analytics ────────────────────────────────────────────────
+
+export interface RuleStat {
+  rule_id: string;
+  fires: number;
+  decision: string;
+}
+
+export interface AgentStat {
+  agent_id: string;
+  actions: number;
+}
+
+export interface DailyBucket {
+  date: string;
+  approved: number;
+  denied: number;
+  escalated: number;
+}
+
+export interface AnalyticsSummary {
+  period_days: number;
+  actions_total: number;
+  actions_approved: number;
+  actions_denied: number;
+  actions_escalated: number;
+  approval_rate: number;
+  top_rules: RuleStat[];
+  top_agents: AgentStat[];
+  daily_trend: DailyBucket[];
+}
+
+export function fetchAnalyticsSummary(days = 7): Promise<AnalyticsSummary> {
+  return json<AnalyticsSummary>(`${BASE}/analytics/summary?days=${days}`);
+}
+
+export interface SimulateResult {
+  decision: string;
+  rule_id: string | null;
+  rule_version: string | null;
+  reason: string;
+}
+
+// ── Agents ───────────────────────────────────────────────────
+
+export interface RegisteredAgent {
+  agent_id: string;
+  tenant_id: string;
+  name: string;
+  allowed_action_types: string[];
+  rate_limit_per_hour: number | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export function fetchRegisteredAgents(): Promise<RegisteredAgent[]> {
+  return json<RegisteredAgent[]>(`${BASE}/agents`);
+}
+
+export function registerAgent(body: {
+  agent_id: string;
+  name: string;
+  allowed_action_types?: string[];
+  rate_limit_per_hour?: number | null;
+}): Promise<RegisteredAgent> {
+  return post<RegisteredAgent>(`${BASE}/agents`, body);
+}
+
+export function updateAgent(
+  agentId: string,
+  body: {
+    name?: string;
+    allowed_action_types?: string[];
+    is_active?: boolean;
+  }
+): Promise<RegisteredAgent> {
+  return put<RegisteredAgent>(`${BASE}/agents/${agentId}`, body);
+}
+
+export function deactivateAgent(agentId: string): Promise<void> {
+  return del(`${BASE}/agents/${agentId}`);
+}
+
+export function simulateAction(body: {
+  action_type: string;
+  entity_state?: Record<string, unknown>;
+  parameters?: Record<string, unknown>;
+}): Promise<SimulateResult> {
+  return post<SimulateResult>(`${BASE}/actions/simulate`, body);
 }
 
 // ── Admin ────────────────────────────────────────────────────

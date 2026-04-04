@@ -11,6 +11,8 @@ import {
   Activity,
   Shield,
   AlertTriangle,
+  ShieldOff,
+  AlertOctagon,
   Cpu,
   Plug,
   Radio,
@@ -47,6 +49,8 @@ const NAV: NavSection[] = [
     items: [
       { label: "Policies", href: "/policies", icon: Shield },
       { label: "Escalations", href: "/escalations", icon: AlertTriangle, badge: 2 },
+      { label: "Kill Switch", href: "/kill-switch", icon: ShieldOff },
+      { label: "Threat Logs", href: "/threat-logs", icon: AlertOctagon },
     ],
   },
   {

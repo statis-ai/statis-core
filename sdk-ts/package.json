@@ -1,6 +1,6 @@
 {
   "name": "statis-ai",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "TypeScript SDK for Statis — agent execution infrastructure",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

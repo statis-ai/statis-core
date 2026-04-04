@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Shield, ChevronRight, Trash2, X } from "lucide-react";
+import { Plus, Shield, ChevronRight, Trash2, X, FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   fetchPolicyRules,
   createPolicyRule,
   updatePolicyRule,
   deletePolicyRule,
+  simulateAction,
   type PolicyRule,
   type PolicyRuleCreate,
   type PolicyRuleUpdate,
+  type SimulateResult,
 } from "@/lib/api";
 
 const PRIORITY_STYLES: Record<string, string> = {
@@ -73,11 +75,13 @@ function PolicyCard({
   onEdit,
   onDelete,
   onToggleActive,
+  onTest,
 }: {
   rule: PolicyRule;
   onEdit: () => void;
   onDelete: () => void;
   onToggleActive: () => void;
+  onTest: () => void;
 }) {
   const pLabel = priorityLabel(rule.priority);
   return (
@@ -150,12 +154,21 @@ function PolicyCard({
         >
           Delete
         </button>
-        <button
-          onClick={onEdit}
-          className="flex items-center gap-1 text-xs text-[#d4d4d4] font-medium hover:text-white transition-colors"
-        >
-          Edit rule <ChevronRight size={12} />
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onTest}
+            className="flex items-center gap-1 text-xs text-[#555555] hover:text-[#888888] transition-colors"
+          >
+            <FlaskConical size={12} />
+            Test
+          </button>
+          <button
+            onClick={onEdit}
+            className="flex items-center gap-1 text-xs text-[#d4d4d4] font-medium hover:text-white transition-colors"
+          >
+            Edit rule <ChevronRight size={12} />
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -172,6 +185,12 @@ export default function PoliciesPage() {
   const [panel, setPanel] = useState<PanelMode | null>(null);
   const [draft, setDraft] = useState<Draft>(BLANK_DRAFT);
   const [saving, setSaving] = useState(false);
+  const [testingRule, setTestingRule] = useState<PolicyRule | null>(null);
+  const [testEntityState, setTestEntityState] = useState("{}");
+  const [testParameters, setTestParameters] = useState("{}");
+  const [testResult, setTestResult] = useState<SimulateResult | null>(null);
+  const [testError, setTestError] = useState<string | null>(null);
+  const [testLoading, setTestLoading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -252,6 +271,43 @@ export default function PoliciesPage() {
     }
   }
 
+  function openTest(rule: PolicyRule) {
+    setTestingRule(rule);
+    setTestEntityState("{}");
+    setTestParameters("{}");
+    setTestResult(null);
+    setTestError(null);
+  }
+
+  async function handleTest() {
+    if (!testingRule) return;
+    setTestLoading(true);
+    setTestResult(null);
+    setTestError(null);
+    try {
+      let entityState: Record<string, unknown>;
+      let parameters: Record<string, unknown>;
+      try {
+        entityState = JSON.parse(testEntityState);
+        parameters = JSON.parse(testParameters);
+      } catch {
+        setTestError("Invalid JSON in entity state or parameters");
+        setTestLoading(false);
+        return;
+      }
+      const result = await simulateAction({
+        action_type: testingRule.action_type,
+        entity_state: entityState,
+        parameters,
+      });
+      setTestResult(result);
+    } catch (err: unknown) {
+      setTestError(err instanceof Error ? err.message : "Simulation failed");
+    } finally {
+      setTestLoading(false);
+    }
+  }
+
   async function handleToggleActive(rule: PolicyRule) {
     try {
       await updatePolicyRule(rule.rule_id, { active: !rule.active });
@@ -313,8 +369,95 @@ export default function PoliciesPage() {
               onEdit={() => openEdit(rule)}
               onDelete={() => handleDelete(rule.rule_id)}
               onToggleActive={() => handleToggleActive(rule)}
+              onTest={() => openTest(rule)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Test modal */}
+      {testingRule && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-[#111111] border border-[#1a1a1a] rounded-lg w-full max-w-lg shadow-2xl">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#1a1a1a]">
+              <div>
+                <p className="text-sm font-semibold text-white">Test Policy</p>
+                <p className="font-mono text-[11px] text-[#444444] mt-0.5">
+                  {testingRule.action_type}
+                </p>
+              </div>
+              <button
+                onClick={() => setTestingRule(null)}
+                className="text-[#444444] hover:text-white transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                  Entity State (JSON)
+                </label>
+                <textarea
+                  rows={4}
+                  value={testEntityState}
+                  onChange={(e) => setTestEntityState(e.target.value)}
+                  className={cn(inputCls, "resize-y")}
+                  placeholder='{"churn_risk": true, "ltv": 1500}'
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-2">
+                  Parameters (JSON)
+                </label>
+                <textarea
+                  rows={3}
+                  value={testParameters}
+                  onChange={(e) => setTestParameters(e.target.value)}
+                  className={cn(inputCls, "resize-y")}
+                  placeholder='{"discount_pct": 20}'
+                />
+              </div>
+              {testError && (
+                <p className="text-xs text-red-400 font-mono">{testError}</p>
+              )}
+              {testResult && (
+                <div className="bg-[#0a0a0a] rounded border border-[#1a1a1a] p-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={cn(
+                        "text-[11px] font-semibold px-2 py-0.5 rounded border",
+                        DECISION_STYLES[testResult.decision] ?? ""
+                      )}
+                    >
+                      {testResult.decision}
+                    </span>
+                    {testResult.rule_id && (
+                      <span className="font-mono text-[11px] text-[#555555]">
+                        {testResult.rule_id}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-[#888888]">{testResult.reason}</p>
+                </div>
+              )}
+            </div>
+            <div className="px-6 py-4 border-t border-[#1a1a1a] flex gap-3">
+              <button
+                onClick={handleTest}
+                disabled={testLoading}
+                className="flex-1 py-2 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors disabled:opacity-40"
+              >
+                {testLoading ? "Running..." : "Run simulation"}
+              </button>
+              <button
+                onClick={() => setTestingRule(null)}
+                className="px-4 py-2 rounded border border-[#1a1a1a] text-[#888888] text-sm hover:text-white hover:border-white/20 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

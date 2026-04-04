@@ -30,7 +30,12 @@ services:
     build:
       context: ./api
       dockerfile: Dockerfile
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    # Run migrations + seed admin key, then start the API.
+    # seed_admin.py is idempotent — skips if keys already exist.
+    command: >
+      sh -c "python -m alembic upgrade head &&
+             python scripts/seed_admin.py &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
     env_file: .env
     ports:
       - "8000:8000"

@@ -31,7 +31,11 @@ from app.adapters.airflow import AirflowAdapter
 from app.adapters.filesystem import FilesystemAdapter
 from app.adapters.generic import GenericAdapter
 from app.adapters.hubspot import HubSpotAdapter
+from app.adapters.github import GitHubAdapter
+from app.adapters.linear import LinearAdapter
+from app.adapters.mcp import MCPAdapter
 from app.adapters.salesforce import SalesforceAdapter
+from app.adapters.slack_adapter import SlackAdapter
 from app.adapters.zendesk import ZendeskAdapter
 from app.adapters.base import BaseAdapter
 from app.adapters.stripe_mock import MockStripeAdapter
@@ -66,6 +70,10 @@ def _build_default_adapters() -> dict[str, BaseAdapter]:
         "zendesk": ZendeskAdapter(),
         "hubspot": HubSpotAdapter(),
         "filesystem": FilesystemAdapter(allowed_prefix=os.getenv("FILESYSTEM_ADAPTER_ALLOWED_PREFIX")),
+        "mcp": MCPAdapter(),
+        "github": GitHubAdapter(),
+        "linear": LinearAdapter(),
+        "slack": SlackAdapter(),
         # Keel action types — log-only via GenericAdapter
         "log_expense": _generic,
         "propose_trade": _generic,
@@ -369,6 +377,14 @@ def _finalize(
             SIEMExporter().export(action, receipt)
         except Exception:
             logger.exception("SIEM export error for action %s (non-fatal)", action.action_id)
+
+    # OpenTelemetry export — fire-and-forget, never raises
+    if receipt is not None:
+        try:
+            from app.observability.otel_exporter import OTelExporter
+            OTelExporter().export(action, receipt)
+        except Exception:
+            logger.exception("OTel export error for action %s (non-fatal)", action.action_id)
 
 
 def run_once(session_factory: sessionmaker) -> int:

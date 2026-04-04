@@ -4,6 +4,14 @@ from typing import Any, Optional
 
 
 @dataclass
+class SimulateResult:
+    decision: str
+    rule_id: Optional[str]
+    rule_version: Optional[str]
+    reason: str
+
+
+@dataclass
 class Receipt:
     receipt_id: str
     action_id: str

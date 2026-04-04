@@ -12,6 +12,7 @@ from ._models import (
     ActionEscalatedError,
     ActionTimeoutError,
     Receipt,
+    SimulateResult,
     StatisActionDenied,
     StatisActionEscalated,
     StatisError,
@@ -132,6 +133,30 @@ class StatisClient:
                 raise ActionTimeoutError(action_id=aid, timeout=timeout or 0)
 
             time.sleep(interval)
+
+    def simulate(
+        self,
+        action_type: str,
+        entity_state: dict[str, Any],
+        parameters: dict[str, Any] | None = None,
+        context: dict[str, Any] | None = None,
+    ) -> SimulateResult:
+        """Dry-run policy evaluation. No DB writes, no receipt."""
+        body: dict[str, Any] = {
+            "action_type": action_type,
+            "entity_state": entity_state,
+            "parameters": parameters or {},
+            "context": context or {},
+        }
+        resp = self._http.post("/actions/simulate", json=body)
+        self._raise_for_status(resp)
+        data = resp.json()
+        return SimulateResult(
+            decision=data["decision"],
+            rule_id=data.get("rule_id"),
+            rule_version=data.get("rule_version"),
+            reason=data["reason"],
+        )
 
     def get_action_status(self, action_id: str) -> str:
         """Return the current status string for an action (e.g. 'ESCALATED', 'COMPLETED')."""

@@ -63,6 +63,22 @@ class StatisClient {
             await sleep(pollInterval * 1000);
         }
     }
+    /** Dry-run policy evaluation. No DB writes, no receipt. */
+    async simulate(options) {
+        const body = {
+            action_type: options.action_type,
+            entity_state: options.entity_state ?? {},
+            parameters: options.parameters ?? {},
+            context: options.context ?? {},
+        };
+        const data = await this._post("/actions/simulate", body);
+        return {
+            decision: data["decision"],
+            rule_id: data["rule_id"] ?? null,
+            rule_version: data["rule_version"] ?? null,
+            reason: data["reason"],
+        };
+    }
     /** Return the current status string for an action (e.g. 'ESCALATED', 'COMPLETED'). */
     async getActionStatus(action_id) {
         const data = await this._get(`/actions/${action_id}`);

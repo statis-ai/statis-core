@@ -11,6 +11,18 @@ export interface Receipt {
     hash: string;
     created_at: Date;
 }
+export interface SimulateOptions {
+    action_type: string;
+    entity_state?: Record<string, unknown>;
+    parameters?: Record<string, unknown>;
+    context?: Record<string, unknown>;
+}
+export interface SimulateResult {
+    decision: string;
+    rule_id: string | null;
+    rule_version: string | null;
+    reason: string;
+}
 export interface ProposeOptions {
     action_type: string;
     target: {
