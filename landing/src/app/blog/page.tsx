@@ -11,85 +11,73 @@ export const metadata: Metadata = {
 function ArrowIcon({ external }: { external?: boolean }) {
   if (external) {
     return (
-      <svg
-        className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={2}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M7 17L17 7M17 7H7M17 7v10"
-        />
+      <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 17L17 7M17 7H7M17 7v10" />
       </svg>
     );
   }
-
   return (
-    <svg
-      className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2}
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M17 8l4 4m0 0l-4 4m4-4H3"
-      />
+    <svg className="h-3 w-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
     </svg>
   );
 }
 
 export default function BlogPage() {
   return (
-    <div className="mx-auto max-w-5xl px-6 lg:px-8">
-      <header className="mb-16 text-center pt-8">
-        <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl font-serif">
+    <div className="mx-auto max-w-5xl px-6">
+      <header className="mb-14 pt-8">
+        <p
+          className="text-[10px] uppercase tracking-[0.25em] mb-3 inline-block px-2 py-0.5 rounded"
+          style={{ color: "var(--text-2)", background: "rgba(255,255,255,0.04)" }}
+        >
           Blog
+        </p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: "var(--text)" }}>
+          Writing.
         </h1>
-        <p className="mt-4 text-lg text-gray-500 max-w-2xl mx-auto">
-          Thoughts on AI state management, multi-agent coordination, and
-          building reliable autonomous systems.
+        <p className="mt-3 text-sm max-w-xl" style={{ color: "var(--text-2)" }}>
+          Thoughts on AI state management, multi-agent coordination, and building reliable autonomous systems.
         </p>
       </header>
 
-      <div className="grid gap-8 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {posts.map((post) => {
           const isExternal = !!post.external;
           const href = isExternal ? post.external! : `/blog/${post.slug}`;
 
           const inner = (
-            <article className="group flex h-full flex-col justify-between rounded-[32px] bg-white border border-gray-200 p-8 shadow-sm transition-all duration-300 hover:shadow-md hover:border-indigo-100">
+            <article
+              className="group blog-card flex h-full flex-col justify-between rounded-lg p-6 transition-all duration-200"
+            >
               <div>
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="inline-block rounded-full bg-gray-50 px-3 py-1 text-xs font-semibold text-indigo-600 hover:bg-gray-100 transition-colors">
+                  <span
+                    className="inline-block rounded px-2 py-0.5 text-[9px] uppercase tracking-wider"
+                    style={{ background: "rgba(200,92,26,0.1)", color: "var(--orange)", border: "1px solid rgba(200,92,26,0.2)" }}
+                  >
                     {post.tag}
                   </span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(post.date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}
+                  <span className="text-[10px]" style={{ color: "#444" }}>
+                    {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </span>
                 </div>
 
-                <h2 className="text-xl font-bold text-gray-900 group-hover:text-indigo-600 transition-colors leading-snug mb-3">
+                <h2 className="text-base font-bold leading-snug mb-3 transition-colors" style={{ color: "var(--text)" }}>
                   {post.title}
                 </h2>
 
-                <p className="text-sm leading-relaxed text-gray-500 line-clamp-3">
+                <p className="text-xs leading-relaxed line-clamp-3" style={{ color: "var(--text-2)" }}>
                   {post.description}
                 </p>
               </div>
 
-              <div className="mt-8 flex items-center justify-between text-xs font-semibold text-gray-500">
-                <span>{post.readTime}</span>
-                <span className="flex items-center gap-1.5 text-indigo-600 group-hover:text-indigo-700">
+              <div className="mt-6 flex items-center justify-between text-[10px]">
+                <span style={{ color: "#444" }}>{post.readTime}</span>
+                <span
+                  className="flex items-center gap-1.5 transition-colors"
+                  style={{ color: "var(--orange)" }}
+                >
                   {isExternal ? "Read on Medium" : "Read article"}
                   <ArrowIcon external={isExternal} />
                 </span>
@@ -99,13 +87,7 @@ export default function BlogPage() {
 
           if (isExternal) {
             return (
-              <a
-                key={post.slug}
-                href={href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block"
-              >
+              <a key={post.slug} href={href} target="_blank" rel="noopener noreferrer" className="block">
                 {inner}
               </a>
             );

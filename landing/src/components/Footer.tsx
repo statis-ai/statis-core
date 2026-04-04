@@ -13,7 +13,7 @@ const LINKS = {
   ],
   Company: [
     { label: "Blog",            href: "/blog",                                    external: false },
-    { label: "Design Partners", href: "https://www.surveymonkey.com/r/GVKH2KR", external: true  },
+    { label: "Enterprise",       href: "https://www.surveymonkey.com/r/GVKH2KR", external: true  },
   ],
 };
 

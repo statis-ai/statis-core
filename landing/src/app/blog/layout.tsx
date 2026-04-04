@@ -9,7 +9,7 @@ export default function BlogLayout({
   return (
     <>
       <NavbarV2 />
-      <main className="relative z-10 min-h-screen pt-28 pb-16 bg-gray-50">
+      <main className="relative z-10 min-h-screen pt-28 pb-16" style={{ background: "var(--bg)" }}>
         {children}
       </main>
       <FooterV2 />

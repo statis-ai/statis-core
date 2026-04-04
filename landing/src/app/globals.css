@@ -10,6 +10,9 @@
   --text-2: #888888;
   --text-muted: #444444;
   --highlight: #d4d4d4;
+  --orange: #c85c1a;
+  --orange-dim: rgba(200, 92, 26, 0.12);
+  --orange-glow: rgba(200, 92, 26, 0.35);
   --radius: 4px;
   --font: "JetBrains Mono", "Fira Code", monospace;
 }
@@ -31,3 +34,66 @@ a.link        { color: #888888; transition: color 0.15s; }
 a.link:hover  { color: #ffffff; }
 a.link-muted        { color: #444444; transition: color 0.15s; }
 a.link-muted:hover  { color: #888888; }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+.blog-back-link {
+  color: #555;
+}
+.blog-back-link:hover {
+  color: var(--orange);
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+.terminal-cursor {
+  animation: blink 1s step-start infinite;
+}
+.compliance-card {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.compliance-card:hover {
+  border-color: rgba(200,92,26,0.25) !important;
+  border-top-color: rgba(200,92,26,0.45) !important;
+  box-shadow: 0 0 24px rgba(200,92,26,0.06);
+}
+
+/* Navbar CTA — orange fill + glow on hover */
+.navbar-cta-btn {
+  border: 1px solid var(--orange);
+  color: var(--orange);
+}
+.navbar-cta-btn:hover {
+  background: var(--orange);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(200,92,26,0.4), 0 0 40px rgba(200,92,26,0.15);
+}
+
+/* CTA section docs link */
+.cta-docs-link {
+  color: #555;
+}
+.cta-docs-link:hover {
+  color: #888;
+}
+
+.blog-card {
+  background: #0e0e0e;
+  border: 1px solid #1e1e1e;
+  border-top: 1px solid rgba(200,92,26,0.2);
+}
+.blog-card:hover {
+  border-color: #2a2a2a;
+  border-top-color: rgba(200,92,26,0.5);
+}

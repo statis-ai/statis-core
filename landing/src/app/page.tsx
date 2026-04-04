@@ -1,9 +1,14 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
+import { IntegrationsStrip } from "@/components/sections/IntegrationsStrip";
+import { ProblemSection } from "@/components/sections/ProblemSection";
 import { ConsolePreview } from "@/components/ConsolePreview";
+import { CodeSnippetSection } from "@/components/sections/CodeSnippetSection";
 import { HowItWorks } from "@/components/HowItWorks";
 import { FAQSection } from "@/components/sections/FAQSection";
 import { Dogfood } from "@/components/Dogfood";
+import { ComplianceStrip } from "@/components/sections/ComplianceStrip";
+import { CTASection } from "@/components/sections/CTASection";
 import { Footer } from "@/components/Footer";
 
 const JSONLD = {
@@ -41,10 +46,15 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
+        <IntegrationsStrip />
+        <ProblemSection />
         <ConsolePreview />
+        <CodeSnippetSection />
         <HowItWorks />
         <FAQSection />
         <Dogfood />
+        <ComplianceStrip />
+        <CTASection />
       </main>
       <Footer />
     </>

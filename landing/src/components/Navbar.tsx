@@ -20,6 +20,7 @@ export function Navbar() {
         background: scrolled ? "rgba(17,17,17,0.95)" : "#111111",
         borderBottom: "1px solid var(--border)",
         transition: "background 0.2s",
+        position: "relative",
       }}
     >
       <nav className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
@@ -33,18 +34,31 @@ export function Navbar() {
           <a href="https://github.com/statis-ai/statis-sdk" target="_blank" rel="noopener noreferrer"
              className="link hidden sm:inline text-xs">GitHub</a>
           <a href="https://console.statis.dev" target="_blank" rel="noopener noreferrer"
-             className="link-muted hidden sm:inline text-xs">Console</a>
+             className="link-muted hidden sm:inline text-xs">Log In</a>
           <a
-            href="https://pypi.org/project/statis-ai/"
+            href="https://console.statis.dev"
             target="_blank"
             rel="noopener noreferrer"
-            className="link text-xs px-3 py-1.5 rounded"
-            style={{ border: "1px solid #2a2a2a" }}
+            className="navbar-cta-btn text-xs font-mono px-3.5 py-1.5 rounded transition-all"
           >
             Get Access
           </a>
         </div>
       </nav>
+
+      {/* Horizon glow bar */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "1px",
+          background: "linear-gradient(90deg, transparent 0%, var(--orange-glow) 25%, var(--orange) 50%, var(--orange-glow) 75%, transparent 100%)",
+          boxShadow: "0 0 20px 6px var(--orange-glow), 0 2px 48px 0 rgba(200,92,26,0.15)",
+          pointerEvents: "none",
+        }}
+      />
     </header>
   );
 }

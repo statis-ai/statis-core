@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/Logo";
 
 export function NavbarV2() {
   const [scrolled, setScrolled] = useState(false);
@@ -21,18 +21,8 @@ export function NavbarV2() {
       style={{ background: scrolled ? "rgba(9,9,9,0.92)" : "transparent" }}
     >
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-        <Link href="/" className="flex items-center gap-2.5 cursor-pointer">
-          <Image
-            src="/logomark-transparent.png"
-            alt="Statis"
-            width={26}
-            height={26}
-            className="shrink-0 rounded"
-            priority
-          />
-          <span className="text-sm font-mono font-semibold text-white tracking-tight">
-            Statis
-          </span>
+        <Link href="/" className="flex items-center cursor-pointer">
+          <Logo />
         </Link>
 
         <div className="flex items-center gap-6">
@@ -73,13 +63,12 @@ export function NavbarV2() {
           </a>
 
           <a
-            href="https://www.surveymonkey.com/r/GVKH2KR"
+            href="https://console.statis.dev"
             target="_blank"
             rel="noopener noreferrer"
-            className="rounded text-xs font-mono font-medium text-black px-3.5 py-1.5 transition-opacity hover:opacity-90"
-            style={{ background: "var(--accent)" }}
+            className="navbar-cta-btn rounded text-xs font-mono px-3.5 py-1.5 transition-all"
           >
-            Get Access
+            Get Started
           </a>
         </div>
       </nav>

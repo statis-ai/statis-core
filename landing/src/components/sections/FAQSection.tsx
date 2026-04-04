@@ -55,7 +55,7 @@ export function FAQSection() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
-        <section className="py-28">
+        <section className="py-20">
             <div className="mx-auto max-w-3xl px-6">
                 <div className="text-center mb-14">
                     <p
@@ -77,7 +77,8 @@ export function FAQSection() {
                                 key={index}
                                 style={{
                                     background: "var(--bg-surface)",
-                                    border: `1px solid ${isOpen ? "rgba(255,255,255,0.1)" : "var(--border)"}`,
+                                    border: `1px solid ${isOpen ? "rgba(200,92,26,0.2)" : "var(--border)"}`,
+                                    borderLeft: isOpen ? "2px solid rgba(200,92,26,0.4)" : "2px solid transparent",
                                     borderRadius: "var(--radius)",
                                     transition: "border-color 0.2s ease",
                                 }}

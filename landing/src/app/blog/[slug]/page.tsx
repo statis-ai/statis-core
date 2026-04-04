@@ -25,7 +25,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mt-12 mb-4 border-l-2 border-indigo-600 pl-4 text-2xl font-bold text-gray-900 font-serif">
+    <h2
+      className="mt-12 mb-4 pl-4 text-xl font-bold"
+      style={{ borderLeft: "2px solid var(--orange)", color: "var(--text)" }}
+    >
       {children}
     </h2>
   );
@@ -34,7 +37,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 function StaleStateContent() {
   return (
     <>
-      <p className="text-lg font-medium text-gray-800 leading-relaxed">
+      <p className="text-base font-medium leading-relaxed" style={{ color: "#ccc" }}>
         Why Your Multi-Agent Systems are Hallucinating (and It&rsquo;s Not the
         LLM&rsquo;s Fault)
       </p>
@@ -52,7 +55,7 @@ function StaleStateContent() {
         hallucination.&rdquo; But if you look under the hood of most
         multi-agent architectures, you&rsquo;ll find the culprit isn&rsquo;t
         the model &mdash; it&rsquo;s the data. Specifically, it&rsquo;s{" "}
-        <strong className="text-gray-900">stale state</strong>.
+        <strong style={{ color: "#ccc" }}>stale state</strong>.
       </p>
 
       <SectionHeading>The Coordination Crisis</SectionHeading>
@@ -76,7 +79,7 @@ function StaleStateContent() {
         routine. It looks at a cached state from five minutes ago, sees the
         customer is &ldquo;healthy,&rdquo; and fires off an automated, cheerful
         email:{" "}
-        <em className="text-gray-600">
+        <em style={{ color: "#666" }}>
           &ldquo;Happy Friday! Are you ready to upgrade your plan?&rdquo;
         </em>
       </p>
@@ -110,7 +113,7 @@ function StaleStateContent() {
       <p>
         You don&rsquo;t want your agents &ldquo;retrieving&rdquo; dynamic
         state. You want them{" "}
-        <strong className="text-gray-900">reacting</strong> to it.
+        <strong style={{ color: "#ccc" }}>reacting</strong> to it.
       </p>
 
       <SectionHeading>
@@ -126,7 +129,7 @@ function StaleStateContent() {
 
       <p>
         This is why we built{" "}
-        <strong className="text-indigo-600">Statis</strong> &mdash; a
+        <strong style={{ color: "var(--orange)" }}>Statis</strong> &mdash; a
         semantic event bus designed specifically for AI agents. Think of it as{" "}
         <em>Kafka for AI state</em>.
       </p>
@@ -152,7 +155,7 @@ function StaleStateContent() {
 
       <p>
         The magic behind this real-time coordination is our{" "}
-        <strong className="text-gray-900">Materialize-on-Write</strong>{" "}
+        <strong style={{ color: "#ccc" }}>Materialize-on-Write</strong>{" "}
         architecture.
       </p>
 
@@ -165,45 +168,25 @@ function StaleStateContent() {
       </p>
 
       <ol className="my-6 list-none space-y-4 pl-0">
-        <li className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
-            1
-          </span>
-          <span>
-            <strong className="text-gray-900">The Append</strong> &mdash; The
-            semantic event is ingested into an immutable log.
-          </span>
-        </li>
-        <li className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
-            2
-          </span>
-          <span>
-            <strong className="text-gray-900">The Lock</strong> &mdash; Statis
-            safely locks the entity&rsquo;s state to prevent concurrent race
-            conditions.
-          </span>
-        </li>
-        <li className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
-            3
-          </span>
-          <span>
-            <strong className="text-gray-900">The Reduction</strong> &mdash; A
-            pure-function reducer computes the exact new state (e.g., flipping{" "}
-            <code>churn_risk</code> to <code>true</code>).
-          </span>
-        </li>
-        <li className="flex gap-3">
-          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-xs font-bold text-indigo-600">
-            4
-          </span>
-          <span>
-            <strong className="text-gray-900">The Push</strong> &mdash; A
-            delivery notification is enqueued to push the new state to
-            subscribed agents in the exact same database transaction.
-          </span>
-        </li>
+        {[
+          { n: "1", label: "The Append", desc: "The semantic event is ingested into an immutable log." },
+          { n: "2", label: "The Lock", desc: "Statis safely locks the entity\u2019s state to prevent concurrent race conditions." },
+          { n: "3", label: "The Reduction", desc: "A pure-function reducer computes the exact new state (e.g., flipping churn_risk to true)." },
+          { n: "4", label: "The Push", desc: "A delivery notification is enqueued to push the new state to subscribed agents in the exact same database transaction." },
+        ].map(({ n, label, desc }) => (
+          <li key={n} className="flex gap-3">
+            <span
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
+              style={{ background: "rgba(200,92,26,0.1)", color: "var(--orange)", border: "1px solid rgba(200,92,26,0.2)" }}
+            >
+              {n}
+            </span>
+            <span>
+              <strong style={{ color: "#ccc" }}>{label}</strong>{" "}
+              &mdash; {desc}
+            </span>
+          </li>
+        ))}
       </ol>
 
       <p>
@@ -214,9 +197,9 @@ function StaleStateContent() {
         determinism.
       </p>
 
-      <hr className="my-10 border-gray-200" />
+      <hr className="my-10" style={{ borderColor: "#1a1a1a" }} />
 
-      <p className="text-lg text-gray-800">
+      <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
         If we want to build autonomous AI systems that enterprises can actually
         trust, we have to stop asking our agents to constantly look over their
         shoulders to see what the other agents are doing. Give them a shared,
@@ -234,79 +217,67 @@ export default async function BlogPostPage({ params }: Props) {
   const { slug } = await params;
   const post = getPostBySlug(slug);
 
-  if (!post || post.external) {
-    notFound();
-  }
+  if (!post || post.external) notFound();
 
   const ContentComponent = CONTENT_MAP[slug];
-  if (!ContentComponent) {
-    notFound();
-  }
+  if (!ContentComponent) notFound();
 
   return (
-    <article className="mx-auto max-w-3xl px-6 lg:px-8">
+    <article className="mx-auto max-w-3xl px-6">
       <Link
         href="/blog"
-        className="group mb-12 inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition-colors hover:text-indigo-600 mt-20"
+        className="group mb-12 inline-flex items-center gap-2 text-xs transition-colors mt-8 blog-back-link"
       >
-        <svg
-          className="h-4 w-4 transition-transform group-hover:-translate-x-1"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M7 16l-4-4m0 0l4-4m-4 4h18"
-          />
+        <svg className="h-3 w-3 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
         </svg>
         Back to Blog
       </Link>
 
       <header className="mb-10">
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-indigo-600">
+          <span
+            className="inline-block rounded px-2 py-0.5 text-[9px] uppercase tracking-wider"
+            style={{ background: "rgba(200,92,26,0.1)", color: "var(--orange)", border: "1px solid rgba(200,92,26,0.2)" }}
+          >
             {post.tag}
           </span>
-          <span className="text-xs font-medium text-gray-500">
-            {new Date(post.date).toLocaleDateString("en-US", {
-              month: "long",
-              day: "numeric",
-              year: "numeric",
-            })}
+          <span className="text-[10px]" style={{ color: "#444" }}>
+            {new Date(post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
           </span>
-          <span className="text-xs text-gray-400">&middot;</span>
-          <span className="text-xs font-medium text-gray-500">{post.readTime}</span>
+          <span style={{ color: "#333" }}>&middot;</span>
+          <span className="text-[10px]" style={{ color: "#444" }}>{post.readTime}</span>
         </div>
 
-        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-5xl leading-[1.15] font-serif">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.15]" style={{ color: "var(--text)" }}>
           {post.title}
         </h1>
       </header>
 
-      <div className="space-y-6 text-[17px] leading-[1.8] text-gray-600">
+      <div
+        className="space-y-6 text-sm leading-[1.9]"
+        style={{ color: "var(--text-2)" }}
+      >
+        <style>{`
+          article code {
+            background: #111;
+            border: 1px solid #222;
+            padding: 0.1em 0.4em;
+            border-radius: 3px;
+            font-size: 0.85em;
+            color: #aaa;
+          }
+        `}</style>
         <ContentComponent />
       </div>
 
-      <div className="mt-20 border-t border-gray-200 pt-8 mb-24">
+      <div className="mt-20 pt-8 mb-24" style={{ borderTop: "1px solid #1a1a1a" }}>
         <Link
           href="/blog"
-          className="group inline-flex items-center gap-2 text-sm font-semibold text-gray-500 transition-colors hover:text-indigo-600"
+          className="group inline-flex items-center gap-2 text-xs transition-colors blog-back-link"
         >
-          <svg
-            className="h-4 w-4 transition-transform group-hover:-translate-x-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M7 16l-4-4m0 0l4-4m-4 4h18"
-            />
+          <svg className="h-3 w-3 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
           </svg>
           All posts
         </Link>
