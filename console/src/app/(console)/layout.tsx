@@ -13,7 +13,7 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
             className="flex-1 overflow-y-auto bg-[#0a0a0a]"
             style={{
               backgroundImage: "radial-gradient(circle, #1c1c1c 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
+              backgroundSize: "10px 10px",
             }}
           >
             {children}
