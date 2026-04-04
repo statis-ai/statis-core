@@ -418,7 +418,7 @@ function ReceiptCard({ action, decision, rid, onClose }: {
     ["policy",      action.rule],
     ["decided_by",  "human (you)"],
     ["executed_at", `${action.ts} UTC`],
-    ...(ok ? [["adapter","stripe → promo applied"]] : [["outcome","action blocked"]] as [string,string][]),
+    ...(ok ? [["adapter","stripe → promo applied"] as [string,string]] : [["outcome","action blocked"] as [string,string]]),
     ["ltv",         action.ltv],
     ["sha256",      `${(rid||"rct0").slice(-4)}a3b2...d9f1`],
   ];
