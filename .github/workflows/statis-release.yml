@@ -45,6 +45,7 @@ jobs:
               \"action_type\": \"github_create_release\",
               \"proposed_by\": \"release-agent\",
               \"target_system\": \"github\",
+              \"target_entity\": {\"entity_type\": \"release\", \"entity_id\": \"${VERSION}\"},
               \"parameters\": {
                 \"owner\": \"${OWNER}\",
                 \"repo\": \"${REPO}\",
@@ -102,6 +103,7 @@ jobs:
               \"action_type\": \"slack_send_message\",
               \"proposed_by\": \"notify-agent\",
               \"target_system\": \"slack\",
+              \"target_entity\": {\"entity_type\": \"release\", \"entity_id\": \"${VERSION}\"},
               \"parameters\": {
                 \"channel\": \"#statis-releases\",
                 \"text\": \"Released ${VERSION} — https://github.com/${GITHUB_REPOSITORY}/releases/tag/${VERSION}\"

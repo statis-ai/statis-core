@@ -42,6 +42,7 @@ jobs:
               \"action_type\": \"github_trigger_workflow\",
               \"proposed_by\": \"deploy-agent\",
               \"target_system\": \"github\",
+              \"target_entity\": {\"entity_type\": \"deployment\", \"entity_id\": \"staging-${GITHUB_SHA:0:8}\"},
               \"parameters\": {
                 \"environment\": \"staging\",
                 \"workflow_id\": \"deploy.yml\",
@@ -90,6 +91,7 @@ jobs:
               \"action_type\": \"slack_send_message\",
               \"proposed_by\": \"notify-agent\",
               \"target_system\": \"slack\",
+              \"target_entity\": {\"entity_type\": \"deployment\", \"entity_id\": \"staging-${GITHUB_SHA:0:8}\"},
               \"parameters\": {
                 \"channel\": \"#statis-deployments\",
                 \"text\": \"Staging deploy triggered for \`${GITHUB_SHA:0:8}\` (decision: ${DEPLOY_DECISION})\"
@@ -126,6 +128,7 @@ jobs:
               \"action_type\": \"linear_create_issue\",
               \"proposed_by\": \"issue-triage-agent\",
               \"target_system\": \"linear\",
+              \"target_entity\": {\"entity_type\": \"deployment\", \"entity_id\": \"staging-${GITHUB_SHA:0:8}\"},
               \"parameters\": {
                 \"title\": \"Deploy tracking: ${GITHUB_SHA:0:8}\",
                 \"description\": \"Staging deploy triggered by merge to main.\\nCommit: ${GITHUB_SHA}\\nActor: ${{ github.actor }}\"
