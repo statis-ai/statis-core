@@ -9,7 +9,13 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
         <SandboxBanner />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto bg-[#0a0a0a]">
+          <main
+            className="flex-1 overflow-y-auto bg-[#0a0a0a]"
+            style={{
+              backgroundImage: "radial-gradient(circle, #1c1c1c 1px, transparent 1px)",
+              backgroundSize: "20px 20px",
+            }}
+          >
             {children}
           </main>
         </div>

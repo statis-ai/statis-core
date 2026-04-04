@@ -223,7 +223,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0a0a0a] relative overflow-hidden">
+    <div className="min-h-screen flex bg-[#0a0a0a] relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle, #1c1c1c 1px, transparent 1px)", backgroundSize: "20px 20px" }}>
       {/* Setup animation overlay */}
       <AnimatePresence>
         {setupVisible && (
@@ -231,6 +231,7 @@ export default function AuthPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-[#f7f7f5]"
+            style={{ backgroundImage: "radial-gradient(circle, #e0e0de 1px, transparent 1px)", backgroundSize: "20px 20px" }}
           >
             <div className="w-full max-w-lg px-6">
               <div className="flex items-center gap-2 mb-8">
@@ -295,7 +296,7 @@ export default function AuthPage() {
       </AnimatePresence>
 
       {/* Left — sliding feature panel (light) */}
-      <div className="hidden lg:flex w-[520px] shrink-0 flex-col justify-between p-14 border-r border-black/[0.08] relative z-10 overflow-hidden bg-[#f7f7f5]">
+      <div className="hidden lg:flex w-[520px] shrink-0 flex-col justify-between p-14 border-r border-black/[0.08] relative z-10 overflow-hidden bg-[#f7f7f5]" style={{ backgroundImage: "radial-gradient(circle, #e0e0de 1px, transparent 1px)", backgroundSize: "20px 20px" }}>
         <div>
           {/* Logo */}
           <div className="flex items-center gap-2 mb-14">
