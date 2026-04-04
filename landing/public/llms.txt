@@ -1,0 +1,30 @@
+# Statis — Agent Execution Infrastructure
+
+> The execution layer for production AI agents.
+
+Statis is the layer between AI agents and production systems. Agents propose actions, policies evaluate them, a distributed lock guarantees exactly-once execution, and a SHA-256 receipt is written atomically.
+
+## Primitives
+
+- Action Contract: POST /actions — agent declares intent, nothing executes yet
+- Policy Engine: POST /actions/{id}/evaluate — deterministic rule evaluation
+- Execution Lock: distributed lock on action ID, adapter fires once
+- Ledger Receipt: SHA-256 tamper-evident hash, immutable proof
+
+## SDKs
+
+- Python: pip install statis-ai (PyPI)
+- TypeScript: npm install statis-ai (npm)
+
+## Adapters
+
+Stripe, Salesforce, HubSpot, Zendesk, Airflow, PostgreSQL
+
+## Links
+
+- API: https://api.statis.dev
+- Console: https://console.statis.dev
+- Docs: https://docs.statis.dev
+- GitHub: https://github.com/statis-ai/statis-sdk
+- Python SDK: https://pypi.org/project/statis-ai/
+- TypeScript SDK: https://www.npmjs.com/package/statis-ai

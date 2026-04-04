@@ -44,7 +44,7 @@ Agent execution infrastructure. The layer between AI agents and production syste
 | Escalation audit log — `escalation_reviews` table | ✅ | `api/app/models/escalation_review.py` |
 | Post-escalation receipt tracing — `reviewer_id` injected into `execution_result` | ✅ | `worker/execute.py` |
 
-### DB Schema — 18 migrations ✅ Applied to production
+### DB Schema — 19 migrations (18 applied, 0028 pending)
 
 | Migration | Description |
 |---|---|
@@ -61,6 +61,16 @@ Agent execution infrastructure. The layer between AI agents and production syste
 | 0016 | seed Salesforce policy rules (`salesforce_update_record_v1`, `salesforce_create_record_v1`) |
 | 0017 | seed Zendesk policy rules (`zendesk_create_ticket_v1`, `zendesk_update_ticket_v1`) |
 | 0018 | seed HubSpot policy rules (`hubspot_update_contact_v1`, `hubspot_create_deal_v1`) |
+| 0019 | create users table |
+| 0020 | add tenant_id to policy_rules |
+| 0021 | add key_prefix to api_keys |
+| 0022 | add description to policy_rules |
+| 0023 | create kill_switch table, add mode to action_contracts |
+| 0024 | add mode to receipts |
+| 0025 | create webhooks table |
+| 0026 | create threat_log table |
+| 0027 | add SSO fields to users |
+| 0028 | seed GitHub dogfood policy rules (7 rules for 4 action types) |
 
 ### Tests
 
@@ -91,6 +101,10 @@ Agent execution infrastructure. The layer between AI agents and production syste
 | `"salesforce"` | `SalesforceAdapter` | `salesforce_update_record`, `salesforce_create_record` |
 | `"zendesk"` | `ZendeskAdapter` | `zendesk_create_ticket`, `zendesk_update_ticket` |
 | `"hubspot"` | `HubSpotAdapter` | `hubspot_update_contact`, `hubspot_create_deal` |
+| `"github_merge_pr"` | `GenericAdapter` | `github_merge_pr` (audit-only, Phase 1) |
+| `"github_create_release"` | `GenericAdapter` | `github_create_release` (audit-only, Phase 1) |
+| `"github_trigger_workflow"` | `GenericAdapter` | `github_trigger_workflow` (audit-only, Phase 1) |
+| `"github_close_issue"` | `GenericAdapter` | `github_close_issue` (audit-only, Phase 1) |
 
 ---
 
@@ -142,6 +156,13 @@ Pure `PolicyEvaluator` — zero DB imports, fully unit-testable.
 | `zendesk_update_ticket_v1` | `zendesk_update_ticket` | `operator_approved=true` | APPROVED |
 | `hubspot_update_contact_v1` | `hubspot_update_contact` | `operator_approved=true` | APPROVED |
 | `hubspot_create_deal_v1` | `hubspot_create_deal` | `operator_approved=true` | APPROVED |
+| `github_merge_pr_v1` | `github_merge_pr` | `ci_status=passed`, `approvals_gte=1` | APPROVED |
+| `github_merge_pr_no_ci_v1` | `github_merge_pr` | (default fallback) | ESCALATED |
+| `github_create_release_v1` | `github_create_release` | `operator_approved=true` | ESCALATED |
+| `github_trigger_workflow_staging_v1` | `github_trigger_workflow` | `environment=staging` | APPROVED |
+| `github_trigger_workflow_prod_v1` | `github_trigger_workflow` | `environment=production` | ESCALATED |
+| `github_close_issue_v1` | `github_close_issue` | `opened_by_agent=true` | APPROVED |
+| `github_close_issue_human_v1` | `github_close_issue` | (default fallback) | ESCALATED |
 
 **Condition keys:**
 
@@ -151,6 +172,10 @@ Pure `PolicyEvaluator` — zero DB imports, fully unit-testable.
 | `min_ltv` | `entity_state` | Float threshold — `ltv >= value` |
 | `no_discount_days` | `entity_state` + event history | No discount within N days |
 | `operator_approved` | `action.context` | Caller attestation — not entity state |
+| `ci_status` | `entity_state` | String match (e.g. `passed`) |
+| `approvals_gte` | `entity_state` | Int threshold — `approvals >= value` |
+| `environment` | `entity_state` / `action.parameters` | String match (e.g. `staging`, `production`) |
+| `opened_by_agent` | `entity_state` | Bool check — issue opened by an agent |
 
 ---
 
@@ -290,17 +315,23 @@ Deploy: connect `statis-ai/statis-core` to mintlify.com → set docs dir to `doc
 
 ---
 
-## Demo Script — `examples/`
+## Demo Scripts — `examples/`
 
 ### Status: ✅ Complete
 
-`examples/retention_demo.py` — full end-to-end demo
+`examples/retention_demo.py` — full end-to-end demo (all four primitives)
 - Entity: `acct-42`, fresh `action_id` each run (`act-demo-HHMMSS`)
 - Posts `account.churn_risk_updated { churn_risk: true }`
 - Starts execution worker in background thread
 - Polls `GET /actions/{id}` every 500ms until `COMPLETED`
 - Step 6 proves idempotency: 409 on duplicate propose + 409 on re-evaluate
 - Run: `STATIS_API_KEY=<key> python examples/retention_demo.py`
+
+`examples/github_dogfood.py` — GitHub dogfood demo (Phase 1, audit-only)
+- Proposes 4 GitHub action types via Python SDK: merge PR, create release, trigger workflow (staging + production)
+- Seeds entity state via events, then evaluates policy rules
+- Shows APPROVED vs ESCALATED decisions based on conditions (ci_status, approvals, environment)
+- Run: `STATIS_API_KEY=<key> STATIS_BASE_URL=<url> python examples/github_dogfood.py`
 
 ---
 

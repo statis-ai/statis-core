@@ -253,5 +253,35 @@ class PolicyEvaluator:
             amount = params.get("amount_cents", 0)
             return float(balance) - float(amount) >= float(value)
 
+        # ── GitHub dogfood condition handlers ─────────────────────────────
+
+        if key == "ci_status":
+            # entity_state["ci_status"] must equal the expected value (e.g. "passed").
+            return str(entity_state.get("ci_status", "")).lower() == str(value).lower()
+
+        if key == "approvals_gte":
+            # entity_state["approvals"] must be >= the threshold.
+            approvals = entity_state.get("approvals", 0)
+            return int(approvals) >= int(value)
+
+        if key == "environment":
+            # Match entity_state["environment"] or action.parameters["environment"].
+            env_state = entity_state.get("environment", "")
+            if str(env_state).lower() == str(value).lower():
+                return True
+            # Fallback: check action parameters.
+            params: dict = {}
+            if action is not None:
+                params = (
+                    action.parameters
+                    if hasattr(action, "parameters")
+                    else action.get("parameters", {})
+                )
+            return str(params.get("environment", "")).lower() == str(value).lower()
+
+        if key == "opened_by_agent":
+            # entity_state["opened_by_agent"] must match the expected bool.
+            return bool(entity_state.get("opened_by_agent")) == bool(value)
+
         # Unknown condition key — fail closed (safe default).
         return False

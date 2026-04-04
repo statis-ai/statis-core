@@ -16,8 +16,12 @@ adapters:
   hubspot: app.adapters.hubspot.HubSpotAdapter
   filesystem: app.adapters.filesystem.FilesystemAdapter
   linear: app.adapters.linear.LinearAdapter
-  github_actions: app.adapters.github_actions.GitHubActionsAdapter
   slack: app.adapters.slack.SlackAdapter
+  # GitHub dogfood action types (Phase 1: audit-only via GenericAdapter)
+  github_merge_pr: app.adapters.generic.GenericAdapter
+  github_create_release: app.adapters.generic.GenericAdapter
+  github_trigger_workflow: app.adapters.generic.GenericAdapter
+  github_close_issue: app.adapters.generic.GenericAdapter
   # Keel log-only action types
   log_expense: app.adapters.generic.GenericAdapter
   propose_trade: app.adapters.generic.GenericAdapter
