@@ -145,10 +145,38 @@ Receipt written            ← Ledger (P4)
 
 ## Quickstart
 
-**Prerequisites:** PostgreSQL running locally.
+**Prerequisites:** [Docker](https://docs.docker.com/get-docker/) and Docker Compose.
 
 ```bash
 git clone https://github.com/statis-ai/statis-core.git
+cd statis-core
+cp .env.example .env
+docker compose up
+```
+
+That's it. Docker Compose will:
+1. Start PostgreSQL
+2. Run all database migrations
+3. Seed your admin API key (printed to the `api` container logs — look for `API Key: st_...`)
+4. Start the API on `http://localhost:8000`
+5. Start the execution worker
+
+Copy the API key from the logs, then run the end-to-end demo:
+
+```bash
+STATIS_API_KEY=<your-key> python examples/retention_demo.py
+```
+
+The demo proposes a retention offer for `acct-42`, evaluates it against the `churn_retention_v1` policy, executes via the mock Stripe adapter, and prints the receipt with its SHA-256 hash.
+
+**Manual setup (without Docker):**
+
+<details>
+<summary>Expand for local setup instructions</summary>
+
+Prerequisites: PostgreSQL running locally.
+
+```bash
 cd statis-core/api
 pip install -r requirements.txt
 python -m alembic upgrade head
@@ -168,13 +196,7 @@ cd console && npm install && npm run dev
 python -m worker.execute
 ```
 
-Run the end-to-end demo:
-
-```bash
-STATIS_API_KEY=<your-key> python examples/retention_demo.py
-```
-
-The demo proposes a retention offer for `acct-42`, evaluates it against the `churn_retention_v1` policy, executes via the mock Stripe adapter, and prints the receipt with its SHA-256 hash.
+</details>
 
 ---
 

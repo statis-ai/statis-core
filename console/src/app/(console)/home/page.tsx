@@ -8,6 +8,7 @@ import {
   fetchEscalations,
   fetchKillSwitchStatus,
   fetchPolicyRules,
+  fetchAnalyticsSummary,
   activateKillSwitch,
   deactivateKillSwitch,
 } from "@/lib/api";
@@ -17,6 +18,7 @@ import type {
   EscalatedAction,
   KillSwitchStatus,
   PolicyRule,
+  AnalyticsSummary,
 } from "@/lib/api";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -46,6 +48,7 @@ export default function HomePage() {
   const [escalations, setEscalations] = useState<EscalatedAction[]>([]);
   const [killSwitch, setKillSwitch] = useState<KillSwitchStatus | null>(null);
   const [policyRules, setPolicyRules] = useState<PolicyRule[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number>(0);
@@ -54,19 +57,21 @@ export default function HomePage() {
 
   const loadData = useCallback(async () => {
     try {
-      const [actionsRes, eventsRes, escalationsRes, ksRes, rulesRes] =
+      const [actionsRes, eventsRes, escalationsRes, ksRes, rulesRes, analyticsRes] =
         await Promise.all([
           fetchAllActions({ limit: 200 }),
           fetchAllEvents({ limit: 10 }),
           fetchEscalations(),
           fetchKillSwitchStatus(),
           fetchPolicyRules(),
+          fetchAnalyticsSummary(7),
         ]);
       setActions(actionsRes);
       setEvents(eventsRes);
       setEscalations(escalationsRes);
       setKillSwitch(ksRes);
       setPolicyRules(rulesRes);
+      setAnalytics(analyticsRes);
       setLastUpdated(Date.now());
       setError(null);
     } catch (err) {
@@ -91,18 +96,11 @@ export default function HomePage() {
   }, [lastUpdated]);
 
   // Metrics
-  const now = Date.now();
-  const actions24h = actions.filter(
-    (a) => now - new Date(a.created_at).getTime() < 86400000
-  );
-  const completed = actions24h.filter((a) => a.status === "COMPLETED").length;
-  const denied = actions24h.filter((a) => a.status === "DENIED").length;
-  const escalated = actions24h.filter((a) => a.status === "ESCALATED").length;
-  const denominator = completed + denied + escalated;
-  const executionRate =
-    denominator > 0 ? ((completed / denominator) * 100).toFixed(1) : "--";
   const pendingEscalations = escalations.length;
   const activePolicies = policyRules.filter((r) => r.active).length;
+  const approvalRateDisplay = analytics
+    ? `${(analytics.approval_rate * 100).toFixed(1)}%`
+    : "--";
 
   async function handleKillSwitchToggle() {
     if (!killSwitch) return;
@@ -210,8 +208,8 @@ export default function HomePage() {
       {/* Metrics */}
       <div className="grid grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Actions (24h)", value: String(actions24h.length) },
-          { label: "Execution Rate", value: `${executionRate}%` },
+          { label: "Actions (7d)", value: analytics ? String(analytics.actions_total) : "--" },
+          { label: "Approval Rate", value: approvalRateDisplay },
           { label: "Pending Escalations", value: String(pendingEscalations) },
           { label: "Active Policies", value: String(activePolicies) },
         ].map((m) => (
@@ -226,6 +224,101 @@ export default function HomePage() {
           </div>
         ))}
       </div>
+
+      {/* Analytics row */}
+      {analytics && (
+        <div className="flex gap-5 mb-5">
+          {/* 7-Day Trend sparkline */}
+          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-[2]">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
+              7-Day Trend
+            </p>
+            {analytics.daily_trend.length > 0 ? (() => {
+              const W = 240, H = 48;
+              const days = analytics.daily_trend;
+              const totals = days.map(d => d.approved + d.denied + d.escalated);
+              const approveds = days.map(d => d.approved);
+              const maxTotal = Math.max(...totals, 1);
+              const pts = (vals: number[]) =>
+                vals
+                  .map((v, i) => {
+                    const x = (i / Math.max(vals.length - 1, 1)) * W;
+                    const y = H - (v / maxTotal) * H;
+                    return `${x.toFixed(1)},${y.toFixed(1)}`;
+                  })
+                  .join(" ");
+              return (
+                <svg width={W} height={H} className="overflow-visible">
+                  <polyline
+                    points={pts(totals)}
+                    fill="none"
+                    stroke="#333"
+                    strokeWidth="1.5"
+                  />
+                  <polyline
+                    points={pts(approveds)}
+                    fill="none"
+                    stroke="#888"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              );
+            })() : (
+              <p className="text-xs text-[#444444]">No data yet.</p>
+            )}
+            <div className="flex gap-4 mt-3">
+              <span className="flex items-center gap-1.5 text-[10px] text-[#444444]">
+                <span className="w-3 h-px bg-[#333] inline-block" /> Total
+              </span>
+              <span className="flex items-center gap-1.5 text-[10px] text-[#444444]">
+                <span className="w-3 h-px bg-[#888] inline-block" /> Approved
+              </span>
+            </div>
+          </div>
+
+          {/* Top Rules */}
+          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
+              Top Rules (7d)
+            </p>
+            {analytics.top_rules.length === 0 ? (
+              <p className="text-xs text-[#444444]">No rule activity.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {analytics.top_rules.map((r) => (
+                  <div key={r.rule_id} className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11px] text-[#888888] truncate" title={r.rule_id}>
+                      {r.rule_id.length > 20 ? `${r.rule_id.slice(0, 20)}…` : r.rule_id}
+                    </span>
+                    <span className="text-[11px] text-[#555555] shrink-0">{r.fires}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Top Agents */}
+          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
+              Top Agents (7d)
+            </p>
+            {analytics.top_agents.length === 0 ? (
+              <p className="text-xs text-[#444444]">No agent activity.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {analytics.top_agents.map((a) => (
+                  <div key={a.agent_id} className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11px] text-[#888888] truncate" title={a.agent_id}>
+                      {a.agent_id.length > 20 ? `${a.agent_id.slice(0, 20)}…` : a.agent_id}
+                    </span>
+                    <span className="text-[11px] text-[#555555] shrink-0">{a.actions}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Bottom row */}
       <div className="flex gap-5">
