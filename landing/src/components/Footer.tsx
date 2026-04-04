@@ -35,7 +35,7 @@ function LinkedInIcon() {
 
 export function Footer() {
   return (
-    <footer style={{ background: "#111111" }}>
+    <footer style={{ background: "#191919", borderTop: "1px solid #1a1a1a" }}>
       <div className="mx-auto max-w-5xl px-6 pt-14 pb-10">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-4 lg:gap-16">
 

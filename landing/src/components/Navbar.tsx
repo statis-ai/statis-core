@@ -17,10 +17,9 @@ export function Navbar() {
     <header
       className="fixed inset-x-0 top-0 z-50"
       style={{
-        background: scrolled ? "rgba(17,17,17,0.95)" : "#111111",
+        background: scrolled ? "rgba(22,22,22,0.97)" : "#191919",
         borderBottom: "1px solid var(--border)",
         transition: "background 0.2s",
-        position: "relative",
       }}
     >
       <nav className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">

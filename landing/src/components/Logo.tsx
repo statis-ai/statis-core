@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 
 export function Logo({ size = "default" }: { size?: "default" | "large" }) {
-  const fontSize = size === "large" ? "text-lg" : "text-sm";
+  const fontSize = size === "large" ? "text-xl" : "text-base";
 
   return (
     <span className={`${fontSize} font-bold tracking-tight inline-flex items-center`}>
@@ -13,8 +13,8 @@ export function Logo({ size = "default" }: { size?: "default" | "large" }) {
         transition={{ duration: 0.9, repeat: Infinity, repeatType: "reverse", ease: "linear" }}
         className="inline-block ml-[1px]"
         style={{
-          width: size === "large" ? "10px" : "7px",
-          height: size === "large" ? "18px" : "13px",
+          width: size === "large" ? "11px" : "8px",
+          height: size === "large" ? "20px" : "15px",
           background: "var(--text)",
           verticalAlign: "baseline",
           marginBottom: "-1px",
