@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -29,5 +29,7 @@ class EscalatedActionOut(BaseModel):
     target_entity: dict
     target_system: str
     proposed_by: str
+    parameters: dict[str, Any] = {}
+    context: dict[str, Any] = {}
     created_at: datetime
     updated_at: datetime
