@@ -23,10 +23,11 @@ import {
   KeyRound,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { fetchEscalations } from "@/lib/api";
 
 type NavItem =
   | { label: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }> }
-  | { label: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; badge: number }
+  | { label: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; badgeKey: "escalations" }
   | { label: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }>; external: true };
 
 type NavSection = { group?: string; items: NavItem[] };
@@ -48,7 +49,7 @@ const NAV: NavSection[] = [
     group: "Govern",
     items: [
       { label: "Policies", href: "/policies", icon: Shield },
-      { label: "Escalations", href: "/escalations", icon: AlertTriangle, badge: 2 },
+      { label: "Escalations", href: "/escalations", icon: AlertTriangle, badgeKey: "escalations" },
       { label: "Kill Switch", href: "/kill-switch", icon: ShieldOff },
       { label: "Threat Logs", href: "/threat-logs", icon: AlertOctagon },
     ],
@@ -81,10 +82,31 @@ export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [email, setEmail] = useState("");
+  const [escalationCount, setEscalationCount] = useState(0);
 
   useEffect(() => {
     const stored = localStorage.getItem("statis_user_email");
     if (stored) setEmail(stored);
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCount() {
+      try {
+        const data = await fetchEscalations();
+        if (!cancelled) setEscalationCount(data.length);
+      } catch {
+        // silently ignore — badge just won't show
+      }
+    }
+
+    loadCount();
+    const interval = setInterval(loadCount, 30_000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, []);
 
   function handleLogout() {
@@ -94,6 +116,10 @@ export default function Sidebar() {
     localStorage.removeItem("statis_onboarding_state");
     router.push("/auth");
   }
+
+  const badges: Record<string, number> = {
+    escalations: escalationCount,
+  };
 
   return (
     <aside className="flex flex-col w-[220px] min-h-screen bg-[#0a0a0a] border-r border-[#1a1a1a] shrink-0">
@@ -119,6 +145,7 @@ export default function Sidebar() {
                 const active = pathname === item.href || pathname.startsWith(item.href + "/");
                 const Icon = item.icon;
                 const isExternal = "external" in item && item.external;
+                const badgeCount = "badgeKey" in item ? (badges[item.badgeKey] ?? 0) : 0;
                 const linkProps = isExternal
                   ? { target: "_blank", rel: "noopener noreferrer" }
                   : {};
@@ -139,11 +166,11 @@ export default function Sidebar() {
                         className={active ? "text-[#d4d4d4]" : "text-[#444444]"}
                       />
                       <span className="flex-1">{item.label}</span>
-                      {"badge" in item && item.badge ? (
+                      {badgeCount > 0 && (
                         <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500/20 text-red-400 text-[10px] font-semibold">
-                          {item.badge}
+                          {badgeCount}
                         </span>
-                      ) : null}
+                      )}
                       {isExternal && (
                         <ExternalLink size={11} className="text-[#444444]" />
                       )}
