@@ -21,9 +21,12 @@ import {
   ExternalLink,
   LogOut,
   KeyRound,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fetchEscalations } from "@/lib/api";
+import { useTheme } from "@/components/ThemeProvider";
 
 type NavItem =
   | { label: string; href: string; icon: React.ComponentType<{ size?: number; className?: string }> }
@@ -117,6 +120,8 @@ export default function Sidebar() {
     router.push("/auth");
   }
 
+  const { theme, toggle } = useTheme();
+
   const badges: Record<string, number> = {
     escalations: escalationCount,
   };
@@ -125,10 +130,27 @@ export default function Sidebar() {
     <aside className="flex flex-col w-[220px] min-h-screen bg-[#0a0a0a] border-r border-[#1a1a1a] shrink-0">
       {/* Logo */}
       <div className="flex items-center gap-2 px-5 py-4 border-b border-[#1a1a1a]">
-        <span className="text-[15px] font-bold tracking-tight text-white inline-flex items-center">
+        <span className="text-[15px] font-bold tracking-tight text-white inline-flex items-center gap-2 flex-1">
+          <svg width="18" height="18" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+            <rect x="45.5" y="11" width="9" height="41" rx="4.5" fill="#F0EDE8" transform="rotate(0 50 50)" />
+            <rect x="45.5" y="11" width="9" height="41" rx="4.5" fill="#F0EDE8" transform="rotate(60 50 50)" opacity="0.78" />
+            <rect x="45.5" y="11" width="9" height="41" rx="4.5" fill="#F0EDE8" transform="rotate(120 50 50)" opacity="0.56" />
+            <rect x="45.5" y="11" width="9" height="41" rx="4.5" fill="#F0EDE8" transform="rotate(180 50 50)" opacity="0.78" />
+            <rect x="45.5" y="11" width="9" height="41" rx="4.5" fill="#F0EDE8" transform="rotate(240 50 50)" opacity="0.56" />
+            <rect x="45.5" y="11" width="9" height="41" rx="4.5" fill="#F0EDE8" transform="rotate(300 50 50)" opacity="0.78" />
+            <circle cx="50" cy="50" r="15" fill="#c85c1a" opacity="0.28" />
+            <circle cx="50" cy="50" r="12" fill="#c85c1a" />
+            <circle cx="50" cy="50" r="3.5" fill="#F9C09A" />
+          </svg>
           statis
-          <span className="inline-block ml-[1px] animate-pulse" style={{ width: "7px", height: "13px", background: "#ffffff" }} />
         </span>
+        <button
+          onClick={toggle}
+          className="text-[#444444] hover:text-[#888888] transition-colors shrink-0"
+          title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
+        </button>
       </div>
 
       {/* Nav */}
@@ -155,12 +177,15 @@ export default function Sidebar() {
                       href={item.href}
                       {...linkProps}
                       className={cn(
-                        "flex items-center gap-2.5 px-2.5 py-2 rounded text-sm transition-colors",
+                        "relative flex items-center gap-2.5 px-2.5 py-2 rounded text-sm transition-colors",
                         active
                           ? "bg-white/[0.06] text-[#d4d4d4] font-medium"
                           : "text-[#444444] hover:bg-white/[0.04] hover:text-[#888888]"
                       )}
                     >
+                      {active && (
+                        <span className="active-indicator absolute left-0 top-1 bottom-1 w-[2px] rounded-full bg-white" />
+                      )}
                       <Icon
                         size={15}
                         className={active ? "text-[#d4d4d4]" : "text-[#444444]"}
