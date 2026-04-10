@@ -1,3 +1,5 @@
+import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
+
 // Minimal syntax token types for the code block
 type Token = { text: string; color: string };
 
@@ -42,12 +44,9 @@ export function CodeSnippetSection() {
 
           {/* Left: copy */}
           <div>
-            <p
-              className="text-[10px] uppercase tracking-[0.25em] mb-3 inline-block px-2 py-0.5 rounded"
-              style={{ color: "var(--text-2)", background: "rgba(255,255,255,0.04)" }}
-            >
-              SDK
-            </p>
+            <div className="mb-4">
+              <SectionEyebrow>SDK</SectionEyebrow>
+            </div>
             <h2 className="text-2xl sm:text-3xl font-bold leading-tight mb-4">
               Three lines to<br />
               governed execution.

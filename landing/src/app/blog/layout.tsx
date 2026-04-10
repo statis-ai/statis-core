@@ -1,5 +1,5 @@
-import { NavbarV2 } from "@/components/sections/NavbarV2";
-import { FooterV2 } from "@/components/sections/FooterV2";
+import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 export default function BlogLayout({
   children,
@@ -8,11 +8,11 @@ export default function BlogLayout({
 }) {
   return (
     <>
-      <NavbarV2 />
-      <main className="relative z-10 min-h-screen pt-28 pb-16" style={{ background: "var(--bg)" }}>
+      <Navbar />
+      <main className="relative z-10 min-h-screen pt-32 pb-16" style={{ background: "var(--bg)" }}>
         {children}
       </main>
-      <FooterV2 />
+      <Footer />
     </>
   );
 }

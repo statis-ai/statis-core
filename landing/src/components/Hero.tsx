@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { KbdPill } from "./ui/KbdPill";
+import { SectionEyebrow } from "./ui/SectionEyebrow";
 
 export function Hero() {
   return (
@@ -29,19 +30,29 @@ export function Hero() {
             }}
           />
 
-          <p
-            className="text-[10px] uppercase tracking-[0.25em] mb-6"
-            style={{ color: "var(--text-muted)", position: "relative", zIndex: 1 }}
-          >
-            Agent Execution Infrastructure
-          </p>
+          <div className="mb-6" style={{ position: "relative", zIndex: 1 }}>
+            <SectionEyebrow align="center">Agent Execution Infrastructure</SectionEyebrow>
+          </div>
 
           <h1
             className="font-bold leading-[1.05] tracking-[-0.025em] mb-6"
             style={{ fontSize: "clamp(2.4rem, 5.5vw, 4rem)", position: "relative", zIndex: 1 }}
           >
-            The execution layer<br />
-            for production<br />
+            The{" "}
+            <span
+              style={{
+                background:
+                  "linear-gradient(135deg, #c85c1a 0%, #FB923C 55%, #FED7AA 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              execution layer
+            </span>
+            <br />
+            for production
+            <br />
             AI agents.
           </h1>
 

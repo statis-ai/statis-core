@@ -1,3 +1,5 @@
+import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
+
 export function ManifestoSection() {
   return (
     <section className="relative py-40 overflow-hidden">
@@ -30,12 +32,9 @@ export function ManifestoSection() {
       />
 
       <div className="relative mx-auto max-w-5xl px-6 text-center">
-        <p
-          className="text-[10px] uppercase tracking-[0.25em] mb-8"
-          style={{ color: "var(--text-muted)" }}
-        >
-          The Statis Manifesto
-        </p>
+        <div className="mb-10">
+          <SectionEyebrow align="center">The Statis Manifesto</SectionEyebrow>
+        </div>
 
         <h2
           className="font-bold leading-[1.02] tracking-[-0.03em]"

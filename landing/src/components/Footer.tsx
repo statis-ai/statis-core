@@ -21,7 +21,6 @@ const LINKS = {
     { label: "Blog",           href: "/blog",         external: false },
     { label: "Integrations",   href: "/integrations", external: false },
     { label: "MCP Connectors", href: "/mcp",          external: false },
-    { label: "Playground",     href: "/playground",   external: false },
   ],
   Company: [
     { label: "About",       href: "/about",                                  external: false },

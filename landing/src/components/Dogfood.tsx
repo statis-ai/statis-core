@@ -1,3 +1,5 @@
+import { SectionEyebrow } from "./ui/SectionEyebrow";
+
 export function Dogfood() {
   return (
     <section className="py-20">
@@ -29,13 +31,10 @@ export function Dogfood() {
             </div>
           </div>
 
-          <p
-            className="text-[10px] uppercase tracking-[0.25em] mb-3 inline-block px-2 py-0.5 rounded"
-            style={{ color: "var(--text-2)", background: "rgba(255,255,255,0.04)" }}
-          >
-            Dogfood
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-bold leading-tight" style={{ color: "var(--text)" }}>
+          <div className="mb-4">
+            <SectionEyebrow align="center">Dogfood</SectionEyebrow>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold leading-tight tracking-tight" style={{ color: "var(--text)" }}>
             We used Statis to build Statis.
           </h2>
           <p

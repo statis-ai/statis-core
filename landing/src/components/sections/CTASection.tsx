@@ -1,3 +1,5 @@
+import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
+
 export function CTASection() {
   return (
     <section className="py-24" style={{ borderTop: "1px solid #141414" }}>
@@ -27,13 +29,10 @@ export function CTASection() {
             }}
           />
 
-          <p
-            className="text-[10px] uppercase tracking-[0.25em] mb-5 inline-block px-2 py-0.5 rounded"
-            style={{ color: "var(--text-2)", background: "rgba(255,255,255,0.04)" }}
-          >
-            Get started
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-bold leading-tight mb-4" style={{ color: "var(--text)" }}>
+          <div className="mb-6">
+            <SectionEyebrow align="center">Get started</SectionEyebrow>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold leading-tight mb-4 tracking-tight" style={{ color: "var(--text)" }}>
             Ship your first governed<br />action in 5 minutes.
           </h2>
           <p className="text-sm leading-relaxed mb-8 max-w-md mx-auto" style={{ color: "var(--text-2)" }}>

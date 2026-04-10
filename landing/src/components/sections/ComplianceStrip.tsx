@@ -1,3 +1,5 @@
+import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
+
 const BADGES = [
   {
     icon: (
@@ -75,13 +77,10 @@ export function ComplianceStrip() {
     >
       <div className="mx-auto max-w-5xl px-6">
         <div className="text-center mb-14">
-          <p
-            className="text-[10px] uppercase tracking-[0.25em] mb-4 inline-block px-2 py-0.5 rounded"
-            style={{ color: "var(--text-2)", background: "rgba(255,255,255,0.04)" }}
-          >
-            Built for production
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-bold mb-3">Enterprise-ready from day one.</h2>
+          <div className="mb-5">
+            <SectionEyebrow align="center">Built for production</SectionEyebrow>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-3 tracking-tight">Enterprise-ready from day one.</h2>
           <p className="text-sm max-w-md mx-auto" style={{ color: "var(--text-2)" }}>
             The controls your security team will ask for before procurement — already built in.
           </p>

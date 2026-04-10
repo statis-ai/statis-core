@@ -1,3 +1,5 @@
+import { SectionEyebrow } from "./ui/SectionEyebrow";
+
 const SIDEBAR_ITEMS = [
   { group: null, items: [
     { name: "Home", active: true },
@@ -111,12 +113,9 @@ export function ConsolePreview() {
       />
 
       <div className="relative mx-auto max-w-5xl px-6 text-center">
-        <p
-          className="text-[10px] uppercase tracking-[0.25em] mb-4 inline-block px-2.5 py-1 rounded"
-          style={{ color: "#A1A1AA", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.06)" }}
-        >
-          Console
-        </p>
+        <div className="mb-5">
+          <SectionEyebrow align="center">Console</SectionEyebrow>
+        </div>
         <h2 className="text-3xl sm:text-4xl font-bold leading-tight mb-3 text-white tracking-tight">
           See everything. Control everything.
         </h2>

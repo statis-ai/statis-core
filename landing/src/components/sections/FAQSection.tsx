@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
 
 const FAQS = [
     {
@@ -58,13 +59,10 @@ export function FAQSection() {
         <section className="py-20">
             <div className="mx-auto max-w-3xl px-6">
                 <div className="text-center mb-14">
-                    <p
-                        className="text-[10px] uppercase tracking-[0.25em] mb-3 inline-block px-2 py-0.5 rounded"
-                        style={{ color: "var(--text-2)", background: "rgba(255,255,255,0.04)" }}
-                    >
-                        Questions
-                    </p>
-                    <h2 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--text)" }}>
+                    <div className="mb-5">
+                        <SectionEyebrow align="center">Questions</SectionEyebrow>
+                    </div>
+                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: "var(--text)" }}>
                         Frequently asked.
                     </h2>
                 </div>

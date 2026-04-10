@@ -1,3 +1,5 @@
+import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
+
 const ERROR_LINES = [
   { ts: "09:23:11.204", key: "action_id",    val: "act-7f3a1c",       dim: false },
   { ts: "09:23:11.206", key: "adapter",      val: "stripe.charge",    dim: false },
@@ -79,12 +81,9 @@ export function ProblemSection() {
 
           {/* Right: copy */}
           <div>
-            <p
-              className="text-[10px] uppercase tracking-[0.25em] mb-3 inline-block px-2 py-0.5 rounded"
-              style={{ color: "var(--text-2)", background: "rgba(255,255,255,0.04)" }}
-            >
-              The problem
-            </p>
+            <div className="mb-4">
+              <SectionEyebrow>The problem</SectionEyebrow>
+            </div>
             <h2 className="text-2xl sm:text-3xl font-bold leading-tight mb-4">
               Agents in production<br />
               need a guardrail layer.

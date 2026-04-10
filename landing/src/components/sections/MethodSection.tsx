@@ -1,3 +1,5 @@
+import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
+
 const PRINCIPLES = [
   {
     num: "01",
@@ -45,12 +47,9 @@ export function MethodSection() {
       <div className="relative mx-auto max-w-5xl px-6">
         {/* Eyebrow + heading */}
         <div className="mb-24">
-          <p
-            className="text-[10px] uppercase tracking-[0.25em] mb-5"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Method
-          </p>
+          <div className="mb-6">
+            <SectionEyebrow>Method</SectionEyebrow>
+          </div>
           <h2
             className="font-bold leading-[1.05] tracking-[-0.02em] max-w-3xl"
             style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.4rem)" }}
