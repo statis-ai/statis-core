@@ -1,6 +1,7 @@
 import Sidebar from "@/components/Sidebar";
 import { AuthGuard } from "@/components/AuthGuard";
 import { SandboxBanner } from "@/components/SandboxBanner";
+import { KeyboardShortcutsProvider } from "@/components/command/KeyboardShortcutsProvider";
 
 export default function ConsoleLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -9,16 +10,11 @@ export default function ConsoleLayout({ children }: { children: React.ReactNode 
         <SandboxBanner />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar />
-          <main
-            className="flex-1 overflow-y-auto bg-[#0a0a0a]"
-            style={{
-              backgroundImage: "radial-gradient(circle, #1c1c1c 1px, transparent 1px)",
-              backgroundSize: "10px 10px",
-            }}
-          >
+          <main className="flex-1 overflow-y-auto bg-[#0a0a0a] dot-texture">
             {children}
           </main>
         </div>
+        <KeyboardShortcutsProvider />
       </div>
     </AuthGuard>
   );

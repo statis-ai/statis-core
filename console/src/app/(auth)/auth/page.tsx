@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight, Shield, Zap, FileText, Lock, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { StatisMark } from "@/components/StatisMark";
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -235,9 +236,9 @@ export default function AuthPage() {
           >
             <div className="w-full max-w-lg px-6">
               <div className="flex items-center gap-2 mb-8">
-                <span className="font-semibold text-[15px] tracking-tight text-[#0a0a0a]">
+                <StatisMark size={26} bladeColor="#1C1410" gapColor="#f7f7f5" />
+                <span className="font-semibold text-[17px] tracking-tight text-[#0a0a0a] leading-none">
                   statis
-                  <span className="inline-block ml-[1px] animate-pulse" style={{ width: "7px", height: "13px", background: "#0a0a0a" }} />
                 </span>
                 <span className="text-[#999] text-sm font-mono ml-2">Setting up your console...</span>
               </div>
@@ -300,9 +301,9 @@ export default function AuthPage() {
         <div>
           {/* Logo */}
           <div className="flex items-center gap-2 mb-14">
-            <span className="text-lg font-semibold tracking-tight text-[#0a0a0a]">
+            <StatisMark size={32} bladeColor="#1C1410" gapColor="#f7f7f5" />
+            <span className="text-[20px] font-semibold tracking-tight text-[#0a0a0a] leading-none">
               statis
-              <span className="inline-block ml-[1px] animate-pulse" style={{ width: "8px", height: "16px", background: "#0a0a0a" }} />
             </span>
           </div>
 
@@ -358,9 +359,9 @@ export default function AuthPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative z-10">
         {/* Mobile logo */}
         <div className="flex lg:hidden items-center gap-2 mb-10">
-          <span className="text-[16px] font-semibold tracking-tight text-white">
+          <StatisMark size={28} bladeColor="#F0EDE8" gapColor="#0a0a0a" />
+          <span className="text-[18px] font-semibold tracking-tight text-white leading-none">
             statis
-            <span className="inline-block ml-[1px] animate-pulse" style={{ width: "7px", height: "13px", background: "#ffffff" }} />
           </span>
         </div>
 
