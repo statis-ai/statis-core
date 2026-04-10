@@ -47,9 +47,11 @@ const ACTIONS: Array<{
 ];
 
 const STATUS_STYLE: Record<ActionStatus, { color: string; bg: string; border: string }> = {
-  COMPLETED: { color: "#FB923C",  bg: "rgba(251,146,60,0.10)",  border: "rgba(251,146,60,0.25)" },
-  ESCALATED: { color: "#FACC15",  bg: "rgba(250,204,21,0.10)",  border: "rgba(250,204,21,0.25)" },
-  DENIED:    { color: "#F87171",  bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.22)" },
+  // Match the real console palette: green=ok, yellow=needs review, red=blocked.
+  // Orange is reserved for brand moments, not statuses.
+  COMPLETED: { color: "#34D399", bg: "rgba(52,211,153,0.10)",  border: "rgba(52,211,153,0.28)" },
+  ESCALATED: { color: "#FACC15", bg: "rgba(250,204,21,0.10)",  border: "rgba(250,204,21,0.25)" },
+  DENIED:    { color: "#F87171", bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.22)" },
 };
 
 const FILTERS = [
@@ -203,7 +205,7 @@ export function ConsolePreview() {
                             className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
                             style={
                               item.name === "Escalations"
-                                ? { background: "rgba(251,146,60,0.15)", color: "#FB923C", border: "1px solid rgba(251,146,60,0.25)" }
+                                ? { background: "rgba(250,204,21,0.12)", color: "#FACC15", border: "1px solid rgba(250,204,21,0.28)" }
                                 : { background: "rgba(255,255,255,0.06)", color: "#A1A1AA", border: "1px solid rgba(255,255,255,0.08)" }
                             }
                           >
@@ -250,12 +252,25 @@ export function ConsolePreview() {
                       <span className="text-[10px]" style={{ color: "#71717A" }}>Search actions…</span>
                       <span className="text-[9px] px-1 py-0.5 rounded font-mono" style={{ background: "rgba(255,255,255,0.06)", color: "#71717A" }}>⌘K</span>
                     </div>
-                    {/* Live badge */}
+                    {/* Live badge — green to match the real console */}
                     <div
                       className="flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded font-semibold"
-                      style={{ background: "rgba(251,146,60,0.10)", border: "1px solid rgba(251,146,60,0.25)", color: "#FB923C" }}
+                      style={{
+                        background: "rgba(16,185,129,0.10)",
+                        border: "1px solid rgba(16,185,129,0.28)",
+                        color: "#10B981",
+                      }}
                     >
-                      <span className="cs-pulse" style={{ width: 6, height: 6, borderRadius: "50%", background: "#FB923C", display: "inline-block" }} />
+                      <span
+                        className="cs-pulse"
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: "#10B981",
+                          display: "inline-block",
+                        }}
+                      />
                       Live
                     </div>
                   </div>
@@ -272,7 +287,6 @@ export function ConsolePreview() {
                         style={{
                           background: "#15151A",
                           border: "1px solid rgba(255,255,255,0.06)",
-                          boxShadow: i === 1 ? "inset 0 0 0 1px rgba(251,146,60,0.18)" : "none",
                         }}
                       >
                         <p className="text-[9px] uppercase tracking-[0.12em] mb-1.5 font-semibold" style={{ color: "#71717A" }}>
@@ -280,7 +294,7 @@ export function ConsolePreview() {
                         </p>
                         <p
                           className="text-xl font-bold tracking-tight"
-                          style={{ color: i === 1 ? "#FB923C" : "#FFFFFF" }}
+                          style={{ color: i === 1 ? "#34D399" : "#FFFFFF" }}
                         >
                           {m.value}
                         </p>
@@ -384,10 +398,10 @@ export function ConsolePreview() {
           color: #FFFFFF;
         }
         .cs-sidebar-item[data-active] {
-          background: rgba(251,146,60,0.10);
-          color: #FB923C;
+          background: rgba(255,255,255,0.06);
+          color: #FFFFFF;
           font-weight: 600;
-          box-shadow: inset 2px 0 0 #FB923C;
+          box-shadow: inset 2px 0 0 rgba(255,255,255,0.6);
         }
         .cs-metric:hover {
           background: #1A1A20 !important;
@@ -401,11 +415,11 @@ export function ConsolePreview() {
           background: rgba(255,255,255,0.03);
         }
         .cs-row[data-selected] {
-          background: rgba(251,146,60,0.06);
-          box-shadow: inset 2px 0 0 #FB923C;
+          background: rgba(255,255,255,0.04);
+          box-shadow: inset 2px 0 0 rgba(255,255,255,0.5);
         }
         .cs-row[data-selected]:hover {
-          background: rgba(251,146,60,0.09);
+          background: rgba(255,255,255,0.06);
         }
         .cs-filter {
           color: #A1A1AA;
@@ -432,8 +446,8 @@ export function ConsolePreview() {
           animation: cs-pulse 1.6s ease-in-out infinite;
         }
         @keyframes cs-pulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(251,146,60,0.6); }
-          50% { box-shadow: 0 0 0 4px rgba(251,146,60,0); }
+          0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+          50% { box-shadow: 0 0 0 4px rgba(16,185,129,0); }
         }
       `}</style>
     </section>

@@ -40,7 +40,7 @@ export function MethodSection() {
           left: "10%",
           width: "40%",
           height: "30%",
-          background: "radial-gradient(ellipse, rgba(200,92,26,0.08) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse, rgba(200,92,26,0.04) 0%, transparent 70%)",
         }}
       />
 
@@ -114,7 +114,7 @@ export function MethodSection() {
 
       <style>{`
         .method-row:hover {
-          background: linear-gradient(90deg, transparent 0%, rgba(200,92,26,0.03) 50%, transparent 100%);
+          background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.025) 50%, transparent 100%);
         }
       `}</style>
     </section>

@@ -30,7 +30,9 @@ export function CTASection() {
           />
 
           <div className="mb-6">
-            <SectionEyebrow align="center">Get started</SectionEyebrow>
+            <SectionEyebrow align="center" variant="accent">
+              Get started
+            </SectionEyebrow>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold leading-tight mb-4 tracking-tight" style={{ color: "var(--text)" }}>
             Ship your first governed<br />action in 5 minutes.

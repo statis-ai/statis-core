@@ -15,23 +15,26 @@ export function Hero() {
           className="max-w-3xl mx-auto text-center"
           style={{ position: "relative" }}
         >
-          {/* Ambient orange glow */}
+          {/* Ambient orange glow — subtle, just enough warmth */}
           <div
             style={{
               position: "absolute",
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -60%)",
-              width: "780px",
-              height: "380px",
-              background: "radial-gradient(ellipse at center, rgba(200,92,26,0.10) 0%, transparent 70%)",
+              width: "680px",
+              height: "320px",
+              background:
+                "radial-gradient(ellipse at center, rgba(200,92,26,0.055) 0%, transparent 70%)",
               pointerEvents: "none",
               zIndex: 0,
             }}
           />
 
           <div className="mb-6" style={{ position: "relative", zIndex: 1 }}>
-            <SectionEyebrow align="center">Agent Execution Infrastructure</SectionEyebrow>
+            <SectionEyebrow align="center" variant="accent">
+              Agent Execution Infrastructure
+            </SectionEyebrow>
           </div>
 
           <h1

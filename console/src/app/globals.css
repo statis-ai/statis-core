@@ -2,14 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Statis Console token system
+ *
+ * Text ladder (primary → subtle), tuned for readability in both themes.
+ * Dark theme pairs against `--bg` #0a0a0a; light against `--bg` #fafaf8.
+ * Both scales use Tailwind Zinc values so hierarchy reads consistently.
+ */
+
 :root {
+  /* Surfaces */
   --bg: #0a0a0a;
-  --bg-surface: #111111;
-  --border: #1a1a1a;
-  --text: #ffffff;
-  --text-2: #888888;
-  --text-muted: #444444;
-  --highlight: #d4d4d4;
+  --bg-surface: #131316;
+  --border: #27272a;
+
+  /* Text ladder */
+  --text:        #fafafa;  /* primary — headings, hero values */
+  --text-2:      #d4d4d8;  /* secondary — body, cell content */
+  --text-muted:  #a1a1aa;  /* tertiary — labels, captions */
+  --text-subtle: #71717a;  /* quaternary — inactive icons, faint meta */
+
+  --highlight: #fafafa;
   --radius: 4px;
   --font: "JetBrains Mono", "Fira Code", monospace;
 
@@ -17,19 +30,22 @@
   --duration-slow: 600ms;
   --duration-fast: 150ms;
 
-  --dot-color: #1c1c1c;
+  --dot-color: #1f1f22;
 }
 
 [data-theme="light"] {
-  --bg: #f7f7f5;
+  --bg: #fafaf8;
   --bg-surface: #ffffff;
-  --border: #e5e5e3;
-  --text: #0a0a0a;
-  --text-2: #555555;
-  --text-muted: #999999;
-  --highlight: #1a1a1a;
+  --border: #e4e4e7;
 
-  --dot-color: #dededc;
+  --text:        #18181b;  /* primary — headings, hero values */
+  --text-2:      #3f3f46;  /* secondary — body, cell content */
+  --text-muted:  #52525b;  /* tertiary — labels, captions */
+  --text-subtle: #71717a;  /* quaternary — inactive icons, faint meta */
+
+  --highlight: #09090b;
+
+  --dot-color: #e4e4e7;
 }
 
 * { box-sizing: border-box; }
@@ -44,6 +60,9 @@ body {
 
 ::selection {
   background: rgba(255, 255, 255, 0.15);
+}
+[data-theme="light"] ::selection {
+  background: rgba(0, 0, 0, 0.12);
 }
 
 @layer utilities {
@@ -70,39 +89,78 @@ body {
   background-size: 10px 10px;
 }
 
-/* ── Light mode overrides ───────────────────────────────────── */
-/* These override hardcoded Tailwind arbitrary values when light theme is active */
+/* ──────────────────────────────────────────────────────────────
+ *  Dark theme — brighten hardcoded muted text classes
+ *  Legacy pages use Tailwind arbitrary-value classes like
+ *  `text-[#444444]`. Those render too dim on the dark surface,
+ *  so override them to the zinc ladder for better contrast.
+ * ────────────────────────────────────────────────────────────── */
 
-[data-theme="light"] .bg-\[\#0a0a0a\] { background-color: #f7f7f5 !important; }
+:root .text-\[\#444444\],
+[data-theme="dark"] .text-\[\#444444\] { color: #a1a1aa !important; }
+
+:root .text-\[\#555\],
+:root .text-\[\#555555\],
+[data-theme="dark"] .text-\[\#555\],
+[data-theme="dark"] .text-\[\#555555\] { color: #a1a1aa !important; }
+
+:root .text-\[\#888888\],
+[data-theme="dark"] .text-\[\#888888\] { color: #d4d4d8 !important; }
+
+:root .text-\[\#d4d4d4\],
+[data-theme="dark"] .text-\[\#d4d4d4\] { color: #fafafa !important; }
+
+:root .text-\[\#333\],
+:root .text-\[\#3a3a3a\],
+[data-theme="dark"] .text-\[\#333\],
+[data-theme="dark"] .text-\[\#3a3a3a\] { color: #71717a !important; }
+
+:root .text-\[\#2e2e2e\],
+:root .text-\[\#2a2a2a\],
+[data-theme="dark"] .text-\[\#2e2e2e\],
+[data-theme="dark"] .text-\[\#2a2a2a\] { color: #71717a !important; }
+
+/* ──────────────────────────────────────────────────────────────
+ *  Light theme overrides for legacy hardcoded classes
+ *  These remap hardcoded hex values to the light zinc ladder so
+ *  older pages read correctly when the user toggles to light.
+ * ────────────────────────────────────────────────────────────── */
+
+[data-theme="light"] .bg-\[\#0a0a0a\] { background-color: #fafaf8 !important; }
 [data-theme="light"] .bg-\[\#111111\] { background-color: #ffffff !important; }
-[data-theme="light"] .bg-\[\#1a1a1a\] { background-color: #e5e5e3 !important; }
-[data-theme="light"] .border-\[\#1a1a1a\] { border-color: #e5e5e3 !important; }
-[data-theme="light"] .divide-\[\#1a1a1a\] > * + * { border-color: #e5e5e3 !important; }
+[data-theme="light"] .bg-\[\#1a1a1a\] { background-color: #e4e4e7 !important; }
+[data-theme="light"] .border-\[\#1a1a1a\] { border-color: #e4e4e7 !important; }
+[data-theme="light"] .divide-\[\#1a1a1a\] > * + * { border-color: #e4e4e7 !important; }
 
-[data-theme="light"] .text-white { color: #0a0a0a !important; }
-[data-theme="light"] .text-\[\#d4d4d4\] { color: #1a1a1a !important; }
-[data-theme="light"] .text-\[\#888888\] { color: #555555 !important; }
-[data-theme="light"] .text-\[\#444444\] { color: #999999 !important; }
-[data-theme="light"] .text-\[\#333\] { color: #c8c8c8 !important; }
+/* Text — strong contrast in light mode */
+[data-theme="light"] .text-white         { color: #18181b !important; }
+[data-theme="light"] .text-\[\#d4d4d4\]  { color: #18181b !important; }
+[data-theme="light"] .text-\[\#888888\]  { color: #3f3f46 !important; }
+[data-theme="light"] .text-\[\#444444\]  { color: #52525b !important; }
+[data-theme="light"] .text-\[\#333\]     { color: #71717a !important; }
+[data-theme="light"] .text-\[\#555\]     { color: #52525b !important; }
+[data-theme="light"] .text-\[\#555555\]  { color: #52525b !important; }
+[data-theme="light"] .text-\[\#3a3a3a\]  { color: #71717a !important; }
+[data-theme="light"] .text-\[\#2e2e2e\]  { color: #a1a1aa !important; }
+[data-theme="light"] .text-\[\#2a2a2a\]  { color: #a1a1aa !important; }
 
-[data-theme="light"] .bg-white\/\[0\.08\] { background-color: rgba(0,0,0,0.08) !important; }
-[data-theme="light"] .bg-white\/\[0\.06\] { background-color: rgba(0,0,0,0.06) !important; }
-[data-theme="light"] .bg-white\/\[0\.04\] { background-color: rgba(0,0,0,0.04) !important; }
-[data-theme="light"] .bg-white\/\[0\.02\] { background-color: rgba(0,0,0,0.02) !important; }
-[data-theme="light"] .bg-white\/5 { background-color: rgba(0,0,0,0.05) !important; }
+[data-theme="light"] .bg-white\/\[0\.08\]  { background-color: rgba(0,0,0,0.08) !important; }
+[data-theme="light"] .bg-white\/\[0\.06\]  { background-color: rgba(0,0,0,0.06) !important; }
+[data-theme="light"] .bg-white\/\[0\.04\]  { background-color: rgba(0,0,0,0.04) !important; }
+[data-theme="light"] .bg-white\/\[0\.02\]  { background-color: rgba(0,0,0,0.02) !important; }
+[data-theme="light"] .bg-white\/5          { background-color: rgba(0,0,0,0.05) !important; }
 [data-theme="light"] .border-white\/\[0\.12\] { border-color: rgba(0,0,0,0.12) !important; }
-[data-theme="light"] .border-white\/\[0\.1\] { border-color: rgba(0,0,0,0.10) !important; }
-[data-theme="light"] .border-white\/20 { border-color: rgba(0,0,0,0.20) !important; }
+[data-theme="light"] .border-white\/\[0\.1\]  { border-color: rgba(0,0,0,0.10) !important; }
+[data-theme="light"] .border-white\/20       { border-color: rgba(0,0,0,0.20) !important; }
 
 [data-theme="light"] .hover\:bg-white\/\[0\.04\]:hover { background-color: rgba(0,0,0,0.04) !important; }
 [data-theme="light"] .hover\:bg-white\/\[0\.02\]:hover { background-color: rgba(0,0,0,0.02) !important; }
-[data-theme="light"] .hover\:bg-white\/\[0\.1\]:hover { background-color: rgba(0,0,0,0.10) !important; }
-[data-theme="light"] .hover\:text-white:hover { color: #0a0a0a !important; }
+[data-theme="light"] .hover\:bg-white\/\[0\.1\]:hover  { background-color: rgba(0,0,0,0.10) !important; }
+[data-theme="light"] .hover\:text-white:hover          { color: #18181b !important; }
 
 [data-theme="light"] .focus\:ring-white\/20:focus { --tw-ring-color: rgba(0,0,0,0.20) !important; }
 
-[data-theme="light"] .bg-\[\#0a0a0a\]\/80 { background-color: rgba(247,247,245,0.80) !important; }
+[data-theme="light"] .bg-\[\#0a0a0a\]\/80 { background-color: rgba(250,250,248,0.80) !important; }
 
 /* Sidebar active left border in light mode */
-[data-theme="light"] .active-indicator { background-color: #0a0a0a !important; }
-
+[data-theme="light"] .active-indicator { background-color: #18181b !important; }

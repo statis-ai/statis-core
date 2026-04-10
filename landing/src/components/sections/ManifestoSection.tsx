@@ -33,7 +33,9 @@ export function ManifestoSection() {
 
       <div className="relative mx-auto max-w-5xl px-6 text-center">
         <div className="mb-10">
-          <SectionEyebrow align="center">The Statis Manifesto</SectionEyebrow>
+          <SectionEyebrow align="center" variant="accent">
+            The Statis Manifesto
+          </SectionEyebrow>
         </div>
 
         <h2
