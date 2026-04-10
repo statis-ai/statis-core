@@ -1,28 +1,49 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { AlertOctagon, RefreshCw } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import {
+  AlertOctagon,
+  RefreshCw,
+  ShieldAlert,
+  ShieldCheck,
+  CircleAlert,
+} from "lucide-react";
 import { fetchThreatLogs } from "@/lib/api";
 import type { ThreatLog } from "@/lib/api";
+import { PageHeader } from "@/components/observe/PageHeader";
+import { LiveBadge } from "@/components/observe/LiveBadge";
+import { StatTile, StatTileGrid } from "@/components/observe/StatTile";
+import { FilterChip, FilterChipRow } from "@/components/observe/FilterChip";
+import {
+  DataTableShell,
+  DataTableEmpty,
+} from "@/components/observe/DataTableShell";
 
 const PAGE_SIZE = 100;
 
-const LEVEL_STYLES: Record<string, { badge: string; dot: string }> = {
+const LEVEL_PALETTE: Record<
+  string,
+  { color: string; bg: string; border: string }
+> = {
   critical: {
-    badge: "bg-red-500/20 text-red-400 border border-red-500/30",
-    dot: "bg-red-500",
+    color: "#F87171",
+    bg: "rgba(248,113,113,0.12)",
+    border: "rgba(248,113,113,0.35)",
   },
   high: {
-    badge: "bg-orange-500/20 text-orange-400 border border-orange-500/30",
-    dot: "bg-orange-500",
+    color: "#FB923C",
+    bg: "rgba(251,146,60,0.12)",
+    border: "rgba(251,146,60,0.35)",
   },
   medium: {
-    badge: "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30",
-    dot: "bg-yellow-500",
+    color: "#FACC15",
+    bg: "rgba(250,204,21,0.12)",
+    border: "rgba(250,204,21,0.32)",
   },
   low: {
-    badge: "bg-[#1a1a1a] text-[#888888] border border-[#222]",
-    dot: "bg-[#555]",
+    color: "#A1A1AA",
+    bg: "rgba(161,161,170,0.10)",
+    border: "rgba(161,161,170,0.25)",
   },
 };
 
@@ -59,6 +80,7 @@ export default function ThreatLogsPage() {
         });
         setLogs((prev) => (append ? [...prev, ...data] : data));
         setHasMore(data.length === PAGE_SIZE);
+        setError(null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to load threat logs");
       }
@@ -72,7 +94,6 @@ export default function ThreatLogsPage() {
     loadLogs(filter, 0, false).finally(() => setLoading(false));
   }, [filter, loadLogs]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
       if (offset === 0) {
@@ -97,124 +118,245 @@ export default function ThreatLogsPage() {
     setLoadingMore(false);
   }
 
-  return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-semibold text-[#d4d4d4] mb-1">Threat Logs</h1>
-          <p className="text-sm text-[#444444]">
-            Security scans run on every proposed action before policy evaluation.
-          </p>
-        </div>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="flex items-center gap-2 px-3 py-1.5 rounded border border-[#1a1a1a] text-[#444444] text-xs hover:text-[#888888] transition-colors disabled:opacity-50"
-        >
-          <RefreshCw size={12} className={refreshing ? "animate-spin" : ""} />
-          Refresh
-        </button>
-      </div>
+  const stats = useMemo(() => {
+    const total = logs.length;
+    const critical = logs.filter((l) => l.threat_level === "critical").length;
+    const high = logs.filter((l) => l.threat_level === "high").length;
+    const low = logs.filter(
+      (l) => l.threat_level === "low" || l.threat_level === "medium"
+    ).length;
+    return { total, critical, high, low };
+  }, [logs]);
 
-      {/* Filter tabs */}
-      <div className="flex gap-1 mb-6">
-        {FILTER_LEVELS.map((level) => {
-          const styles = level !== "all" ? LEVEL_STYLES[level] : null;
-          return (
+  return (
+    <div className="p-6 lg:p-8 w-full">
+      <PageHeader
+        title="Threat Logs"
+        subtitle="Security scans run on every proposed action before policy evaluation."
+        actions={
+          <>
+            <LiveBadge refreshSeconds={30} />
             <button
-              key={level}
-              onClick={() => setFilter(level)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-medium transition-colors capitalize ${
-                filter === level
-                  ? level === "all"
-                    ? "bg-white/[0.08] text-[#d4d4d4] border border-[#333]"
-                    : styles!.badge
-                  : "text-[#444444] hover:text-[#888888]"
-              }`}
+              type="button"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-60"
+              style={{
+                color: "var(--text-2)",
+                background: "color-mix(in srgb, var(--text) 4%, transparent)",
+                border: "1px solid var(--border)",
+              }}
             >
-              {level !== "all" && (
-                <span
-                  className={`inline-block w-1.5 h-1.5 rounded-full ${styles!.dot}`}
-                />
-              )}
-              {level}
+              <RefreshCw
+                size={12}
+                className={refreshing ? "animate-spin" : undefined}
+              />
+              Refresh
             </button>
-          );
-        })}
-      </div>
+          </>
+        }
+      />
 
       {error && (
-        <div className="mb-6 px-4 py-3 rounded border border-red-500/30 bg-red-500/10 text-red-400 text-sm">
+        <div
+          className="mb-5 rounded-xl px-4 py-3 text-[12px] font-mono flex items-center gap-3"
+          style={{
+            background: "rgba(248,113,113,0.08)",
+            border: "1px solid rgba(248,113,113,0.25)",
+            color: "#F87171",
+          }}
+        >
+          <CircleAlert size={14} />
           {error}
         </div>
       )}
 
-      {/* Table */}
-      <div className="rounded-lg border border-[#1a1a1a] overflow-hidden">
-        {/* Table header */}
-        <div className="grid grid-cols-[2fr_2fr_2fr_1fr_2fr_1fr] gap-4 px-4 py-2.5 border-b border-[#1a1a1a] bg-[#0a0a0a]">
-          {["ID", "Action ID", "Threat Types", "Level", "Details", "Scanned At"].map((h) => (
-            <span key={h} className="text-[10px] font-semibold tracking-widest text-[#444444] uppercase">
-              {h}
-            </span>
-          ))}
-        </div>
+      <div className="mb-6">
+        <StatTileGrid>
+          <StatTile
+            label="Total scans"
+            value={stats.total.toLocaleString()}
+            hint="Loaded in current view"
+            icon={<ShieldCheck size={13} />}
+          />
+          <StatTile
+            label="Critical"
+            value={stats.critical.toLocaleString()}
+            trend={stats.critical > 0 ? "down" : "up"}
+            hint="Auto-blocked by scanner"
+            icon={<AlertOctagon size={13} />}
+          />
+          <StatTile
+            label="High severity"
+            value={stats.high.toLocaleString()}
+            trend={stats.high > 0 ? "down" : "neutral"}
+            hint="Needs review"
+            icon={<ShieldAlert size={13} />}
+          />
+          <StatTile
+            label="Low/medium"
+            value={stats.low.toLocaleString()}
+            hint="Informational"
+            icon={<ShieldCheck size={13} />}
+          />
+        </StatTileGrid>
+      </div>
 
+      <div className="mb-4">
+        <FilterChipRow>
+          {FILTER_LEVELS.map((level) => (
+            <FilterChip
+              key={level}
+              label={level === "all" ? "All" : level.charAt(0).toUpperCase() + level.slice(1)}
+              active={filter === level}
+              onClick={() => setFilter(level)}
+            />
+          ))}
+        </FilterChipRow>
+      </div>
+
+      <DataTableShell
+        title={`Scan log · ${logs.length.toLocaleString()} rows`}
+        actions={
+          <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+            Critical + high should always be zero
+          </span>
+        }
+        footer={
+          loading
+            ? "Loading…"
+            : hasMore
+              ? `Showing ${logs.length} · more available`
+              : `Showing all ${logs.length} entries`
+        }
+      >
         {loading ? (
-          <div className="py-16 text-center text-sm text-[#444444]">Loading…</div>
-        ) : logs.length === 0 ? (
-          <div className="py-16 flex flex-col items-center gap-3 text-[#444444]">
-            <AlertOctagon size={28} />
-            <p className="text-sm">No threat logs found.</p>
+          <div>
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-[1fr_1fr_2fr_120px_2fr_160px] gap-4 px-5 py-3"
+                style={{
+                  borderTop: i === 0 ? "none" : "1px solid var(--border)",
+                }}
+              >
+                {[90, 100, 140, 70, 180, 120].map((w, j) => (
+                  <div
+                    key={j}
+                    className="h-3 rounded animate-pulse"
+                    style={{
+                      width: w,
+                      background:
+                        "color-mix(in srgb, var(--text) 5%, transparent)",
+                    }}
+                  />
+                ))}
+              </div>
+            ))}
           </div>
+        ) : logs.length === 0 ? (
+          <DataTableEmpty
+            icon={<ShieldCheck size={18} />}
+            title="No threat events"
+            description="No matching scans for this filter. An empty log is a healthy signal — every proposed action has been clean."
+          />
         ) : (
-          <div className="divide-y divide-[#111]">
+          <div>
+            <div
+              className="grid grid-cols-[1fr_1fr_2fr_120px_2fr_160px] gap-4 px-5 py-3 sticky top-0 z-10"
+              style={{
+                background: "color-mix(in srgb, var(--bg) 92%, transparent)",
+                borderBottom: "1px solid var(--border)",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              {["ID", "Action ID", "Threat types", "Level", "Details", "Scanned at"].map(
+                (h) => (
+                  <div
+                    key={h}
+                    className="text-[9px] font-semibold tracking-[0.14em] uppercase"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {h}
+                  </div>
+                )
+              )}
+            </div>
             {logs.map((log) => {
-              const level = log.threat_level in LEVEL_STYLES ? log.threat_level : "low";
-              const styles = LEVEL_STYLES[level];
+              const level =
+                log.threat_level in LEVEL_PALETTE ? log.threat_level : "low";
+              const palette = LEVEL_PALETTE[level];
               return (
                 <div
                   key={log.id}
-                  className="grid grid-cols-[2fr_2fr_2fr_1fr_2fr_1fr] gap-4 px-4 py-3 items-center hover:bg-white/[0.02] transition-colors"
+                  className="grid grid-cols-[1fr_1fr_2fr_120px_2fr_160px] gap-4 px-5 py-3 items-center transition-colors"
+                  style={{
+                    borderTop: "1px solid var(--border)",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.background =
+                      "color-mix(in srgb, var(--text) 2%, transparent)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.background =
+                      "transparent";
+                  }}
                 >
-                  {/* ID */}
-                  <span className="font-mono text-xs text-[#555555] truncate" title={log.id}>
+                  <span
+                    className="font-mono text-[11px] truncate"
+                    style={{ color: "var(--text-muted)" }}
+                    title={log.id}
+                  >
                     {log.id.slice(0, 8)}…
                   </span>
-
-                  {/* Action ID */}
-                  <span className="font-mono text-xs text-[#888888] truncate" title={log.action_id}>
-                    {log.action_id.slice(0, 12)}…
+                  <span
+                    className="font-mono text-[11px] truncate"
+                    style={{ color: "var(--text-2)" }}
+                    title={log.action_id}
+                  >
+                    {log.action_id.slice(0, 14)}…
                   </span>
-
-                  {/* Threat types */}
                   <div className="flex flex-wrap gap-1">
                     {(log.threat_types ?? []).map((t) => (
                       <span
                         key={t}
-                        className="px-1.5 py-0.5 rounded text-[10px] bg-[#1a1a1a] text-[#888888] border border-[#222] font-mono"
+                        className="px-1.5 py-0.5 rounded text-[10px] font-mono"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text) 4%, transparent)",
+                          border: "1px solid var(--border)",
+                          color: "var(--text-2)",
+                        }}
                       >
                         {t}
                       </span>
                     ))}
                   </div>
-
-                  {/* Threat level */}
                   <span
-                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold uppercase w-fit ${styles.badge}`}
+                    className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide w-fit"
+                    style={{
+                      color: palette.color,
+                      background: palette.bg,
+                      border: `1px solid ${palette.border}`,
+                    }}
                   >
-                    <span className={`w-1.5 h-1.5 rounded-full ${styles.dot}`} />
+                    <span
+                      className="w-1.5 h-1.5 rounded-full"
+                      style={{ background: palette.color }}
+                    />
                     {level}
                   </span>
-
-                  {/* Details */}
-                  <span className="text-xs text-[#555555] truncate" title={log.details ?? ""}>
+                  <span
+                    className="text-[11px] truncate"
+                    style={{ color: "var(--text-2)" }}
+                    title={log.details ?? ""}
+                  >
                     {log.details ?? "—"}
                   </span>
-
-                  {/* Scanned at */}
-                  <span className="text-xs text-[#444444] whitespace-nowrap">
+                  <span
+                    className="text-[11px] whitespace-nowrap tabular-nums"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     {formatDateTime(log.scanned_at)}
                   </span>
                 </div>
@@ -222,15 +364,19 @@ export default function ThreatLogsPage() {
             })}
           </div>
         )}
-      </div>
+      </DataTableShell>
 
-      {/* Load more */}
       {hasMore && !loading && (
         <div className="mt-4 flex justify-center">
           <button
             onClick={handleLoadMore}
             disabled={loadingMore}
-            className="px-4 py-2 rounded border border-[#1a1a1a] text-[#444444] text-sm hover:text-[#888888] transition-colors disabled:opacity-50"
+            className="px-4 py-2 rounded-full text-[12px] font-semibold transition-colors disabled:opacity-50"
+            style={{
+              color: "var(--text-2)",
+              background: "color-mix(in srgb, var(--text) 4%, transparent)",
+              border: "1px solid var(--border)",
+            }}
           >
             {loadingMore ? "Loading…" : "Load more"}
           </button>

@@ -1,7 +1,18 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Plus, Shield, ChevronRight, Trash2, X, FlaskConical } from "lucide-react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  Plus,
+  Shield,
+  ChevronRight,
+  Trash2,
+  X,
+  FlaskConical,
+  RefreshCw,
+  CheckCircle2,
+  XCircle,
+  CircleAlert,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   fetchPolicyRules,
@@ -14,6 +25,8 @@ import {
   type PolicyRuleUpdate,
   type SimulateResult,
 } from "@/lib/api";
+import { PageHeader } from "@/components/observe/PageHeader";
+import { StatTile, StatTileGrid } from "@/components/observe/StatTile";
 
 const PRIORITY_STYLES: Record<string, string> = {
   critical: "bg-red-500/15 text-red-400 border-red-500/20",
@@ -85,11 +98,24 @@ function PolicyCard({
 }) {
   const pLabel = priorityLabel(rule.priority);
   return (
-    <div className="bg-[#111111] rounded border border-[#1a1a1a] p-6 hover:border-white/[0.1] transition-colors">
+    <div
+      className="rounded-xl p-6 transition-colors"
+      style={{
+        background: "var(--bg-surface)",
+        border: "1px solid var(--border)",
+      }}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded bg-white/[0.06] flex items-center justify-center">
-            <Shield size={15} className="text-[#d4d4d4]" />
+          <div
+            className="w-9 h-9 rounded-lg flex items-center justify-center"
+            style={{
+              background: "color-mix(in srgb, var(--text) 5%, transparent)",
+              border: "1px solid var(--border)",
+              color: "var(--text-2)",
+            }}
+          >
+            <Shield size={15} />
           </div>
           <div>
             <h3 className="font-mono text-sm font-semibold text-white">
@@ -317,48 +343,186 @@ export default function PoliciesPage() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="p-8 max-w-4xl">
-        <p className="text-sm text-[#888888]">Loading...</p>
-      </div>
-    );
-  }
+  const stats = useMemo(() => {
+    const total = rules.length;
+    const active = rules.filter((r) => r.active).length;
+    const approveRules = rules.filter((r) => r.decision === "APPROVED").length;
+    const denyRules = rules.filter((r) => r.decision === "DENIED").length;
+    const escalateRules = rules.filter((r) => r.decision === "ESCALATED").length;
+    return { total, active, approveRules, denyRules, escalateRules };
+  }, [rules]);
 
   return (
-    <div className="p-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-[20px] font-semibold text-white">Policies</h1>
-          <p className="text-xs text-[#444444] mt-0.5">
-            {rules.length} rules -- {rules.filter((r) => r.active).length}{" "}
-            active
-          </p>
-        </div>
-        <button
-          onClick={openNew}
-          className="flex items-center gap-2 px-4 py-2 rounded bg-[#d4d4d4] text-[#0a0a0a] text-sm font-semibold hover:bg-white transition-colors"
-        >
-          <Plus size={14} />
-          New rule
-        </button>
-      </div>
+    <div className="p-6 lg:p-8 w-full">
+      <PageHeader
+        title="Policies"
+        subtitle={
+          loading ? (
+            "Loading policy rules…"
+          ) : (
+            <span>
+              {stats.total.toLocaleString()} rule{stats.total !== 1 ? "s" : ""} ·{" "}
+              <span style={{ color: "#34D399" }}>{stats.active} active</span>
+            </span>
+          )
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={load}
+              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full font-medium transition-colors"
+              style={{
+                color: "var(--text-2)",
+                background: "color-mix(in srgb, var(--text) 4%, transparent)",
+                border: "1px solid var(--border)",
+              }}
+              title="Refresh"
+            >
+              <RefreshCw size={12} />
+              Refresh
+            </button>
+            <button
+              type="button"
+              onClick={openNew}
+              className="inline-flex items-center gap-1.5 text-[12px] px-4 py-1.5 rounded-full font-semibold transition-colors"
+              style={{
+                color: "#FB923C",
+                background: "rgba(251,146,60,0.08)",
+                border: "1px solid rgba(251,146,60,0.35)",
+              }}
+            >
+              <Plus size={13} />
+              New rule
+            </button>
+          </>
+        }
+      />
 
       {error && (
-        <div className="mb-4 px-4 py-2 rounded border border-red-500/20 bg-red-500/10 text-red-400 text-xs font-mono">
+        <div
+          className="mb-5 rounded-xl px-4 py-3 text-[12px] font-mono flex items-center gap-3"
+          style={{
+            background: "rgba(248,113,113,0.08)",
+            border: "1px solid rgba(248,113,113,0.25)",
+            color: "#F87171",
+          }}
+        >
+          <CircleAlert size={14} />
           {error}
           <button
             onClick={() => setError(null)}
-            className="ml-3 text-red-400/60 hover:text-red-400"
+            className="ml-auto underline opacity-70 hover:opacity-100"
           >
             dismiss
           </button>
         </div>
       )}
 
-      {rules.length === 0 ? (
-        <div className="text-center py-16 text-[#444444] text-sm">
-          No policy rules configured
+      {/* Stat tiles */}
+      <div className="mb-6">
+        <StatTileGrid>
+          <StatTile
+            label="Total rules"
+            value={loading ? "…" : stats.total.toLocaleString()}
+            hint={`${stats.active} active`}
+            icon={<Shield size={13} />}
+          />
+          <StatTile
+            label="Approve rules"
+            value={loading ? "…" : stats.approveRules.toLocaleString()}
+            trend="up"
+            hint="Auto-approved actions"
+            icon={<CheckCircle2 size={13} />}
+          />
+          <StatTile
+            label="Escalate rules"
+            value={loading ? "…" : stats.escalateRules.toLocaleString()}
+            hint="Routed to humans"
+            icon={<FlaskConical size={13} />}
+          />
+          <StatTile
+            label="Deny rules"
+            value={loading ? "…" : stats.denyRules.toLocaleString()}
+            trend={stats.denyRules > 0 ? "down" : "neutral"}
+            hint="Blocked at the gate"
+            icon={<XCircle size={13} />}
+          />
+        </StatTileGrid>
+      </div>
+
+      {loading ? (
+        <div
+          className="flex flex-col gap-3 p-1"
+        >
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="rounded-xl p-6 animate-pulse"
+              style={{
+                background: "var(--bg-surface)",
+                border: "1px solid var(--border)",
+              }}
+            >
+              <div
+                className="h-4 w-48 rounded mb-2"
+                style={{
+                  background: "color-mix(in srgb, var(--text) 6%, transparent)",
+                }}
+              />
+              <div
+                className="h-3 w-32 rounded"
+                style={{
+                  background: "color-mix(in srgb, var(--text) 4%, transparent)",
+                }}
+              />
+            </div>
+          ))}
+        </div>
+      ) : rules.length === 0 ? (
+        <div
+          className="rounded-xl flex flex-col items-center justify-center text-center py-16 px-6"
+          style={{
+            background: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          <div
+            className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
+            style={{
+              background: "color-mix(in srgb, var(--text) 4%, transparent)",
+              border: "1px solid var(--border)",
+              color: "var(--text-muted)",
+            }}
+          >
+            <Shield size={18} />
+          </div>
+          <p
+            className="text-[14px] font-semibold mb-1.5"
+            style={{ color: "var(--text)" }}
+          >
+            No policy rules configured
+          </p>
+          <p
+            className="text-[12px] max-w-sm mb-4"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Every agent action needs at least one rule. Start with a catch-all approve
+            rule, then harden from there.
+          </p>
+          <button
+            type="button"
+            onClick={openNew}
+            className="inline-flex items-center gap-1.5 text-[12px] px-4 py-2 rounded-full font-semibold transition-colors"
+            style={{
+              color: "#FB923C",
+              background: "rgba(251,146,60,0.08)",
+              border: "1px solid rgba(251,146,60,0.35)",
+            }}
+          >
+            <Plus size={13} />
+            Create your first rule
+          </button>
         </div>
       ) : (
         <div className="flex flex-col gap-4">

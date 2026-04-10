@@ -1,16 +1,40 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  RefreshCw,
+  Inbox,
+  Clock,
+  User,
+} from "lucide-react";
 import {
   fetchEscalations,
   approveEscalation,
   rejectEscalation,
   type EscalatedAction,
 } from "@/lib/api";
+import { PageHeader } from "@/components/observe/PageHeader";
+import { LiveBadge } from "@/components/observe/LiveBadge";
+import { StatTile, StatTileGrid } from "@/components/observe/StatTile";
+import { StatusPill } from "@/components/observe/StatusPill";
+import { DataTableShell, DataTableEmpty } from "@/components/observe/DataTableShell";
 
 function formatTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function formatTimeAbsolute(iso: string): string {
   return new Date(iso).toLocaleString("en-US", {
     month: "short",
     day: "numeric",
@@ -22,14 +46,20 @@ function formatTime(iso: string): string {
 function KeyValuePairs({ data }: { data: Record<string, unknown> }) {
   const entries = Object.entries(data);
   if (entries.length === 0) {
-    return <span className="text-[#444444] text-xs">--</span>;
+    return (
+      <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+        --
+      </span>
+    );
   }
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       {entries.map(([key, value]) => (
-        <div key={key} className="flex gap-2 font-mono text-xs">
-          <span className="text-[#444444] shrink-0">{key}:</span>
-          <span className="text-[#888888] break-all">
+        <div key={key} className="flex gap-2 font-mono text-[11px]">
+          <span className="shrink-0" style={{ color: "var(--text-muted)" }}>
+            {key}:
+          </span>
+          <span className="break-all" style={{ color: "var(--text-2)" }}>
             {typeof value === "object" && value !== null
               ? JSON.stringify(value)
               : String(value)}
@@ -99,67 +129,109 @@ function EscalationCard({
   }
 
   const inputCls =
-    "w-full font-mono text-sm px-3 py-2 rounded border border-[#1a1a1a] bg-[#0a0a0a] text-white placeholder:text-[#444444] focus:outline-none focus:ring-1 focus:ring-white/20";
+    "w-full font-mono text-[12px] px-3 py-2 rounded-lg focus:outline-none transition-colors";
+  const inputStyle: React.CSSProperties = {
+    background: "color-mix(in srgb, var(--text) 3%, transparent)",
+    border: "1px solid var(--border)",
+    color: "var(--text)",
+  };
 
   return (
     <div
-      className={cn(
-        "bg-[#111111] rounded border p-6 transition-colors",
-        result === "approved"
-          ? "border-emerald-500/25"
-          : result === "denied"
-          ? "border-[#1a1a1a] opacity-50"
-          : "border-[#1a1a1a]"
-      )}
+      className="rounded-xl p-5 transition-all"
+      style={{
+        background: "var(--bg-surface)",
+        border:
+          result === "approved"
+            ? "1px solid rgba(52,211,153,0.35)"
+            : result === "denied"
+              ? "1px solid var(--border)"
+              : "1px solid var(--border)",
+        opacity: result === "denied" ? 0.55 : 1,
+      }}
     >
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-sm font-semibold text-white">
+      <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+            <span
+              className="font-mono text-[13px] font-semibold"
+              style={{ color: "var(--text)" }}
+            >
               {entityLabel}
             </span>
-            <span className="text-[#444444]">--</span>
-            <span className="font-mono text-sm text-[#888888]">
+            <span style={{ color: "var(--text-muted)" }}>·</span>
+            <span
+              className="font-mono text-[13px]"
+              style={{ color: "var(--text-2)" }}
+            >
               {esc.action_type}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-[11px] text-[#444444]">
+          <div
+            className="flex items-center gap-2 text-[11px] flex-wrap"
+            style={{ color: "var(--text-muted)" }}
+          >
             <span className="font-mono">{esc.action_id}</span>
-            <span className="text-[#333]">--</span>
-            <span className="font-mono">by {esc.proposed_by}</span>
-            <span className="text-[#333]">--</span>
-            <span>{formatTime(esc.created_at)}</span>
+            <span>·</span>
+            <span className="font-mono inline-flex items-center gap-1">
+              <User size={10} />
+              {esc.proposed_by}
+            </span>
+            <span>·</span>
+            <span
+              className="inline-flex items-center gap-1"
+              title={formatTimeAbsolute(esc.created_at)}
+            >
+              <Clock size={10} />
+              {formatTime(esc.created_at)}
+            </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="font-mono text-[10px] text-[#444444] bg-white/[0.04] border border-[#1a1a1a] px-2 py-0.5 rounded">
+        <div className="flex items-center gap-2 shrink-0">
+          <span
+            className="font-mono text-[10px] px-2 py-1 rounded-md"
+            style={{
+              color: "var(--text-muted)",
+              background: "color-mix(in srgb, var(--text) 4%, transparent)",
+              border: "1px solid var(--border)",
+            }}
+          >
             {esc.target_system}
           </span>
           {result === "approved" ? (
-            <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">
+            <StatusPill status="APPROVED">
               <CheckCircle2 size={10} />
               Approved
-            </span>
+            </StatusPill>
           ) : result === "denied" ? (
-            <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-white/5 text-[#444444] border border-[#1a1a1a]">
+            <StatusPill status="DENIED">
               <XCircle size={10} />
               Denied
-            </span>
+            </StatusPill>
           ) : (
-            <span className="flex items-center gap-1.5 text-[10px] font-medium px-2.5 py-1 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/20">
+            <StatusPill status="ESCALATED">
               <AlertTriangle size={10} />
               Pending
-            </span>
+            </StatusPill>
           )}
         </div>
       </div>
 
       {/* Parameters */}
       {Object.keys(esc.parameters).length > 0 && (
-        <div className="bg-[#0a0a0a] rounded p-4 border border-[#1a1a1a] mb-3">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-2">
+        <div
+          className="rounded-lg p-3.5 mb-3"
+          style={{
+            background: "color-mix(in srgb, var(--text) 3%, transparent)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          <p
+            className="text-[9px] font-semibold uppercase tracking-[0.14em] mb-2"
+            style={{ color: "var(--text-muted)" }}
+          >
             Parameters
           </p>
           <KeyValuePairs data={esc.parameters} />
@@ -168,8 +240,17 @@ function EscalationCard({
 
       {/* Context */}
       {Object.keys(esc.context).length > 0 && (
-        <div className="bg-orange-500/[0.06] border border-orange-500/15 rounded px-4 py-3 mb-4">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-orange-400 mb-2">
+        <div
+          className="rounded-lg p-3.5 mb-4"
+          style={{
+            background: "rgba(250,204,21,0.06)",
+            border: "1px solid rgba(250,204,21,0.20)",
+          }}
+        >
+          <p
+            className="text-[9px] font-semibold uppercase tracking-[0.14em] mb-2"
+            style={{ color: "#FACC15" }}
+          >
             Context
           </p>
           <KeyValuePairs data={esc.context} />
@@ -178,12 +259,26 @@ function EscalationCard({
 
       {/* Result message */}
       {result === "approved" && (
-        <div className="bg-emerald-500/[0.08] border border-emerald-500/15 rounded px-4 py-3 mb-4 text-xs text-emerald-400 font-medium">
+        <div
+          className="rounded-lg px-4 py-3 mb-4 text-[12px] font-medium"
+          style={{
+            background: "rgba(52,211,153,0.08)",
+            border: "1px solid rgba(52,211,153,0.25)",
+            color: "#34D399",
+          }}
+        >
           Escalation approved successfully.
         </div>
       )}
       {result === "denied" && (
-        <div className="bg-white/[0.04] border border-[#1a1a1a] rounded px-4 py-3 mb-4 text-xs text-[#888888]">
+        <div
+          className="rounded-lg px-4 py-3 mb-4 text-[12px]"
+          style={{
+            background: "color-mix(in srgb, var(--text) 3%, transparent)",
+            border: "1px solid var(--border)",
+            color: "var(--text-2)",
+          }}
+        >
           Escalation denied.
         </div>
       )}
@@ -193,15 +288,22 @@ function EscalationCard({
         <>
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-xs text-[#d4d4d4] font-medium hover:text-white transition-colors mb-3"
+            className="text-[12px] font-medium transition-colors mb-3"
+            style={{ color: "var(--text-2)" }}
           >
-            {expanded ? "Collapse review" : "Review this escalation"}
+            {expanded ? "Collapse review" : "Review this escalation →"}
           </button>
 
           {expanded && (
-            <div className="border-t border-[#1a1a1a] pt-4 space-y-3">
+            <div
+              className="pt-4 space-y-3"
+              style={{ borderTop: "1px solid var(--border)" }}
+            >
               <div>
-                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-1.5">
+                <label
+                  className="text-[9px] font-semibold uppercase tracking-[0.14em] block mb-1.5"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Reviewer ID
                 </label>
                 <input
@@ -209,10 +311,14 @@ function EscalationCard({
                   value={reviewerId}
                   onChange={(e) => setReviewerId(e.target.value)}
                   className={inputCls}
+                  style={inputStyle}
                 />
               </div>
               <div>
-                <label className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] block mb-1.5">
+                <label
+                  className="text-[9px] font-semibold uppercase tracking-[0.14em] block mb-1.5"
+                  style={{ color: "var(--text-muted)" }}
+                >
                   Note (optional)
                 </label>
                 <textarea
@@ -220,29 +326,42 @@ function EscalationCard({
                   placeholder="Add a review note..."
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className={cn(inputCls, "resize-y")}
+                  className={inputCls + " resize-y"}
+                  style={inputStyle}
                 />
               </div>
 
               {error && (
-                <p className="text-xs text-red-400 font-mono">{error}</p>
+                <p className="text-[11px] font-mono" style={{ color: "#F87171" }}>
+                  {error}
+                </p>
               )}
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={handleApprove}
                   disabled={submitting || !reviewerId.trim()}
-                  className="flex items-center gap-2 px-4 py-2 rounded bg-emerald-500/20 text-emerald-400 text-sm font-medium hover:bg-emerald-500/30 border border-emerald-500/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{
+                    background: "rgba(52,211,153,0.12)",
+                    border: "1px solid rgba(52,211,153,0.35)",
+                    color: "#34D399",
+                  }}
                 >
-                  <CheckCircle2 size={14} />
+                  <CheckCircle2 size={12} />
                   {submitting ? "..." : "Approve"}
                 </button>
                 <button
                   onClick={handleDeny}
                   disabled={submitting || !reviewerId.trim()}
-                  className="flex items-center gap-2 px-4 py-2 rounded border border-[#1a1a1a] text-[#888888] text-sm font-medium hover:text-white hover:border-white/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{
+                    background: "color-mix(in srgb, var(--text) 4%, transparent)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-2)",
+                  }}
                 >
-                  <XCircle size={14} />
+                  <XCircle size={12} />
                   {submitting ? "..." : "Deny"}
                 </button>
               </div>
@@ -257,75 +376,205 @@ function EscalationCard({
 export default function EscalationsPage() {
   const [escalations, setEscalations] = useState<EscalatedAction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (showSpinner = false) => {
+    if (showSpinner) setRefreshing(true);
     try {
       setError(null);
       const data = await fetchEscalations();
       setEscalations(data);
+      setLastRefreshed(new Date());
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load escalations"
-      );
+      setError(err instanceof Error ? err.message : "Failed to load escalations");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, []);
 
   useEffect(() => {
     load();
+    const interval = setInterval(() => load(), 10000);
+    return () => clearInterval(interval);
   }, [load]);
 
-  const pending = escalations.length;
-
-  if (loading) {
-    return (
-      <div className="p-8 max-w-3xl">
-        <p className="text-sm text-[#888888]">Loading...</p>
-      </div>
-    );
-  }
+  // ── Stats ──────────────────────────────────────────────
+  const stats = useMemo(() => {
+    const pending = escalations.length;
+    const now = Date.now();
+    let totalWaitMs = 0;
+    let oldest: number | null = null;
+    for (const e of escalations) {
+      const t = new Date(e.created_at).getTime();
+      const wait = now - t;
+      totalWaitMs += wait;
+      if (oldest === null || t < oldest) oldest = t;
+    }
+    const avgWaitMin =
+      pending > 0 ? Math.round(totalWaitMs / pending / 60000) : 0;
+    const oldestLabel = oldest ? formatTime(new Date(oldest).toISOString()) : "—";
+    return { pending, avgWaitMin, oldestLabel };
+  }, [escalations]);
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="mb-8">
-        <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-[20px] font-semibold text-white">Escalations</h1>
-          {pending > 0 && (
-            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-red-500/20 text-red-400 text-[10px] font-bold border border-red-500/20">
-              {pending}
+    <div className="p-6 lg:p-8 w-full">
+      <PageHeader
+        title="Escalations"
+        subtitle={
+          <span className="inline-flex items-center gap-2">
+            <span>
+              {loading
+                ? "Loading escalations…"
+                : `${stats.pending.toLocaleString()} pending${stats.pending !== 1 ? "" : ""}`}
             </span>
-          )}
-        </div>
-        <p className="text-xs text-[#444444]">
-          {pending} pending escalation{pending !== 1 ? "s" : ""}
-        </p>
-      </div>
+            {lastRefreshed && (
+              <>
+                <span style={{ color: "var(--text-muted)" }}>·</span>
+                <span>Refreshed {formatTime(lastRefreshed.toISOString())}</span>
+              </>
+            )}
+          </span>
+        }
+        actions={
+          <>
+            <LiveBadge refreshSeconds={10} />
+            <button
+              type="button"
+              onClick={() => load(true)}
+              disabled={refreshing}
+              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-60"
+              style={{
+                color: "var(--text-2)",
+                background: "color-mix(in srgb, var(--text) 4%, transparent)",
+                border: "1px solid var(--border)",
+              }}
+              title="Refresh now"
+            >
+              <RefreshCw
+                size={12}
+                className={refreshing ? "animate-spin" : undefined}
+              />
+              Refresh
+            </button>
+          </>
+        }
+      />
 
+      {/* Error banner */}
       {error && (
-        <div className="mb-4 px-4 py-2 rounded border border-red-500/20 bg-red-500/10 text-red-400 text-xs font-mono">
+        <div
+          className="mb-5 rounded-xl px-4 py-3 text-[12px] font-mono flex items-center gap-3"
+          style={{
+            background: "rgba(248,113,113,0.08)",
+            border: "1px solid rgba(248,113,113,0.25)",
+            color: "#F87171",
+          }}
+        >
+          <AlertTriangle size={14} />
           {error}
           <button
             onClick={() => setError(null)}
-            className="ml-3 text-red-400/60 hover:text-red-400"
+            className="ml-auto underline opacity-70 hover:opacity-100"
           >
             dismiss
           </button>
         </div>
       )}
 
-      {escalations.length === 0 ? (
-        <div className="text-center py-16 text-[#444444] text-sm">
-          No pending escalations
-        </div>
-      ) : (
-        <div className="flex flex-col gap-4">
-          {escalations.map((esc) => (
-            <EscalationCard key={esc.action_id} esc={esc} onResolved={load} />
-          ))}
-        </div>
-      )}
+      {/* Stat tiles */}
+      <div className="mb-6">
+        <StatTileGrid>
+          <StatTile
+            label="Pending review"
+            value={stats.pending.toLocaleString()}
+            trend={stats.pending > 0 ? "down" : "neutral"}
+            hint="Awaiting a human decision"
+            icon={<AlertTriangle size={13} />}
+          />
+          <StatTile
+            label="Avg wait time"
+            value={stats.avgWaitMin > 0 ? `${stats.avgWaitMin}m` : "—"}
+            hint="Across pending queue"
+            icon={<Clock size={13} />}
+          />
+          <StatTile
+            label="Oldest pending"
+            value={stats.oldestLabel}
+            hint="Time since created"
+            icon={<Clock size={13} />}
+          />
+          <StatTile
+            label="Status"
+            value={stats.pending === 0 ? "Clear" : "Review"}
+            trend={stats.pending === 0 ? "up" : "neutral"}
+            hint={stats.pending === 0 ? "No backlog" : "Action required"}
+            icon={<CheckCircle2 size={13} />}
+          />
+        </StatTileGrid>
+      </div>
+
+      {/* Escalations list */}
+      <DataTableShell
+        title={`Pending queue · ${stats.pending.toLocaleString()}`}
+        actions={
+          <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+            Oldest first
+          </span>
+        }
+      >
+        {loading ? (
+          <div className="p-4 space-y-3">
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl p-5 animate-pulse"
+                style={{
+                  background: "color-mix(in srgb, var(--text) 3%, transparent)",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <div
+                  className="h-4 w-64 rounded mb-2"
+                  style={{
+                    background: "color-mix(in srgb, var(--text) 6%, transparent)",
+                  }}
+                />
+                <div
+                  className="h-3 w-40 rounded mb-4"
+                  style={{
+                    background: "color-mix(in srgb, var(--text) 4%, transparent)",
+                  }}
+                />
+                <div
+                  className="h-16 w-full rounded"
+                  style={{
+                    background: "color-mix(in srgb, var(--text) 3%, transparent)",
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        ) : escalations.length === 0 ? (
+          <DataTableEmpty
+            icon={<Inbox size={18} />}
+            title="No escalations pending"
+            description="When the policy engine routes a decision to a human reviewer, it will appear here. Clear queues are a good sign."
+          />
+        ) : (
+          <div className="p-4 space-y-3">
+            {escalations.map((esc) => (
+              <EscalationCard
+                key={esc.action_id}
+                esc={esc}
+                onResolved={() => load(false)}
+              />
+            ))}
+          </div>
+        )}
+      </DataTableShell>
     </div>
   );
 }
