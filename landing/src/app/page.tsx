@@ -1,15 +1,17 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
-import { IntegrationsStrip } from "@/components/sections/IntegrationsStrip";
+import { IntegrationsSection } from "@/components/sections/IntegrationsSection";
 import { ProblemSection } from "@/components/sections/ProblemSection";
 import { ConsolePreview } from "@/components/ConsolePreview";
 import { CodeSnippetSection } from "@/components/sections/CodeSnippetSection";
-import { HowItWorks } from "@/components/HowItWorks";
+import { MethodSection } from "@/components/sections/MethodSection";
+import { ManifestoSection } from "@/components/sections/ManifestoSection";
 import { FAQSection } from "@/components/sections/FAQSection";
 import { Dogfood } from "@/components/Dogfood";
 import { ComplianceStrip } from "@/components/sections/ComplianceStrip";
 import { CTASection } from "@/components/sections/CTASection";
 import { Footer } from "@/components/Footer";
+import { SectionDivider } from "@/components/ui/SectionDivider";
 
 const JSONLD = {
   "@context": "https://schema.org",
@@ -46,11 +48,13 @@ export default function Home() {
       <Navbar />
       <main>
         <Hero />
-        <IntegrationsStrip />
+        <IntegrationsSection />
         <ProblemSection />
         <ConsolePreview />
         <CodeSnippetSection />
-        <HowItWorks />
+        <SectionDivider />
+        <MethodSection />
+        <ManifestoSection />
         <FAQSection />
         <Dogfood />
         <ComplianceStrip />

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { KbdPill } from "./ui/KbdPill";
 
 export function Hero() {
   return (
@@ -10,7 +11,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="max-w-2xl mx-auto text-center"
+          className="max-w-3xl mx-auto text-center"
           style={{ position: "relative" }}
         >
           {/* Ambient orange glow */}
@@ -20,9 +21,9 @@ export function Hero() {
               top: "50%",
               left: "50%",
               transform: "translate(-50%, -60%)",
-              width: "600px",
-              height: "300px",
-              background: "radial-gradient(ellipse at center, rgba(200,92,26,0.08) 0%, transparent 70%)",
+              width: "780px",
+              height: "380px",
+              background: "radial-gradient(ellipse at center, rgba(200,92,26,0.10) 0%, transparent 70%)",
               pointerEvents: "none",
               zIndex: 0,
             }}
@@ -36,8 +37,8 @@ export function Hero() {
           </p>
 
           <h1
-            className="font-bold leading-[1.1] tracking-tight mb-5"
-            style={{ fontSize: "clamp(2.4rem, 5vw, 3.6rem)", position: "relative", zIndex: 1 }}
+            className="font-bold leading-[1.05] tracking-[-0.025em] mb-6"
+            style={{ fontSize: "clamp(2.4rem, 5.5vw, 4rem)", position: "relative", zIndex: 1 }}
           >
             The execution layer<br />
             for production<br />
@@ -45,7 +46,7 @@ export function Hero() {
           </h1>
 
           <p
-            className="text-sm leading-relaxed max-w-md mx-auto mb-6"
+            className="text-base sm:text-lg leading-relaxed max-w-lg mx-auto mb-7"
             style={{ color: "var(--text-2)", position: "relative", zIndex: 1 }}
           >
             Policy before every action. Exactly-once execution
@@ -115,6 +116,14 @@ export function Hero() {
           {/* Trust line */}
           <p className="text-[10px]" style={{ color: "var(--text-muted)", position: "relative", zIndex: 1 }}>
             Free to start &middot; No credit card required &middot; Self-hostable
+          </p>
+
+          {/* Keyboard hint */}
+          <p
+            className="inline-flex items-center gap-2 text-[11px] mt-8"
+            style={{ color: "var(--text-muted)", position: "relative", zIndex: 1 }}
+          >
+            Press <KbdPill>⌘</KbdPill><KbdPill>K</KbdPill> to search docs
           </p>
         </motion.div>
       </div>

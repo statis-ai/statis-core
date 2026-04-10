@@ -4,8 +4,10 @@ import { useId } from "react";
 
 function StackMark({ size, gapColor = "#191919" }: { size: number; gapColor?: string }) {
   const gradientId = useId();
+  // viewBox shifted so the front diamond center (50,50) sits at the SVG element center.
+  // Visible area: x/y from -15 to 115. Back-most layer corner (113.4, 113.4) stays in view.
   return (
-    <svg width={size} height={size} viewBox="0 0 130 130" fill="none" aria-hidden="true">
+    <svg width={size} height={size} viewBox="-15 -15 130 130" fill="none" aria-hidden="true">
       <defs>
         <linearGradient id={gradientId} x1="50" y1="20" x2="50" y2="80" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="#FFB585" />
@@ -36,13 +38,13 @@ function StackMark({ size, gapColor = "#191919" }: { size: number; gapColor?: st
 }
 
 export function Logo({ size = "default", gapColor }: { size?: "default" | "large"; gapColor?: string }) {
-  const fontSize = size === "large" ? "text-xl" : "text-base";
-  const markSize = size === "large" ? 36 : 28;
+  const fontSize = size === "large" ? "text-3xl" : "text-2xl";
+  const markSize = size === "large" ? 56 : 48;
 
   return (
-    <span className={`${fontSize} font-bold tracking-tight inline-flex items-center gap-2`}>
+    <span className={`${fontSize} font-bold tracking-tight inline-flex items-center gap-1.5`}>
       <StackMark size={markSize} gapColor={gapColor} />
-      <span style={{ color: "var(--text)" }}>statis</span>
+      <span className="leading-none" style={{ color: "var(--text)" }}>statis</span>
     </span>
   );
 }

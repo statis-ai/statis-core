@@ -20,9 +20,11 @@ export function Navbar() {
       <header
         className="fixed inset-x-0 top-0 z-50"
         style={{
-          background: scrolled ? "rgba(25,25,25,0.97)" : "#191919",
+          background: scrolled ? "rgba(25,25,25,0.55)" : "rgba(25,25,25,0.30)",
+          backdropFilter: "blur(20px) saturate(150%)",
+          WebkitBackdropFilter: "blur(20px) saturate(150%)",
           borderBottom: "1px solid var(--border)",
-          transition: "background 0.2s",
+          transition: "background 0.2s, backdrop-filter 0.2s",
         }}
       >
         <nav className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
