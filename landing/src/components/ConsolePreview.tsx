@@ -1,4 +1,7 @@
+"use client";
+
 import { SectionEyebrow } from "./ui/SectionEyebrow";
+import { Reveal } from "./ui/reveal";
 
 const SIDEBAR_ITEMS = [
   { group: null, items: [
@@ -47,8 +50,6 @@ const ACTIONS: Array<{
 ];
 
 const STATUS_STYLE: Record<ActionStatus, { color: string; bg: string; border: string }> = {
-  // Match the real console palette: green=ok, yellow=needs review, red=blocked.
-  // Orange is reserved for brand moments, not statuses.
   COMPLETED: { color: "#34D399", bg: "rgba(52,211,153,0.10)",  border: "rgba(52,211,153,0.28)" },
   ESCALATED: { color: "#FACC15", bg: "rgba(250,204,21,0.10)",  border: "rgba(250,204,21,0.25)" },
   DENIED:    { color: "#F87171", bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.22)" },
@@ -96,10 +97,10 @@ function StackLogoMini() {
 export function ConsolePreview() {
   return (
     <section
-      className="relative pt-24 pb-44 overflow-hidden"
+      className="relative pt-20 pb-44 md:pt-32 overflow-hidden"
       style={{
         background:
-          "linear-gradient(180deg, #0A0806 0%, #0A0806 30%, #14100A 50%, #2A1F12 70%, #5C4628 85%, #A88654 95%, #D4B888 100%)",
+          "linear-gradient(180deg, #FFFFFF 0%, #F4F4F5 20%, #E4E4E7 40%, #D4D4D8 60%, #A1A1AA 80%, #71717A 95%)",
       }}
     >
       {/* Soft horizon glow */}
@@ -110,285 +111,279 @@ export function ConsolePreview() {
           bottom: 0,
           height: "260px",
           background:
-            "radial-gradient(ellipse 60% 100% at 50% 100%, rgba(232,196,140,0.25) 0%, transparent 70%)",
+            "radial-gradient(ellipse 60% 100% at 50% 100%, rgba(249,115,22,0.08) 0%, transparent 70%)",
         }}
       />
 
       <div className="relative mx-auto max-w-5xl px-6 text-center">
-        <div className="mb-5">
-          <SectionEyebrow align="center">Console</SectionEyebrow>
-        </div>
-        <h2 className="text-3xl sm:text-4xl font-bold leading-tight mb-3 text-white tracking-tight">
-          See everything. Control everything.
-        </h2>
-        <p className="text-sm mb-16 max-w-xl mx-auto" style={{ color: "#A1A1AA" }}>
-          Every agent action observable, every policy decision auditable, every connector under one roof.
-        </p>
+        <Reveal>
+          <div className="mb-5">
+            <SectionEyebrow align="center" variant="accent">Console</SectionEyebrow>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold leading-tight mb-3 tracking-tight" style={{ color: "#09090B" }}>
+            See everything. Control everything.
+          </h2>
+          <p className="text-sm mb-16 max-w-md mx-auto" style={{ color: "#52525B" }}>
+            Every agent action observable, every policy decision auditable, every connector under one roof.
+          </p>
+        </Reveal>
 
         {/* 3D pedestal wrapper */}
-        <div style={{ perspective: "2400px", perspectiveOrigin: "50% 30%" }}>
-          {/* Console window */}
-          <div
-            className="rounded-2xl overflow-hidden text-left mx-auto"
-            style={{
-              background: "#0F0F12",
-              border: "1px solid rgba(255,255,255,0.08)",
-              transform: "rotateX(3deg)",
-              transformOrigin: "50% 100%",
-              boxShadow: [
-                "inset 0 1px 0 rgba(255,255,255,0.08)",
-                "0 0 0 1px rgba(0,0,0,0.5)",
-                "0 80px 160px rgba(0,0,0,0.65)",
-                "0 30px 60px rgba(0,0,0,0.5)",
-                "0 6px 16px rgba(0,0,0,0.6)",
-                "0 60px 120px rgba(212,184,136,0.10)",
-              ].join(", "),
-            }}
-          >
-            {/* Window chrome bar */}
+        <Reveal delay={0.15}>
+          <div style={{ perspective: "2400px", perspectiveOrigin: "50% 30%" }}>
+            {/* Console window */}
             <div
-              className="flex items-center gap-3 px-4 py-3"
+              className="rounded-2xl overflow-hidden text-left mx-auto"
               style={{
-                background: "#15151A",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
+                background: "#0F0F12",
+                border: "1px solid rgba(255,255,255,0.08)",
+                transform: "rotateX(3deg)",
+                transformOrigin: "50% 100%",
+                boxShadow: [
+                  "inset 0 1px 0 rgba(255,255,255,0.08)",
+                  "0 0 0 1px rgba(0,0,0,0.10)",
+                  "0 80px 160px rgba(0,0,0,0.20)",
+                  "0 30px 60px rgba(0,0,0,0.15)",
+                  "0 6px 16px rgba(0,0,0,0.12)",
+                  "0 60px 120px rgba(249,115,22,0.06)",
+                ].join(", "),
               }}
             >
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full" style={{ background: "#3F3F46" }} />
-                <div className="w-3 h-3 rounded-full" style={{ background: "#3F3F46" }} />
-                <div className="w-3 h-3 rounded-full" style={{ background: "#3F3F46" }} />
-              </div>
-              <div className="flex-1 flex justify-center">
-                <div
-                  className="text-[11px] px-3 py-1 rounded-md"
-                  style={{
-                    color: "#A1A1AA",
-                    background: "#0B0B0E",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                    letterSpacing: "0.04em",
-                  }}
-                >
-                  console.statis.dev
-                </div>
-              </div>
-              <div className="w-12" /> {/* spacer */}
-            </div>
-
-            <div className="flex">
-              {/* ─────── SIDEBAR ─────── */}
+              {/* Window chrome bar */}
               <div
-                className="hidden md:flex flex-col shrink-0 py-5"
-                style={{ width: "200px", borderRight: "1px solid rgba(255,255,255,0.06)", background: "#0B0B0E" }}
+                className="flex items-center gap-3 px-4 py-3"
+                style={{
+                  background: "#15151A",
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                }}
               >
-                {/* Logo + wordmark — matches navbar */}
-                <div className="flex items-center gap-2 px-5 mb-7">
-                  <StackLogoMini />
-                  <span className="text-[15px] font-bold text-white tracking-tight leading-none">statis</span>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full" style={{ background: "#3F3F46" }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: "#3F3F46" }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: "#3F3F46" }} />
                 </div>
-
-                {SIDEBAR_ITEMS.map((section, si) => (
-                  <div key={si} className="mb-5 px-2.5">
-                    {section.group && (
-                      <p className="text-[9px] uppercase tracking-[0.18em] px-2.5 mb-2 font-semibold" style={{ color: "#52525B" }}>
-                        {section.group}
-                      </p>
-                    )}
-                    {section.items.map(item => (
-                      <div
-                        key={item.name}
-                        className="cs-sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-md text-[12px] mb-0.5 cursor-pointer transition-colors"
-                        data-active={item.active || undefined}
-                      >
-                        <span>{item.name}</span>
-                        {"badge" in item && item.badge && (
-                          <span
-                            className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
-                            style={
-                              item.name === "Escalations"
-                                ? { background: "rgba(250,204,21,0.12)", color: "#FACC15", border: "1px solid rgba(250,204,21,0.28)" }
-                                : { background: "rgba(255,255,255,0.06)", color: "#A1A1AA", border: "1px solid rgba(255,255,255,0.08)" }
-                            }
-                          >
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-
-                <div className="flex-1" />
-
-                {/* User row at the bottom */}
-                <div className="px-3 mt-4">
-                  <div className="cs-sidebar-item flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: "linear-gradient(135deg, #FB923C, #c85c1a)" }}>
-                      A
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[11px] font-semibold text-white truncate leading-tight">Aniket Kumar</p>
-                      <p className="text-[9px] truncate leading-tight" style={{ color: "#52525B" }}>statis.dev</p>
-                    </div>
+                <div className="flex-1 flex justify-center">
+                  <div
+                    className="text-[11px] font-mono px-3 py-1 rounded-md"
+                    style={{
+                      color: "#A1A1AA",
+                      background: "#0B0B0E",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    console.statis.dev
                   </div>
                 </div>
+                <div className="w-12" />
               </div>
 
-              {/* ─────── MAIN CONTENT ─────── */}
-              <div className="flex-1 min-h-[480px] flex flex-col" style={{ background: "#0F0F12" }}>
-                {/* Page header */}
-                <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-[15px] font-bold text-white tracking-tight">Home</h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded font-semibold" style={{ background: "rgba(255,255,255,0.05)", color: "#71717A", border: "1px solid rgba(255,255,255,0.06)" }}>
-                      Last 24h
-                    </span>
+              <div className="flex">
+                {/* SIDEBAR */}
+                <div
+                  className="hidden md:flex flex-col shrink-0 py-5"
+                  style={{ width: "200px", borderRight: "1px solid rgba(255,255,255,0.06)", background: "#0B0B0E" }}
+                >
+                  <div className="flex items-center gap-2 px-5 mb-7">
+                    <StackLogoMini />
+                    <span className="text-[15px] font-bold text-white tracking-tight leading-none">statis</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {/* Search */}
-                    <div className="cs-search hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-md cursor-pointer transition-colors" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#71717A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-                      </svg>
-                      <span className="text-[10px]" style={{ color: "#71717A" }}>Search actions…</span>
-                      <span className="text-[9px] px-1 py-0.5 rounded font-mono" style={{ background: "rgba(255,255,255,0.06)", color: "#71717A" }}>⌘K</span>
+
+                  {SIDEBAR_ITEMS.map((section, si) => (
+                    <div key={si} className="mb-5 px-2.5">
+                      {section.group && (
+                        <p className="text-[9px] font-mono uppercase tracking-[0.18em] px-2.5 mb-2 font-semibold" style={{ color: "#52525B" }}>
+                          {section.group}
+                        </p>
+                      )}
+                      {section.items.map(item => (
+                        <div
+                          key={item.name}
+                          className="cs-sidebar-item flex items-center justify-between px-2.5 py-1.5 rounded-md text-[12px] mb-0.5 cursor-pointer transition-colors"
+                          data-active={item.active || undefined}
+                        >
+                          <span>{item.name}</span>
+                          {"badge" in item && item.badge && (
+                            <span
+                              className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold"
+                              style={
+                                item.name === "Escalations"
+                                  ? { background: "rgba(250,204,21,0.12)", color: "#FACC15", border: "1px solid rgba(250,204,21,0.28)" }
+                                  : { background: "rgba(255,255,255,0.06)", color: "#A1A1AA", border: "1px solid rgba(255,255,255,0.08)" }
+                              }
+                            >
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    {/* Live badge — green to match the real console */}
-                    <div
-                      className="flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded font-semibold"
-                      style={{
-                        background: "rgba(16,185,129,0.10)",
-                        border: "1px solid rgba(16,185,129,0.28)",
-                        color: "#10B981",
-                      }}
-                    >
-                      <span
-                        className="cs-pulse"
-                        style={{
-                          width: 6,
-                          height: 6,
-                          borderRadius: "50%",
-                          background: "#10B981",
-                          display: "inline-block",
-                        }}
-                      />
-                      Live
+                  ))}
+
+                  <div className="flex-1" />
+
+                  <div className="px-3 mt-4">
+                    <div className="cs-sidebar-item flex items-center gap-2 px-2.5 py-2 rounded-md cursor-pointer transition-colors">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white" style={{ background: "linear-gradient(135deg, #FB923C, #c85c1a)" }}>
+                        A
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[11px] font-semibold text-white truncate leading-tight">Aniket Kumar</p>
+                        <p className="text-[9px] truncate leading-tight" style={{ color: "#52525B" }}>statis.dev</p>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Content area */}
-                <div className="flex-1 p-6">
-                  {/* Metrics */}
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-6">
-                    {METRICS.map((m, i) => (
+                {/* MAIN CONTENT */}
+                <div className="flex-1 min-h-[480px] flex flex-col" style={{ background: "#0F0F12" }}>
+                  <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div className="flex items-center gap-3">
+                      <h3 className="text-[15px] font-bold text-white tracking-tight">Home</h3>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded font-semibold" style={{ background: "rgba(255,255,255,0.05)", color: "#71717A", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        Last 24h
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="cs-search hidden lg:flex items-center gap-2 px-2.5 py-1 rounded-md cursor-pointer transition-colors" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#71717A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        <span className="text-[10px]" style={{ color: "#71717A" }}>Search actions…</span>
+                        <span className="text-[9px] px-1 py-0.5 rounded font-mono" style={{ background: "rgba(255,255,255,0.06)", color: "#71717A" }}>⌘K</span>
+                      </div>
                       <div
-                        key={m.label}
-                        className="cs-metric rounded-lg p-3.5 cursor-pointer transition-colors"
+                        className="flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded font-semibold"
                         style={{
-                          background: "#15151A",
-                          border: "1px solid rgba(255,255,255,0.06)",
+                          background: "rgba(16,185,129,0.10)",
+                          border: "1px solid rgba(16,185,129,0.28)",
+                          color: "#10B981",
                         }}
                       >
-                        <p className="text-[9px] uppercase tracking-[0.12em] mb-1.5 font-semibold" style={{ color: "#71717A" }}>
-                          {m.label}
-                        </p>
-                        <p
-                          className="text-xl font-bold tracking-tight"
-                          style={{ color: i === 1 ? "#34D399" : "#FFFFFF" }}
-                        >
-                          {m.value}
-                        </p>
-                        <p className="text-[10px] mt-1" style={{ color: "#52525B" }}>{m.sub}</p>
+                        <span
+                          className="cs-pulse"
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: "#10B981",
+                            display: "inline-block",
+                          }}
+                        />
+                        Live
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Filter chips */}
-                  <div className="flex items-center gap-1.5 mb-3">
-                    {FILTERS.map(f => (
-                      <button
-                        key={f.name}
-                        className="cs-filter text-[10px] px-2.5 py-1 rounded-md font-semibold cursor-pointer transition-colors flex items-center gap-1.5"
-                        data-active={f.active || undefined}
-                      >
-                        {f.name}
-                        <span className="cs-filter-count text-[9px]">{f.count}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Actions table */}
-                  <div
-                    className="rounded-lg overflow-hidden"
-                    style={{ border: "1px solid rgba(255,255,255,0.06)" }}
-                  >
-                    <div
-                      className="px-4 py-2.5 flex items-center justify-between"
-                      style={{ background: "#15151A", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
-                    >
-                      <p className="text-[10px] font-bold tracking-[0.08em] uppercase" style={{ color: "#A1A1AA" }}>Recent Actions</p>
-                      <p className="text-[10px]" style={{ color: "#52525B" }}>↻ auto-refresh</p>
                     </div>
-                    <table className="w-full text-[10px]">
-                      <thead>
-                        <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                          {["ID", "Service", "Action", "Status", "Policy", "Time"].map((h, i) => (
-                            <th
-                              key={h}
-                              className={`py-2.5 font-semibold ${i === 5 ? "text-right px-3" : "text-left px-3"} ${i === 4 ? "hidden lg:table-cell" : ""}`}
-                              style={{ color: "#71717A", letterSpacing: "0.06em" }}
-                            >
-                              {h}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ACTIONS.map((a, idx) => (
-                          <tr
-                            key={a.id}
-                            className="cs-row cursor-pointer transition-colors"
-                            data-selected={a.selected || undefined}
-                            style={{
-                              borderBottom: idx < ACTIONS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                            }}
+                  </div>
+
+                  <div className="flex-1 p-6">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 mb-6">
+                      {METRICS.map((m, i) => (
+                        <div
+                          key={m.label}
+                          className="cs-metric rounded-lg p-3.5 cursor-pointer transition-colors"
+                          style={{
+                            background: "#15151A",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                          }}
+                        >
+                          <p className="text-[9px] font-mono uppercase tracking-[0.12em] mb-1.5 font-semibold" style={{ color: "#71717A" }}>
+                            {m.label}
+                          </p>
+                          <p
+                            className="text-xl font-bold tracking-tight"
+                            style={{ color: i === 1 ? "#34D399" : "#FFFFFF" }}
                           >
-                            <td className="px-3 py-2.5 font-mono" style={{ color: "#A1A1AA" }}>{a.id}</td>
-                            <td className="px-3 py-2.5">
-                              <span className="inline-flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-sm" style={{ background: a.entityColor }} />
-                                <span style={{ color: "#E4E4E7" }}>{a.entity}</span>
-                              </span>
-                            </td>
-                            <td className="px-3 py-2.5 font-mono" style={{ color: "#FFFFFF" }}>{a.action}</td>
-                            <td className="px-3 py-2.5">
-                              <span
-                                className="inline-flex items-center gap-1.5 text-[9px] px-2 py-0.5 rounded font-bold"
-                                style={{
-                                  color: STATUS_STYLE[a.status].color,
-                                  background: STATUS_STYLE[a.status].bg,
-                                  border: `1px solid ${STATUS_STYLE[a.status].border}`,
-                                }}
+                            {m.value}
+                          </p>
+                          <p className="text-[10px] mt-1" style={{ color: "#52525B" }}>{m.sub}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 mb-3">
+                      {FILTERS.map(f => (
+                        <button
+                          key={f.name}
+                          className="cs-filter text-[10px] px-2.5 py-1 rounded-md font-semibold cursor-pointer transition-colors flex items-center gap-1.5"
+                          data-active={f.active || undefined}
+                        >
+                          {f.name}
+                          <span className="cs-filter-count text-[9px]">{f.count}</span>
+                        </button>
+                      ))}
+                    </div>
+
+                    <div
+                      className="rounded-lg overflow-hidden"
+                      style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+                    >
+                      <div
+                        className="px-4 py-2.5 flex items-center justify-between"
+                        style={{ background: "#15151A", borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+                      >
+                        <p className="text-[10px] font-mono font-bold tracking-[0.08em] uppercase" style={{ color: "#A1A1AA" }}>Recent Actions</p>
+                        <p className="text-[10px]" style={{ color: "#52525B" }}>↻ auto-refresh</p>
+                      </div>
+                      <table className="w-full text-[10px] font-mono">
+                        <thead>
+                          <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                            {["ID", "Service", "Action", "Status", "Policy", "Time"].map((h, i) => (
+                              <th
+                                key={h}
+                                className={`py-2.5 font-semibold ${i === 5 ? "text-right px-3" : "text-left px-3"} ${i === 4 ? "hidden lg:table-cell" : ""}`}
+                                style={{ color: "#71717A", letterSpacing: "0.06em" }}
                               >
-                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_STYLE[a.status].color }} />
-                                {a.status}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2.5 hidden lg:table-cell font-mono" style={{ color: "#71717A" }}>{a.rule}</td>
-                            <td className="px-3 py-2.5 text-right" style={{ color: "#71717A" }}>{a.time}</td>
+                                {h}
+                              </th>
+                            ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {ACTIONS.map((a, idx) => (
+                            <tr
+                              key={a.id}
+                              className="cs-row cursor-pointer transition-colors"
+                              data-selected={a.selected || undefined}
+                              style={{
+                                borderBottom: idx < ACTIONS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                              }}
+                            >
+                              <td className="px-3 py-2.5 font-mono" style={{ color: "#A1A1AA" }}>{a.id}</td>
+                              <td className="px-3 py-2.5">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span className="w-2 h-2 rounded-sm" style={{ background: a.entityColor }} />
+                                  <span style={{ color: "#E4E4E7" }}>{a.entity}</span>
+                                </span>
+                              </td>
+                              <td className="px-3 py-2.5 font-mono" style={{ color: "#FFFFFF" }}>{a.action}</td>
+                              <td className="px-3 py-2.5">
+                                <span
+                                  className="inline-flex items-center gap-1.5 text-[9px] px-2 py-0.5 rounded font-bold"
+                                  style={{
+                                    color: STATUS_STYLE[a.status].color,
+                                    background: STATUS_STYLE[a.status].bg,
+                                    border: `1px solid ${STATUS_STYLE[a.status].border}`,
+                                  }}
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full" style={{ background: STATUS_STYLE[a.status].color }} />
+                                  {a.status}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2.5 hidden lg:table-cell font-mono" style={{ color: "#71717A" }}>{a.rule}</td>
+                              <td className="px-3 py-2.5 text-right" style={{ color: "#71717A" }}>{a.time}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </Reveal>
       </div>
 
-      {/* Console hover/active state styles (scoped via class names) */}
       <style>{`
         .cs-sidebar-item {
           color: #A1A1AA;

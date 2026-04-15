@@ -140,7 +140,7 @@ function LogoChip({ chip }: { chip: Chip }) {
     <div
       className="flex items-center gap-2 px-3 py-2 rounded-lg flex-shrink-0"
       style={{
-        background: "rgba(255,255,255,0.03)",
+        background: "rgba(0,0,0,0.02)",
         border: `1px solid rgba(${hexToRgb(chip.color)}, 0.22)`,
         whiteSpace: "nowrap",
       }}
@@ -154,7 +154,7 @@ function LogoChip({ chip }: { chip: Chip }) {
       >
         <path d={chip.path} />
       </svg>
-      <span className="text-[11px] font-medium" style={{ color: "#666" }}>
+      <span className="text-[11px] font-medium" style={{ color: "#52525B" }}>
         {chip.name}
       </span>
     </div>
@@ -165,12 +165,12 @@ export function IntegrationsSection() {
   return (
     <section
       className="py-10 overflow-hidden"
-      style={{ borderTop: "1px solid #141414", borderBottom: "1px solid #141414" }}
+      style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}
     >
       {/* Label */}
       <p
         className="text-center text-[9px] uppercase tracking-[0.25em] mb-7"
-        style={{ color: "#333" }}
+        style={{ color: "#A1A1AA" }}
       >
         Works with your entire stack
       </p>

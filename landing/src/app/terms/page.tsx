@@ -50,7 +50,7 @@ export default function TermsPage() {
         <PageH2>5. Data & privacy</PageH2>
         <p>
           Your use of the Service is subject to our{" "}
-          <a href="/privacy" className="text-[#FB923C] hover:underline">
+          <a href="/privacy" className="text-[#00D4FF] hover:underline">
             Privacy Policy
           </a>
           . You retain ownership of all data you submit through the Service. We process your
@@ -61,7 +61,7 @@ export default function TermsPage() {
         <p>
           We strive for high availability but do not guarantee uninterrupted service. Scheduled
           maintenance and unforeseen outages may occur. Check{" "}
-          <a href="https://status.statis.dev" target="_blank" rel="noopener noreferrer" className="text-[#FB923C] hover:underline">
+          <a href="https://status.statis.dev" target="_blank" rel="noopener noreferrer" className="text-[#00D4FF] hover:underline">
             status.statis.dev
           </a>{" "}
           for real-time status.
@@ -112,7 +112,7 @@ export default function TermsPage() {
         <PageH2>13. Contact</PageH2>
         <p>
           Questions about these terms? Email{" "}
-          <a href="mailto:legal@statis.dev" className="text-[#FB923C] hover:underline">
+          <a href="mailto:legal@statis.dev" className="text-[#00D4FF] hover:underline">
             legal@statis.dev
           </a>
           .

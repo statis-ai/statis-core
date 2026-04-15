@@ -29,7 +29,7 @@ const INTEGRATIONS: Integration[] = [
 ];
 
 const STATUS_STYLE: Record<Integration["status"], { color: string; bg: string; border: string }> = {
-  GA:            { color: "#FB923C", bg: "rgba(251,146,60,0.10)",  border: "rgba(251,146,60,0.28)" },
+  GA:            { color: "#00D4FF", bg: "rgba(0,212,255,0.10)",   border: "rgba(0,212,255,0.28)" },
   Beta:          { color: "#FACC15", bg: "rgba(250,204,21,0.10)",  border: "rgba(250,204,21,0.28)" },
   "Coming soon": { color: "#A1A1AA", bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.10)" },
 };
@@ -79,14 +79,14 @@ export default function IntegrationsPage() {
       <div
         className="mt-12 p-6 rounded-xl text-center"
         style={{
-          background: "rgba(200,92,26,0.04)",
-          border: "1px solid rgba(200,92,26,0.15)",
+          background: "rgba(0,212,255,0.04)",
+          border: "1px solid rgba(0,212,255,0.15)",
         }}
       >
         <p className="text-sm font-semibold text-white mb-2">Need something custom?</p>
         <p className="text-xs max-w-md mx-auto leading-relaxed" style={{ color: "#A1A1AA" }}>
           Every adapter is a thin wrapper around a REST or GraphQL client. Build your own in under 50 lines, or{" "}
-          <a href="mailto:hello@statis.dev" className="text-[#FB923C] hover:underline">
+          <a href="mailto:hello@statis.dev" className="text-[#00D4FF] hover:underline">
             let us build it for you
           </a>
           .

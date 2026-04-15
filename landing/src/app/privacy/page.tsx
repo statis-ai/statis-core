@@ -74,7 +74,7 @@ export default function PrivacyPage() {
         </ul>
         <p>
           To exercise any of these rights, email{" "}
-          <a href="mailto:privacy@statis.dev" className="text-[#FB923C] hover:underline">
+          <a href="mailto:privacy@statis.dev" className="text-[#00D4FF] hover:underline">
             privacy@statis.dev
           </a>
           .
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
         </ul>
         <p>
           We update this list as it changes. Current list always at{" "}
-          <a href="/privacy#subprocessors" className="text-[#FB923C] hover:underline">
+          <a href="/privacy#subprocessors" className="text-[#00D4FF] hover:underline">
             statis.dev/privacy
           </a>
           .
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
         <PageH2>9. Security</PageH2>
         <p>
           See our{" "}
-          <a href="/security" className="text-[#FB923C] hover:underline">
+          <a href="/security" className="text-[#00D4FF] hover:underline">
             Security
           </a>{" "}
           page for details on how we protect your data in transit, at rest, and in incident
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
         <PageH2>11. Contact</PageH2>
         <p>
           Privacy questions? Email{" "}
-          <a href="mailto:privacy@statis.dev" className="text-[#FB923C] hover:underline">
+          <a href="mailto:privacy@statis.dev" className="text-[#00D4FF] hover:underline">
             privacy@statis.dev
           </a>
           .

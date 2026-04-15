@@ -1,23 +1,55 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "framer-motion";
-import type { ReactNode } from "react";
+import { useRef, useEffect, type ReactNode, type CSSProperties } from "react";
 
-interface RevealProps extends HTMLMotionProps<"div"> {
+interface RevealProps {
   children: ReactNode;
   delay?: number;
+  className?: string;
+  style?: CSSProperties;
 }
 
-export function Reveal({ children, delay = 0, ...props }: RevealProps) {
+export function Reveal({ children, delay = 0, className, style }: RevealProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    // If element is already in the viewport on mount, reveal immediately
+    const rect = el.getBoundingClientRect();
+    if (
+      rect.top < window.innerHeight &&
+      rect.bottom > 0
+    ) {
+      el.classList.add("reveal-visible");
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.classList.add("reveal-visible");
+          observer.disconnect();
+        }
+      },
+      { threshold: 0, rootMargin: "100px" }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] }}
-      {...props}
+    <div
+      ref={ref}
+      className={`reveal-hidden ${className ?? ""}`}
+      style={{
+        ...style,
+        transitionDelay: `${delay}s`,
+      }}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }

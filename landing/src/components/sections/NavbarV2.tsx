@@ -16,9 +16,9 @@ export function NavbarV2() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-200 ${
-        scrolled ? "border-b border-white/[0.06] backdrop-blur-md" : ""
+        scrolled ? "border-b backdrop-blur-md" : ""
       }`}
-      style={{ background: scrolled ? "rgba(9,9,9,0.92)" : "transparent" }}
+      style={{ background: scrolled ? "rgba(250,246,241,0.85)" : "transparent", borderColor: scrolled ? "rgba(224,213,199,0.6)" : "transparent" }}
     >
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
         <Link href="/" className="flex items-center cursor-pointer">
@@ -38,7 +38,7 @@ export function NavbarV2() {
                 href={link.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hidden text-xs font-mono text-[#71717a] hover:text-white transition-colors sm:inline"
+                className="hidden text-xs font-mono text-[#6B5D4F] hover:text-[#1A1207] transition-colors sm:inline"
               >
                 {link.label}
               </a>
@@ -46,7 +46,7 @@ export function NavbarV2() {
               <Link
                 key={link.label}
                 href={link.href}
-                className="hidden text-xs font-mono text-[#71717a] hover:text-white transition-colors sm:inline"
+                className="hidden text-xs font-mono text-[#6B5D4F] hover:text-[#1A1207] transition-colors sm:inline"
               >
                 {link.label}
               </Link>
@@ -57,7 +57,7 @@ export function NavbarV2() {
             href="https://console.statis.dev/auth?mode=signin"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden text-xs font-mono text-[#52525b] hover:text-white transition-colors sm:inline"
+            className="hidden text-xs font-mono text-[#A89882] hover:text-[#1A1207] transition-colors sm:inline"
           >
             Sign in
           </a>

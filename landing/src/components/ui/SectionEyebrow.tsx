@@ -6,23 +6,19 @@ const VARIANTS: Record<
   Variant,
   { color: string; bg: string; border: string; shadow?: string; dot: string; dotShadow?: string }
 > = {
-  // Cream on a subtle warm white. Used for most content sections — quiet,
-  // readable, and lets the orange brand moments actually hit when they appear.
   neutral: {
-    color: "#D4C8B8",
-    bg: "rgba(255,255,255,0.04)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    dot: "#D4C8B8",
+    color: "#71717A",
+    bg: "rgba(113,113,122,0.06)",
+    border: "1px solid rgba(113,113,122,0.12)",
+    dot: "#A1A1AA",
   },
-  // Brand orange pill. Reserved for emotional peaks and conversion moments:
-  // Hero, Manifesto, and the final CTA section.
   accent: {
-    color: "#FB923C",
-    bg: "rgba(200,92,26,0.10)",
-    border: "1px solid rgba(200,92,26,0.28)",
-    shadow: "0 0 24px -8px rgba(200,92,26,0.35)",
-    dot: "#FB923C",
-    dotShadow: "0 0 6px rgba(251,146,60,0.8)",
+    color: "#F97316",
+    bg: "rgba(249,115,22,0.06)",
+    border: "1px solid rgba(249,115,22,0.18)",
+    shadow: "0 0 24px -8px rgba(249,115,22,0.15)",
+    dot: "#F97316",
+    dotShadow: "0 0 6px rgba(249,115,22,0.4)",
   },
 };
 

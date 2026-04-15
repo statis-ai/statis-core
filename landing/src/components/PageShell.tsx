@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Navbar } from "./Navbar";
-import { Footer } from "./Footer";
+import { Nav } from "./landing/Nav";
+import { LandingFooter } from "./landing/Footer";
 import { SectionEyebrow } from "./ui/SectionEyebrow";
 
 export function PageShell({
@@ -18,11 +18,11 @@ export function PageShell({
 }) {
   return (
     <>
-      <Navbar />
+      <Nav />
       <main>
         {/* Page header */}
         <section className="relative pt-40 pb-20 overflow-hidden">
-          {/* Ambient orange glow */}
+          {/* Ambient cyan glow */}
           <div
             aria-hidden
             className="absolute pointer-events-none"
@@ -33,7 +33,7 @@ export function PageShell({
               width: "720px",
               height: "360px",
               background:
-                "radial-gradient(ellipse at center, rgba(200,92,26,0.09) 0%, transparent 70%)",
+                "radial-gradient(ellipse at center, rgba(0,212,255,0.06) 0%, transparent 70%)",
             }}
           />
 
@@ -52,7 +52,7 @@ export function PageShell({
                   <span
                     style={{
                       background:
-                        "linear-gradient(135deg, #c85c1a 0%, #FB923C 55%, #FED7AA 100%)",
+                        "linear-gradient(135deg, #00D4FF 0%, #7DE6FF 55%, #EDEDED 100%)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                       backgroundClip: "text",
@@ -79,7 +79,7 @@ export function PageShell({
           <div className="mx-auto max-w-4xl px-6">{children}</div>
         </section>
       </main>
-      <Footer />
+      <LandingFooter />
     </>
   );
 }

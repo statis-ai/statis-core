@@ -54,7 +54,7 @@ export default function BlogPage() {
                 <div className="mb-4 flex items-center gap-3">
                   <span
                     className="inline-block rounded px-2 py-0.5 text-[9px] uppercase tracking-wider"
-                    style={{ background: "rgba(200,92,26,0.1)", color: "var(--orange)", border: "1px solid rgba(200,92,26,0.2)" }}
+                    style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
                   >
                     {post.tag}
                   </span>
@@ -76,7 +76,7 @@ export default function BlogPage() {
                 <span style={{ color: "#444" }}>{post.readTime}</span>
                 <span
                   className="flex items-center gap-1.5 transition-colors"
-                  style={{ color: "var(--orange)" }}
+                  style={{ color: "#00D4FF" }}
                 >
                   {isExternal ? "Read on Medium" : "Read article"}
                   <ArrowIcon external={isExternal} />

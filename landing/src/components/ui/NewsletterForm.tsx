@@ -27,20 +27,20 @@ export function NewsletterForm() {
         style={{
           background: "rgba(255,255,255,0.04)",
           border: "1px solid rgba(255,255,255,0.10)",
-          color: "#F0EDE8",
+          color: "#E4E4E7",
         }}
       />
       <button
         type="submit"
         disabled={state !== "idle"}
-        className="text-[12px] font-semibold px-4 py-2 rounded-md transition-colors hover:bg-[rgba(200,92,26,0.15)] disabled:opacity-60"
+        className="text-[12px] font-semibold px-4 py-2 rounded-md transition-colors hover:bg-[rgba(249,115,22,0.15)] disabled:opacity-60"
         style={{
-          background: "rgba(200,92,26,0.08)",
-          border: "1px solid #c85c1a",
-          color: "#c85c1a",
+          background: "rgba(249,115,22,0.10)",
+          border: "1px solid #F97316",
+          color: "#F97316",
         }}
       >
-        {state === "success" ? "Subscribed ✓" : state === "submitting" ? "..." : "Subscribe"}
+        {state === "success" ? "Subscribed" : state === "submitting" ? "..." : "Subscribe"}
       </button>
     </form>
   );

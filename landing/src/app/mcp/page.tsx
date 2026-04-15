@@ -37,11 +37,11 @@ export default function MCPPage() {
         >
           <div className="space-y-1">
             <div><span style={{ color: "#71717A" }}>$</span> statis connector create \</div>
-            <div className="pl-4"><span style={{ color: "#FB923C" }}>--name</span> my-mcp-server \</div>
-            <div className="pl-4"><span style={{ color: "#FB923C" }}>--url</span> https://mcp.example.com \</div>
-            <div className="pl-4"><span style={{ color: "#FB923C" }}>--auth-type</span> bearer \</div>
-            <div className="pl-4"><span style={{ color: "#FB923C" }}>--auth-token</span> $MCP_TOKEN</div>
-            <div className="mt-3"><span style={{ color: "#22C55E" }}>✓</span> Connector <span style={{ color: "#FB923C" }}>my-mcp-server</span> registered</div>
+            <div className="pl-4"><span style={{ color: "#00D4FF" }}>--name</span> my-mcp-server \</div>
+            <div className="pl-4"><span style={{ color: "#00D4FF" }}>--url</span> https://mcp.example.com \</div>
+            <div className="pl-4"><span style={{ color: "#00D4FF" }}>--auth-type</span> bearer \</div>
+            <div className="pl-4"><span style={{ color: "#00D4FF" }}>--auth-token</span> $MCP_TOKEN</div>
+            <div className="mt-3"><span style={{ color: "#22C55E" }}>✓</span> Connector <span style={{ color: "#00D4FF" }}>my-mcp-server</span> registered</div>
           </div>
         </div>
 
@@ -110,7 +110,7 @@ async def write_file(path: str, content: str):
             href="https://docs.statis.dev/mcp"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#FB923C] hover:underline"
+            className="text-[#00D4FF] hover:underline"
           >
             docs.statis.dev/mcp →
           </a>

@@ -27,7 +27,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <h2
       className="mt-12 mb-4 pl-4 text-xl font-bold"
-      style={{ borderLeft: "2px solid var(--orange)", color: "var(--text)" }}
+      style={{ borderLeft: "2px solid #00D4FF", color: "var(--text)" }}
     >
       {children}
     </h2>
@@ -129,7 +129,7 @@ function StaleStateContent() {
 
       <p>
         This is why we built{" "}
-        <strong style={{ color: "var(--orange)" }}>Statis</strong> &mdash; a
+        <strong style={{ color: "#00D4FF" }}>Statis</strong> &mdash; a
         semantic event bus designed specifically for AI agents. Think of it as{" "}
         <em>Kafka for AI state</em>.
       </p>
@@ -177,7 +177,7 @@ function StaleStateContent() {
           <li key={n} className="flex gap-3">
             <span
               className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
-              style={{ background: "rgba(200,92,26,0.1)", color: "var(--orange)", border: "1px solid rgba(200,92,26,0.2)" }}
+              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
             >
               {n}
             </span>
@@ -238,7 +238,7 @@ export default async function BlogPostPage({ params }: Props) {
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <span
             className="inline-block rounded px-2 py-0.5 text-[9px] uppercase tracking-wider"
-            style={{ background: "rgba(200,92,26,0.1)", color: "var(--orange)", border: "1px solid rgba(200,92,26,0.2)" }}
+            style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
           >
             {post.tag}
           </span>

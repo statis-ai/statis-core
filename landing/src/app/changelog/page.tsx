@@ -70,7 +70,7 @@ const RELEASES: Release[] = [
 ];
 
 const TAG_STYLE: Record<Change["type"], { color: string; bg: string; border: string; label: string }> = {
-  feature:     { color: "#FB923C", bg: "rgba(251,146,60,0.10)",  border: "rgba(251,146,60,0.28)",  label: "NEW" },
+  feature:     { color: "#00D4FF", bg: "rgba(0,212,255,0.10)",   border: "rgba(0,212,255,0.28)",   label: "NEW" },
   improvement: { color: "#60A5FA", bg: "rgba(96,165,250,0.10)",  border: "rgba(96,165,250,0.28)",  label: "IMPROVED" },
   fix:         { color: "#FACC15", bg: "rgba(250,204,21,0.10)",  border: "rgba(250,204,21,0.28)",  label: "FIX" },
   security:    { color: "#F87171", bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.28)", label: "SECURITY" },
@@ -89,15 +89,15 @@ export default function ChangelogPage() {
           <article key={release.version} className="relative pl-0 md:pl-8">
             <div
               className="hidden md:block absolute left-0 top-2 w-3 h-3 rounded-full"
-              style={{ background: "#c85c1a", boxShadow: "0 0 12px rgba(200,92,26,0.6)" }}
+              style={{ background: "#00D4FF", boxShadow: "0 0 12px rgba(0,212,255,0.6)" }}
             />
             <div className="flex items-baseline gap-3 mb-3">
               <span
                 className="text-[11px] font-mono font-bold px-2 py-1 rounded"
                 style={{
-                  color: "#c85c1a",
-                  background: "rgba(200,92,26,0.08)",
-                  border: "1px solid rgba(200,92,26,0.25)",
+                  color: "#00D4FF",
+                  background: "rgba(0,212,255,0.08)",
+                  border: "1px solid rgba(0,212,255,0.25)",
                 }}
               >
                 v{release.version}

@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { GlobalBackground } from "@/components/ui/GlobalBackground";
 import "./globals.css";
 
+const sans = Inter({
+  variable: "--font-sans",
+  subsets: ["latin"],
+});
+
 const mono = JetBrains_Mono({
-  variable: "--font",
+  variable: "--font-mono",
   subsets: ["latin"],
 });
 
@@ -42,7 +48,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={mono.variable}>{children}</body>
+      <body className={`${sans.variable} ${mono.variable}`}>
+        <GlobalBackground />
+        {children}
+      </body>
     </html>
   );
 }

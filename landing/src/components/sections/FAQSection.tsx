@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
+import { Reveal } from "@/components/ui/reveal";
 
 const FAQS = [
     {
@@ -56,63 +57,66 @@ export function FAQSection() {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     return (
-        <section className="py-20">
+        <section className="py-16 md:py-24">
             <div className="mx-auto max-w-3xl px-6">
-                <div className="text-center mb-14">
-                    <div className="mb-5">
-                        <SectionEyebrow align="center">Questions</SectionEyebrow>
+                <Reveal>
+                    <div className="text-center mb-12">
+                        <div className="mb-5">
+                            <SectionEyebrow align="center" variant="accent">Questions</SectionEyebrow>
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: "var(--text)" }}>
+                            Frequently asked.
+                        </h2>
                     </div>
-                    <h2 className="text-3xl sm:text-4xl font-bold tracking-tight" style={{ color: "var(--text)" }}>
-                        Frequently asked.
-                    </h2>
-                </div>
+                </Reveal>
 
                 <div className="space-y-2">
                     {FAQS.map((faq, index) => {
                         const isOpen = openIndex === index;
                         return (
-                            <div
-                                key={index}
-                                style={{
-                                    background: "var(--bg-surface)",
-                                    border: `1px solid ${isOpen ? "rgba(200,92,26,0.2)" : "var(--border)"}`,
-                                    borderLeft: isOpen ? "2px solid rgba(200,92,26,0.4)" : "2px solid transparent",
-                                    borderRadius: "var(--radius)",
-                                    transition: "border-color 0.2s ease",
-                                }}
-                            >
-                                <button
-                                    onClick={() => setOpenIndex(isOpen ? null : index)}
-                                    className="w-full flex justify-between items-center px-5 py-4 text-left focus:outline-none gap-4 cursor-pointer"
-                                >
-                                    <span
-                                        className="font-medium text-sm"
-                                        style={{ color: "var(--text)" }}
-                                    >
-                                        {faq.q}
-                                    </span>
-                                    <ChevronIcon isOpen={isOpen} />
-                                </button>
+                            <Reveal key={index} delay={index * 0.04}>
                                 <div
                                     style={{
-                                        maxHeight: isOpen ? "300px" : "0",
-                                        opacity: isOpen ? 1 : 0,
-                                        overflow: "hidden",
-                                        transition: "max-height 0.25s ease, opacity 0.2s ease",
+                                        background: "var(--bg-surface)",
+                                        border: `1px solid ${isOpen ? "rgba(249,115,22,0.2)" : "var(--border)"}`,
+                                        borderLeft: isOpen ? "2px solid rgba(249,115,22,0.4)" : "2px solid transparent",
+                                        borderRadius: "var(--radius)",
+                                        transition: "border-color 0.2s ease",
                                     }}
                                 >
+                                    <button
+                                        onClick={() => setOpenIndex(isOpen ? null : index)}
+                                        className="w-full flex justify-between items-center px-5 py-4 text-left focus:outline-none gap-4 cursor-pointer"
+                                    >
+                                        <span
+                                            className="font-medium text-sm"
+                                            style={{ color: "var(--text)" }}
+                                        >
+                                            {faq.q}
+                                        </span>
+                                        <ChevronIcon isOpen={isOpen} />
+                                    </button>
                                     <div
-                                        className="px-5 pb-4 text-sm leading-relaxed"
                                         style={{
-                                            color: "var(--text-2)",
-                                            borderTop: "1px solid var(--border)",
-                                            paddingTop: "1rem",
+                                            maxHeight: isOpen ? "300px" : "0",
+                                            opacity: isOpen ? 1 : 0,
+                                            overflow: "hidden",
+                                            transition: "max-height 0.25s ease, opacity 0.2s ease",
                                         }}
                                     >
-                                        {faq.a}
+                                        <div
+                                            className="px-5 pb-4 text-sm leading-relaxed"
+                                            style={{
+                                                color: "var(--text-2)",
+                                                borderTop: "1px solid var(--border)",
+                                                paddingTop: "1rem",
+                                            }}
+                                        >
+                                            {faq.a}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Reveal>
                         );
                     })}
                 </div>

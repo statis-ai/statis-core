@@ -26,28 +26,28 @@ const LINKS = {
 
 export function FooterV2() {
   return (
-    <footer style={{ borderTop: "1px solid var(--border-muted)", background: "var(--bg)" }}>
+    <footer style={{ borderTop: "1px solid #2A2218", background: "#1A1207", color: "#D4C8B8", ["--text" as string]: "#D4C8B8", ["--text-2" as string]: "#8B7A66", ["--text-muted" as string]: "#5C4D3D" }}>
       <div className="mx-auto max-w-7xl px-6 pt-14 pb-10 lg:px-8">
 
         <div className="grid grid-cols-2 gap-10 md:grid-cols-5 lg:gap-16">
           {/* Brand */}
           <div className="col-span-2 md:col-span-1 space-y-4">
             <Link href="/" className="flex items-center cursor-pointer">
-              <Logo />
+              <Logo gapColor="#1A1207" />
             </Link>
-            <p className="text-xs leading-relaxed text-[#52525b] max-w-[180px]" style={{ fontFamily: "var(--font-sans)" }}>
+            <p className="text-xs leading-relaxed text-[#8B7A66] max-w-[180px]" style={{ fontFamily: "var(--font-sans)" }}>
               Agent execution infrastructure.
             </p>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: "var(--orange)" }} />
-              <span className="text-[10px] font-mono" style={{ color: "rgba(200,92,26,0.7)" }}>api.statis.dev live</span>
+              <span className="text-[10px] font-mono" style={{ color: "rgba(184,82,15,0.8)" }}>api.statis.dev live</span>
             </div>
           </div>
 
           {/* Link columns */}
           {Object.entries(LINKS).map(([group, links]) => (
             <div key={group}>
-              <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#3f3f46] mb-4">
+              <h3 className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#5C4D3D] mb-4">
                 {group}
               </h3>
               <ul className="space-y-3">
@@ -58,12 +58,12 @@ export function FooterV2() {
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-mono text-[#71717a] hover:text-white transition-colors"
+                        className="text-xs font-mono text-[#8B7A66] hover:text-[#D4C8B8] transition-colors"
                       >
                         {link.label}
                       </a>
                     ) : (
-                      <Link href={link.href} className="text-xs font-mono text-[#71717a] hover:text-white transition-colors">
+                      <Link href={link.href} className="text-xs font-mono text-[#8B7A66] hover:text-[#D4C8B8] transition-colors">
                         {link.label}
                       </Link>
                     )}
@@ -76,12 +76,12 @@ export function FooterV2() {
 
         <div
           className="mt-10 pt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-          style={{ borderTop: "1px solid var(--border-muted)" }}
+          style={{ borderTop: "1px solid #2A2218" }}
         >
-          <p className="text-[10px] font-mono text-[#3f3f46]">&copy; 2026 Statis Inc.</p>
+          <p className="text-[10px] font-mono text-[#5C4D3D]">&copy; 2026 Statis Inc.</p>
           <div className="flex gap-5">
-            <a href="#" className="text-[10px] font-mono text-[#3f3f46] hover:text-[#71717a] transition-colors">Terms</a>
-            <a href="#" className="text-[10px] font-mono text-[#3f3f46] hover:text-[#71717a] transition-colors">Privacy</a>
+            <a href="#" className="text-[10px] font-mono text-[#5C4D3D] hover:text-[#8B7A66] transition-colors">Terms</a>
+            <a href="#" className="text-[10px] font-mono text-[#5C4D3D] hover:text-[#8B7A66] transition-colors">Privacy</a>
           </div>
         </div>
       </div>

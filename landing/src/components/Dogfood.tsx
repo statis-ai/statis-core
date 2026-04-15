@@ -7,10 +7,10 @@ export function Dogfood() {
         <div
           className="rounded-lg px-8 py-10 text-center"
           style={{
-            background: "linear-gradient(135deg, #0e0e0e 0%, #111111 100%)",
-            border: "1px solid #222",
-            borderTop: "1px solid rgba(200,92,26,0.2)",
-            boxShadow: "0 16px 48px rgba(0,0,0,0.4), 0 0 40px rgba(200,92,26,0.02)",
+            background: "var(--bg-elevated)",
+            border: "1px solid var(--border)",
+            borderTop: "1px solid rgba(184,82,15,0.25)",
+            boxShadow: "0 16px 48px rgba(26,18,7,0.08), 0 0 40px rgba(184,82,15,0.02)",
           }}
         >
           {/* Receipt decoration */}
@@ -18,7 +18,7 @@ export function Dogfood() {
             <div
               className="text-[9px] font-mono px-4 py-2.5 rounded text-left"
               style={{
-                background: "#0a0a0a",
+                background: "#0b0b0d",
                 border: "1px solid #1e1e1e",
                 color: "#333",
                 lineHeight: "1.8",

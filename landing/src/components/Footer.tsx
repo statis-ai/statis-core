@@ -63,19 +63,20 @@ export function Footer() {
     <footer
       className="relative overflow-hidden"
       style={{
-        background: "#0A0806",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        background: "#09090B",
+        borderTop: "1px solid #27272A",
+        color: "#A1A1AA",
       }}
     >
       <div className="mx-auto max-w-6xl px-6 pt-20 pb-10 relative z-10">
-        {/* ── Top row: brand + newsletter ── */}
+        {/* Top row: brand + newsletter */}
         <div
           className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16 pb-14"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ borderBottom: "1px solid #27272A" }}
         >
           <div className="md:col-span-2">
-            <Logo />
-            <p className="text-[13px] mt-5 max-w-md leading-relaxed" style={{ color: "#A1A1AA" }}>
+            <Logo gapColor="#09090B" />
+            <p className="text-[13px] mt-5 max-w-md leading-relaxed" style={{ color: "#71717A" }}>
               Agent execution infrastructure. Policy before every action. Exactly-once
               execution guarantee. SHA-256 tamper-evident receipt on every outcome.
             </p>
@@ -88,24 +89,24 @@ export function Footer() {
           <div>
             <p
               className="text-[11px] uppercase tracking-[0.18em] mb-3 font-semibold"
-              style={{ color: "#71717A" }}
+              style={{ color: "#52525B" }}
             >
               Stay updated
             </p>
-            <p className="text-[13px] mb-4 leading-relaxed" style={{ color: "#A1A1AA" }}>
+            <p className="text-[13px] mb-4 leading-relaxed" style={{ color: "#71717A" }}>
               Monthly updates on agent infrastructure and governance. No spam, unsubscribe anytime.
             </p>
             <NewsletterForm />
           </div>
         </div>
 
-        {/* ── Link columns ── */}
+        {/* Link columns */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-20">
           {Object.entries(LINKS).map(([group, links]) => (
             <div key={group}>
               <h3
                 className="text-[11px] uppercase tracking-[0.18em] mb-5 font-semibold"
-                style={{ color: "#71717A" }}
+                style={{ color: "#52525B" }}
               >
                 {group}
               </h3>
@@ -117,16 +118,16 @@ export function Footer() {
                         href={link.href}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-[13px] transition-colors hover:text-white"
-                        style={{ color: "#A1A1AA" }}
+                        className="text-[13px] transition-colors hover:text-[#E4E4E7]"
+                        style={{ color: "#71717A" }}
                       >
                         {link.label}
                       </a>
                     ) : (
                       <Link
                         href={link.href}
-                        className="text-[13px] transition-colors hover:text-white"
-                        style={{ color: "#A1A1AA" }}
+                        className="text-[13px] transition-colors hover:text-[#E4E4E7]"
+                        style={{ color: "#71717A" }}
                       >
                         {link.label}
                       </Link>
@@ -138,13 +139,13 @@ export function Footer() {
           ))}
         </div>
 
-        {/* ── Bottom row: legal + social ── */}
+        {/* Bottom row: legal + social */}
         <div
           className="flex items-center justify-between flex-wrap gap-5 pt-8"
-          style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+          style={{ borderTop: "1px solid #27272A" }}
         >
-          <div className="flex items-center gap-6 text-[11px]" style={{ color: "#71717A" }}>
-            <span>© 2026 Statis Inc.</span>
+          <div className="flex items-center gap-6 text-[11px]" style={{ color: "#3F3F46" }}>
+            <span>&copy; 2026 Statis Inc.</span>
             <span className="hidden sm:inline">Made in San Francisco</span>
           </div>
           <div className="flex items-center gap-5">
@@ -152,8 +153,8 @@ export function Footer() {
               href="https://github.com/statis-ai"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-colors hover:text-white"
-              style={{ color: "#71717A" }}
+              className="transition-colors hover:text-[#E4E4E7]"
+              style={{ color: "#52525B" }}
               aria-label="GitHub"
             >
               <GitHubIcon />
@@ -162,8 +163,8 @@ export function Footer() {
               href="https://x.com/statis_ai"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-colors hover:text-white"
-              style={{ color: "#71717A" }}
+              className="transition-colors hover:text-[#E4E4E7]"
+              style={{ color: "#52525B" }}
               aria-label="Twitter / X"
             >
               <TwitterIcon />
@@ -172,8 +173,8 @@ export function Footer() {
               href="https://linkedin.com/company/statis-ai"
               target="_blank"
               rel="noopener noreferrer"
-              className="transition-colors hover:text-white"
-              style={{ color: "#71717A" }}
+              className="transition-colors hover:text-[#E4E4E7]"
+              style={{ color: "#52525B" }}
               aria-label="LinkedIn"
             >
               <LinkedInIcon />
@@ -182,7 +183,7 @@ export function Footer() {
         </div>
       </div>
 
-      {/* ── Giant brand wordmark ── */}
+      {/* Giant brand wordmark */}
       <div
         aria-hidden
         className="relative pointer-events-none select-none"
@@ -193,7 +194,7 @@ export function Footer() {
           style={{
             fontSize: "clamp(7rem, 26vw, 24rem)",
             background:
-              "linear-gradient(180deg, rgba(232,196,140,0.09) 0%, rgba(232,196,140,0.02) 70%, rgba(232,196,140,0) 100%)",
+              "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 70%, rgba(255,255,255,0) 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
             backgroundClip: "text",

@@ -19,11 +19,11 @@ export function StatusPill({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 text-[11px] px-3 py-1.5 rounded-full transition-colors hover:bg-white/[0.06]"
+      className="inline-flex items-center gap-2 text-[11px] px-3 py-1.5 rounded-full transition-colors"
       style={{
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        color: "#A1A1AA",
+        background: "rgba(255,255,255,0.06)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        color: "#71717A",
       }}
     >
       <span className="relative flex items-center justify-center" style={{ width: 10, height: 10 }}>

@@ -1,17 +1,4 @@
-import { Navbar } from "@/components/Navbar";
-import { Hero } from "@/components/Hero";
-import { IntegrationsSection } from "@/components/sections/IntegrationsSection";
-import { ProblemSection } from "@/components/sections/ProblemSection";
-import { ConsolePreview } from "@/components/ConsolePreview";
-import { CodeSnippetSection } from "@/components/sections/CodeSnippetSection";
-import { MethodSection } from "@/components/sections/MethodSection";
-import { ManifestoSection } from "@/components/sections/ManifestoSection";
-import { FAQSection } from "@/components/sections/FAQSection";
-import { Dogfood } from "@/components/Dogfood";
-import { ComplianceStrip } from "@/components/sections/ComplianceStrip";
-import { CTASection } from "@/components/sections/CTASection";
-import { Footer } from "@/components/Footer";
-import { SectionDivider } from "@/components/ui/SectionDivider";
+import LandingPage from "@/components/landing";
 
 const JSONLD = {
   "@context": "https://schema.org",
@@ -45,22 +32,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }}
       />
-      <Navbar />
-      <main>
-        <Hero />
-        <IntegrationsSection />
-        <ProblemSection />
-        <ConsolePreview />
-        <CodeSnippetSection />
-        <SectionDivider />
-        <MethodSection />
-        <ManifestoSection />
-        <FAQSection />
-        <Dogfood />
-        <ComplianceStrip />
-        <CTASection />
-      </main>
-      <Footer />
+      <LandingPage />
     </>
   );
 }

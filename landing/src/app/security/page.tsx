@@ -61,7 +61,7 @@ export default function SecurityPage() {
           <li>Static analysis and secret scanning in CI</li>
           <li>Quarterly third-party penetration tests (Enterprise)</li>
           <li>Public disclosure via{" "}
-            <a href="mailto:security@statis.dev" className="text-[#FB923C] hover:underline">
+            <a href="mailto:security@statis.dev" className="text-[#00D4FF] hover:underline">
               security@statis.dev
             </a>
           </li>
@@ -72,7 +72,7 @@ export default function SecurityPage() {
           In the event of a security incident that affects customer data, we will notify
           affected customers within 72 hours via email and in-product banner. Post-incident
           reports are published at{" "}
-          <a href="https://status.statis.dev" target="_blank" rel="noopener noreferrer" className="text-[#FB923C] hover:underline">
+          <a href="https://status.statis.dev" target="_blank" rel="noopener noreferrer" className="text-[#00D4FF] hover:underline">
             status.statis.dev
           </a>
           .
@@ -100,7 +100,7 @@ export default function SecurityPage() {
         <p>
           For customers who need full control, Statis is available as a self-hosted distribution
           via Docker Compose or Kubernetes. All data stays on your infrastructure. See the{" "}
-          <a href="https://docs.statis.dev/self-host" target="_blank" rel="noopener noreferrer" className="text-[#FB923C] hover:underline">
+          <a href="https://docs.statis.dev/self-host" target="_blank" rel="noopener noreferrer" className="text-[#00D4FF] hover:underline">
             self-hosting guide
           </a>
           .
@@ -110,7 +110,7 @@ export default function SecurityPage() {
         <p>
           If you believe you&apos;ve found a security vulnerability, please report it
           responsibly to{" "}
-          <a href="mailto:security@statis.dev" className="text-[#FB923C] hover:underline">
+          <a href="mailto:security@statis.dev" className="text-[#00D4FF] hover:underline">
             security@statis.dev
           </a>
           . We acknowledge reports within one business day and aim to triage within 72 hours.

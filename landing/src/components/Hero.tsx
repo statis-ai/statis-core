@@ -15,7 +15,7 @@ export function Hero() {
           className="max-w-3xl mx-auto text-center"
           style={{ position: "relative" }}
         >
-          {/* Ambient orange glow — subtle, just enough warmth */}
+          {/* Ambient orange glow */}
           <div
             style={{
               position: "absolute",
@@ -25,7 +25,7 @@ export function Hero() {
               width: "680px",
               height: "320px",
               background:
-                "radial-gradient(ellipse at center, rgba(200,92,26,0.055) 0%, transparent 70%)",
+                "radial-gradient(ellipse at center, rgba(249,115,22,0.05) 0%, transparent 70%)",
               pointerEvents: "none",
               zIndex: 0,
             }}
@@ -45,7 +45,7 @@ export function Hero() {
             <span
               style={{
                 background:
-                  "linear-gradient(135deg, #c85c1a 0%, #FB923C 55%, #FED7AA 100%)",
+                  "linear-gradient(135deg, #EA580C 0%, #F97316 55%, #FB923C 100%)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -60,7 +60,7 @@ export function Hero() {
           </h1>
 
           <p
-            className="text-base sm:text-lg leading-relaxed max-w-lg mx-auto mb-7"
+            className="text-sm sm:text-base leading-relaxed max-w-lg mx-auto mb-7"
             style={{ color: "var(--text-2)", position: "relative", zIndex: 1 }}
           >
             Policy before every action. Exactly-once execution
@@ -68,7 +68,7 @@ export function Hero() {
           </p>
 
           <div
-            className="flex items-center justify-center gap-2 text-xs mb-10"
+            className="flex items-center justify-center gap-2 text-xs font-mono mb-10"
             style={{ color: "var(--text-muted)", position: "relative", zIndex: 1 }}
           >
             {["Propose", "Evaluate", "Execute \u00d71", "Receipt"].map((s, i, a) => (
@@ -90,29 +90,29 @@ export function Hero() {
                 background: "transparent",
                 border: "1px solid var(--orange)",
                 color: "var(--orange)",
-                boxShadow: "0 0 20px rgba(200,92,26,0.15)",
+                boxShadow: "0 0 20px rgba(249,115,22,0.10)",
                 transition: "box-shadow 0.2s, background 0.2s",
               }}
               onMouseEnter={e => {
-                (e.currentTarget as HTMLElement).style.background = "rgba(200,92,26,0.08)";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 32px rgba(200,92,26,0.25)";
+                (e.currentTarget as HTMLElement).style.background = "rgba(249,115,22,0.06)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 32px rgba(249,115,22,0.18)";
               }}
               onMouseLeave={e => {
                 (e.currentTarget as HTMLElement).style.background = "transparent";
-                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 20px rgba(200,92,26,0.15)";
+                (e.currentTarget as HTMLElement).style.boxShadow = "0 0 20px rgba(249,115,22,0.10)";
               }}
             >
               Get Started Free
             </a>
 
             <div
-              className="inline-flex items-center gap-2 text-xs px-4 py-2.5 rounded"
+              className="inline-flex items-center gap-2 text-xs font-mono px-4 py-2.5 rounded"
               style={{
                 background: "var(--bg-surface)",
                 border: "1px solid var(--border)",
               }}
             >
-              <span style={{ color: "#555" }}>$</span>
+              <span style={{ color: "#A1A1AA" }}>$</span>
               <span style={{ color: "var(--text)" }}>pip install statis-ai</span>
             </div>
 
@@ -120,8 +120,10 @@ export function Hero() {
               href="https://docs.statis.dev"
               target="_blank"
               rel="noopener noreferrer"
-              className="link text-xs px-4 py-2.5 rounded"
-              style={{ border: "1px solid var(--border)" }}
+              className="text-xs px-4 py-2.5 rounded transition-colors"
+              style={{ border: "1px solid var(--border)", color: "#52525B" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#09090B")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#52525B")}
             >
               Read the docs {"\u2192"}
             </a>
@@ -137,7 +139,7 @@ export function Hero() {
             className="inline-flex items-center gap-2 text-[11px] mt-8"
             style={{ color: "var(--text-muted)", position: "relative", zIndex: 1 }}
           >
-            Press <KbdPill>⌘</KbdPill><KbdPill>K</KbdPill> to search docs
+            Press <KbdPill>&#8984;</KbdPill><KbdPill>K</KbdPill> to search docs
           </p>
         </motion.div>
       </div>

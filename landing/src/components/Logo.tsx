@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 
-function StackMark({ size, gapColor = "#191919" }: { size: number; gapColor?: string }) {
+function StackMark({ size, gapColor = "#FAF6F1" }: { size: number; gapColor?: string }) {
   const gradientId = useId();
   // viewBox shifted so the front diamond center (50,50) sits at the SVG element center.
   // Visible area: x/y from -15 to 115. Back-most layer corner (113.4, 113.4) stays in view.

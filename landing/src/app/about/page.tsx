@@ -67,11 +67,11 @@ export default function AboutPage() {
         <PageH2>Get in touch</PageH2>
         <p>
           Questions, feedback, or feature requests? Email{" "}
-          <a href="mailto:hello@statis.dev" className="text-[#FB923C] hover:underline">
+          <a href="mailto:hello@statis.dev" className="text-[#00D4FF] hover:underline">
             hello@statis.dev
           </a>
           . Press inquiries:{" "}
-          <a href="mailto:press@statis.dev" className="text-[#FB923C] hover:underline">
+          <a href="mailto:press@statis.dev" className="text-[#00D4FF] hover:underline">
             press@statis.dev
           </a>
           .

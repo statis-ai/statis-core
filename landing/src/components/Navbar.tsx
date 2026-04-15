@@ -20,9 +20,9 @@ export function Navbar() {
       <header
         className="fixed inset-x-0 top-0 z-50"
         style={{
-          background: scrolled ? "rgba(25,25,25,0.55)" : "rgba(25,25,25,0.30)",
-          backdropFilter: "blur(20px) saturate(150%)",
-          WebkitBackdropFilter: "blur(20px) saturate(150%)",
+          background: scrolled ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.40)",
+          backdropFilter: "blur(20px) saturate(120%)",
+          WebkitBackdropFilter: "blur(20px) saturate(120%)",
           borderBottom: "1px solid var(--border)",
           transition: "background 0.2s, backdrop-filter 0.2s",
         }}
@@ -34,22 +34,34 @@ export function Navbar() {
 
           <div className="flex items-center gap-6">
             <a href="https://docs.statis.dev" target="_blank" rel="noopener noreferrer"
-               className="link hidden sm:inline text-xs">Docs</a>
+               className="hidden sm:inline text-xs transition-colors"
+               style={{ color: "#52525B" }}
+               onMouseEnter={e => (e.currentTarget.style.color = "#09090B")}
+               onMouseLeave={e => (e.currentTarget.style.color = "#52525B")}
+            >Docs</a>
             <a href="https://github.com/statis-ai/statis-sdk" target="_blank" rel="noopener noreferrer"
-               className="link hidden sm:inline text-xs">GitHub</a>
+               className="hidden sm:inline text-xs transition-colors"
+               style={{ color: "#52525B" }}
+               onMouseEnter={e => (e.currentTarget.style.color = "#09090B")}
+               onMouseLeave={e => (e.currentTarget.style.color = "#52525B")}
+            >GitHub</a>
 
             <button
               onClick={() => setPlaygroundOpen(true)}
               className="hidden sm:inline text-xs font-mono transition-colors"
-              style={{ color:"#71717a" }}
-              onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
-              onMouseLeave={e => (e.currentTarget.style.color = "#71717a")}
+              style={{ color: "#52525B" }}
+              onMouseEnter={e => (e.currentTarget.style.color = "#09090B")}
+              onMouseLeave={e => (e.currentTarget.style.color = "#52525B")}
             >
-              Playground
+              Try live
             </button>
 
             <a href="https://console.statis.dev/auth?mode=signin" target="_blank" rel="noopener noreferrer"
-               className="link-muted hidden sm:inline text-xs">Log In</a>
+               className="hidden sm:inline text-xs transition-colors"
+               style={{ color: "#A1A1AA" }}
+               onMouseEnter={e => (e.currentTarget.style.color = "#52525B")}
+               onMouseLeave={e => (e.currentTarget.style.color = "#A1A1AA")}
+            >Log In</a>
             <a
               href="https://console.statis.dev/auth?mode=signup"
               target="_blank"
@@ -70,7 +82,7 @@ export function Navbar() {
             right: 0,
             height: "1px",
             background: "linear-gradient(90deg, transparent 0%, var(--orange-glow) 25%, var(--orange) 50%, var(--orange-glow) 75%, transparent 100%)",
-            boxShadow: "0 0 20px 6px var(--orange-glow), 0 2px 48px 0 rgba(200,92,26,0.15)",
+            boxShadow: "0 0 20px 6px var(--orange-glow), 0 2px 48px 0 rgba(249,115,22,0.08)",
             pointerEvents: "none",
           }}
         />

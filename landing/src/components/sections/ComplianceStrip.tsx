@@ -1,4 +1,7 @@
+"use client";
+
 import { SectionEyebrow } from "@/components/ui/SectionEyebrow";
+import { Reveal } from "@/components/ui/reveal";
 
 const BADGES = [
   {
@@ -69,51 +72,54 @@ const BADGES = [
 export function ComplianceStrip() {
   return (
     <section
-      className="py-24"
+      className="py-12 md:py-16"
       style={{
-        borderTop: "1px solid #141414",
-        background: "radial-gradient(ellipse 80% 50% at 50% 100%, rgba(200,92,26,0.04) 0%, transparent 70%)",
+        borderTop: "1px solid var(--border)",
+        background: "radial-gradient(ellipse 80% 50% at 50% 100%, rgba(249,115,22,0.04) 0%, transparent 70%)",
       }}
     >
       <div className="mx-auto max-w-5xl px-6">
-        <div className="text-center mb-14">
-          <div className="mb-5">
-            <SectionEyebrow align="center">Built for production</SectionEyebrow>
+        <Reveal>
+          <div className="text-center mb-12">
+            <div className="mb-5">
+              <SectionEyebrow align="center" variant="accent">Built for production</SectionEyebrow>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-bold mb-3 tracking-tight">Enterprise-ready from day one.</h2>
+            <p className="text-sm max-w-md mx-auto" style={{ color: "var(--text-2)" }}>
+              The controls your security team will ask for before procurement — already built in.
+            </p>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold mb-3 tracking-tight">Enterprise-ready from day one.</h2>
-          <p className="text-sm max-w-md mx-auto" style={{ color: "var(--text-2)" }}>
-            The controls your security team will ask for before procurement — already built in.
-          </p>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {BADGES.map(({ icon, title, sub }) => (
-            <div
-              key={title}
-              className="compliance-card flex gap-4 rounded-lg px-5 py-5"
-              style={{
-                background: "#0c0c0c",
-                border: "1px solid #1e1e1e",
-                borderTop: "1px solid rgba(200,92,26,0.15)",
-              }}
-            >
+          {BADGES.map(({ icon, title, sub }, i) => (
+            <Reveal key={title} delay={i * 0.05}>
               <div
-                className="shrink-0 flex items-center justify-center rounded-md"
+                className="compliance-card flex gap-4 rounded-lg px-5 py-5"
                 style={{
-                  width: 40,
-                  height: 40,
-                  background: "rgba(200,92,26,0.07)",
-                  border: "1px solid rgba(200,92,26,0.12)",
-                  color: "var(--orange)",
+                  background: "var(--bg-elevated)",
+                  border: "1px solid var(--border)",
+                  borderTop: "1px solid rgba(249,115,22,0.20)",
                 }}
               >
-                {icon}
+                <div
+                  className="shrink-0 flex items-center justify-center rounded-md"
+                  style={{
+                    width: 40,
+                    height: 40,
+                    background: "rgba(249,115,22,0.07)",
+                    border: "1px solid rgba(249,115,22,0.12)",
+                    color: "var(--orange)",
+                  }}
+                >
+                  {icon}
+                </div>
+                <div>
+                  <p className="text-xs font-bold mb-1.5" style={{ color: "var(--text)" }}>{title}</p>
+                  <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-2)" }}>{sub}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs font-bold mb-1.5" style={{ color: "#e0e0e0" }}>{title}</p>
-                <p className="text-[11px] leading-relaxed" style={{ color: "#444" }}>{sub}</p>
-              </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>

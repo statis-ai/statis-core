@@ -1,5 +1,5 @@
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { Nav } from "@/components/landing/Nav";
+import { LandingFooter } from "@/components/landing/Footer";
 
 export default function BlogLayout({
   children,
@@ -8,11 +8,11 @@ export default function BlogLayout({
 }) {
   return (
     <>
-      <Navbar />
+      <Nav />
       <main className="relative z-10 min-h-screen pt-32 pb-16" style={{ background: "var(--bg)" }}>
         {children}
       </main>
-      <Footer />
+      <LandingFooter />
     </>
   );
 }
