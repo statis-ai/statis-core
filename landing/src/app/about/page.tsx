@@ -1,5 +1,6 @@
 import { PageShell, PageH2, PageProse } from "@/components/PageShell";
 import type { Metadata } from "next";
+import { IsoFoundation } from "@/components/ui/IsoIllustrations";
 
 export const metadata: Metadata = {
   title: "About — Statis",
@@ -13,6 +14,7 @@ export default function AboutPage() {
       title="Building the trust"
       titleAccent="layer for agents."
       subtitle="Statis is infrastructure for the teams running AI agents in production. We started it because watching agents do the wrong thing, twice, with no audit trail, was slowly losing its charm."
+      illustration={<IsoFoundation />}
     >
       <PageProse>
         <PageH2>Why we exist</PageH2>

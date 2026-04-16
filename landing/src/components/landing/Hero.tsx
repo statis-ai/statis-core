@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { CopyCommand } from "@/components/ui/CopyCommand";
 import { ROW_ONE, type Chip } from "./integrationsData";
 
 const MARQUEE_ITEMS: Chip[] = [...ROW_ONE, ...ROW_ONE, ...ROW_ONE];
@@ -57,14 +57,6 @@ function HeroMarquee() {
 }
 
 export function Hero() {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText("pip install statis-ai");
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated mesh gradient blobs */}
@@ -129,7 +121,7 @@ export function Hero() {
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-[1200px] px-6 text-center pt-32 pb-24">
+      <div className="relative z-10 mx-auto w-full max-w-[1200px] px-6 text-center pt-32 pb-24">
         {/* Announcement pill */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -138,7 +130,7 @@ export function Hero() {
           className="inline-flex items-center gap-2 mb-8"
         >
           <a
-            href="#changelog"
+            href="/blog/why-we-open-sourced-the-compressor"
             className="group inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-medium transition-all"
             style={{
               background: "rgba(255,255,255,0.04)",
@@ -148,9 +140,9 @@ export function Hero() {
             }}
           >
             <Sparkles size={12} style={{ color: "#00D4FF" }} />
-            <span style={{ color: "var(--text)" }}>v0.3</span>
+            <span style={{ color: "var(--text)" }}>New</span>
             <span style={{ color: "var(--text-muted)" }}>·</span>
-            <span>Native OIDC SSO + SCIM provisioning</span>
+            <span>Why we open-sourced the agent compressor</span>
             <ArrowRight size={11} className="transition-transform group-hover:translate-x-0.5" />
           </a>
         </motion.div>
@@ -161,9 +153,9 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.7, ease: [0.25, 0.1, 0.25, 1] }}
           className="mb-6 font-extrabold tracking-[-0.045em] leading-[0.98]"
-          style={{ fontSize: "clamp(48px, 8vw, 96px)" }}
+          style={{ fontSize: "clamp(36px, 8vw, 96px)" }}
         >
-          <span className="block">Agent execution</span>
+          <span className="block">The trust layer for</span>
           <span
             className="block"
             style={{
@@ -173,7 +165,7 @@ export function Hero() {
               backgroundClip: "text",
             }}
           >
-            infrastructure.
+            agent runtimes.
           </span>
         </motion.h1>
 
@@ -185,9 +177,7 @@ export function Hero() {
           className="text-[17px] md:text-[19px] max-w-2xl mx-auto mb-10 leading-relaxed"
           style={{ color: "var(--text-2)" }}
         >
-          Policy before every action. Exactly-once execution. Tamper-evident receipts.
-          <br className="hidden md:block" />
-          The trust layer production agents need.
+          Every context evaluated. Every action authorized. Every execution receipted.
         </motion.p>
 
         {/* CTAs */}
@@ -198,27 +188,23 @@ export function Hero() {
           className="flex flex-wrap items-center justify-center gap-3 mb-10"
         >
           <a
-            href="https://www.surveymonkey.com/r/GVKH2KR"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#open-source"
             className="group inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-medium transition-all"
             style={{ background: "#EDEDED", color: "#000000" }}
             onMouseEnter={(e) => { e.currentTarget.style.background = "#ffffff"; e.currentTarget.style.boxShadow = "0 0 40px rgba(255,255,255,0.2)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.background = "#EDEDED"; e.currentTarget.style.boxShadow = "none"; }}
           >
-            Get Early Access
+            Install Context Kit
             <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
           </a>
           <a
-            href="https://docs.statis.dev"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="mailto:hello@statis.dev?subject=Statis%20demo"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-medium transition-all"
             style={{ border: "1px solid rgba(255,255,255,0.12)", color: "var(--text)", background: "rgba(255,255,255,0.02)" }}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
           >
-            Read the docs
+            Book a demo
           </a>
         </motion.div>
 
@@ -229,24 +215,7 @@ export function Hero() {
           transition={{ delay: 0.95, duration: 0.5 }}
           className="flex items-center justify-center"
         >
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-3 px-4 py-2 rounded-lg text-[13px] font-mono transition-all cursor-pointer"
-            style={{
-              background: "rgba(10,10,10,0.6)",
-              border: "1px solid var(--border)",
-              color: "var(--text-2)",
-              backdropFilter: "blur(12px)",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
-          >
-            <span style={{ color: "var(--text-muted)" }}>$</span>
-            <span>pip install statis-ai</span>
-            <span className="ml-1 text-[11px]" style={{ color: copied ? "#00D4FF" : "var(--text-muted)" }}>
-              {copied ? "✓ Copied" : "Copy"}
-            </span>
-          </button>
+          <CopyCommand command="pip install statis-kit" />
         </motion.div>
 
         {/* Inline integrations marquee — constrained to hero width */}

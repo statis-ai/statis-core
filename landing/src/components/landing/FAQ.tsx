@@ -6,6 +6,14 @@ import { Section, Eyebrow, SectionReveal } from "./shared";
 
 const FAQS = [
   {
+    q: "What is Statis Context Kit?",
+    a: "The open-source half of the trust layer. It's the compressor, cost meter, and pattern guard that run in-process before your agent hits the model. MIT licensed, no account, no network call. `pip install statis-kit` and you're running. It's the same Kit we run on our own agents \u2014 we just don't charge for it.",
+  },
+  {
+    q: "Do I need the cloud to use the Kit?",
+    a: "No. Context Kit is fully local and works without any Statis account. The cloud adds the things the Kit intentionally doesn't ship: a policy editor UI, execution history, approval flows, and (on the enterprise tier) the hash-chain audit ledger. Same SDK in both \u2014 add one line to upgrade.",
+  },
+  {
     q: "What is Shadow Mode?",
     a: "Shadow mode lets you run Statis alongside your existing agents without changing a single line of agent code. Statis observes every action proposal, evaluates it against your policy rules, and flags what would have been DENIED or DUPLICATE \u2014 without blocking any execution. Zero production risk. Zero integration work. Purpose-built for design partners evaluating Statis before full adoption.",
   },

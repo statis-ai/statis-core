@@ -1,29 +1,32 @@
 import { PageShell, PageH2, PageProse } from "@/components/PageShell";
 import type { Metadata } from "next";
+import { IsoMcpGateway } from "@/components/ui/IsoIllustrations";
 
 export const metadata: Metadata = {
-  title: "MCP Connectors — Statis",
-  description: "Route Claude and Cursor tool calls through the Statis policy engine. Governance-first MCP integration.",
+  title: "MCP — Statis",
+  description: "Works with any MCP server — zero integration code. Under the governance loop. Claude, Cursor, and any MCP client tool call gets context-checked, policy-evaluated, and receipted.",
 };
 
 export default function MCPPage() {
   return (
     <PageShell
-      eyebrow="MCP Connectors"
-      title="Every tool call,"
-      titleAccent="governed."
-      subtitle="Statis ships a first-class MCP adapter. Register your MCP servers, apply policy rules to tool calls, and get a full receipt ledger for every Claude and Cursor interaction."
+      eyebrow="MCP"
+      title="Works with any MCP server."
+      titleAccent="Under the governance loop."
+      subtitle="Zero integration code. Point Statis at your MCP servers and every Claude, Cursor, or custom tool call flows through the three-pillar trust layer — context checked, action authorized, execution receipted."
+      illustration={<IsoMcpGateway />}
     >
       <PageProse>
-        <PageH2>What is MCP?</PageH2>
+        <PageH2>MCP is a surface. Statis is the loop.</PageH2>
         <p>
           The Model Context Protocol is Anthropic&apos;s open standard for connecting AI models
           to external tools. Claude, Cursor, and a growing ecosystem of AI clients use MCP to
           discover and invoke tools on behalf of users.
         </p>
         <p>
-          Statis sits in front of your MCP servers as a governance layer: every tool call is
-          proposed, evaluated against policy, locked for exactly-once execution, and receipted.
+          Statis doesn&apos;t compete with MCP — it governs it. Every tool call that enters and
+          leaves an MCP server passes through the context guard, the policy engine, and the
+          receipt ledger. Drop-in for any MCP deployment; no rewrites, no shims.
         </p>
 
         <PageH2>How it works</PageH2>

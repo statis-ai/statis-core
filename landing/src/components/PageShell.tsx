@@ -8,12 +8,14 @@ export function PageShell({
   title,
   titleAccent,
   subtitle,
+  illustration,
   children,
 }: {
   eyebrow: string;
   title: string;
   titleAccent?: string;
   subtitle?: string;
+  illustration?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -70,6 +72,12 @@ export function PageShell({
               >
                 {subtitle}
               </p>
+            )}
+
+            {illustration && (
+              <div className="mt-10 max-w-[280px] opacity-40">
+                {illustration}
+              </div>
             )}
           </div>
         </section>

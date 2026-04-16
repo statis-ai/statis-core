@@ -10,6 +10,15 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: "why-we-open-sourced-the-compressor",
+    title: "Why we open-sourced the agent compressor",
+    description:
+      "We built Statis Context Kit for our own agents — compressor, cost meter, pattern guard. Then we realized every agent builder needs it. So we made it free.",
+    date: "2026-04-14",
+    readTime: "5 min read",
+    tag: "Context Kit",
+  },
+  {
     slug: "ai-chat-forgets-you",
     title: "Your AI Chat Forgets You. That's the Real Bug.",
     description:

@@ -5,26 +5,26 @@ import { StatisGlyph } from "./StatisLogo";
 
 const LINKS = {
   Product: [
+    { label: "Pricing", href: "/pricing", external: false },
     { label: "Console", href: "https://console.statis.dev", external: true },
     { label: "Docs", href: "https://docs.statis.dev", external: true },
     { label: "Changelog", href: "/changelog", external: false },
-    { label: "Method", href: "#method", external: false },
   ],
   Developers: [
+    { label: "Context Debugger", href: "/debug", external: false },
     { label: "GitHub", href: "https://github.com/statis-ai/statis-sdk", external: true },
-    { label: "Python SDK", href: "https://pypi.org/project/statis-ai/", external: true },
-    { label: "TypeScript SDK", href: "https://www.npmjs.com/package/statis-ai", external: true },
+    { label: "Python SDK", href: "https://pypi.org/project/statis-kit/", external: true },
+    { label: "TypeScript SDK", href: "https://www.npmjs.com/package/statis-kit", external: true },
     { label: "API Reference", href: "https://docs.statis.dev/api", external: true },
-    { label: "Self-host", href: "https://docs.statis.dev/self-host", external: true },
   ],
   Resources: [
     { label: "Blog", href: "/blog", external: false },
     { label: "Integrations", href: "/integrations", external: false },
-    { label: "MCP Connectors", href: "/mcp", external: false },
+    { label: "MCP", href: "/mcp", external: false },
   ],
   Company: [
     { label: "About", href: "/about", external: false },
-    { label: "Enterprise", href: "https://www.surveymonkey.com/r/GVKH2KR", external: true },
+    { label: "Enterprise", href: "mailto:hello@statis.dev?subject=Enterprise%20inquiry", external: false },
     { label: "Contact", href: "mailto:hello@statis.dev", external: false },
   ],
   Legal: [
@@ -65,8 +65,8 @@ export function LandingFooter() {
               <span className="text-[30px] font-bold tracking-tight">statis</span>
             </div>
             <p className="text-[13px] mt-5 max-w-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>
-              Agent execution infrastructure. Policy before every action. Exactly-once
-              execution guarantee. SHA-256 tamper-evident receipt on every outcome.
+              The trust layer for agent runtimes. Every context evaluated. Every action
+              authorized. Every execution receipted.
             </p>
             <div className="flex items-center gap-2 mt-5">
               <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#34D399" }} />

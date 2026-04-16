@@ -209,8 +209,122 @@ function StaleStateContent() {
   );
 }
 
+function CompressorLaunchContent() {
+  return (
+    <>
+      <p className="text-base font-medium leading-relaxed" style={{ color: "#ccc" }}>
+        We built Statis Context Kit for our own agents. Then we gave it away.
+      </p>
+
+      <p>
+        If you&rsquo;ve shipped an agent into production, you already know the feeling: a
+        seven-figure monthly inference bill that crept up while nobody was looking, a
+        hallucination trail that turned out to be a stale tool response buried on turn 14, a
+        prompt-injection report from a user who pasted something you never imagined. The model
+        isn&rsquo;t the problem. The{" "}
+        <strong style={{ color: "#ccc" }}>context you hand the model</strong> is the problem.
+      </p>
+
+      <SectionHeading>The 7,800 &rarr; 3,200 token run</SectionHeading>
+
+      <p>
+        Our first internal dogfood was embarrassing. An agent that kept failing at turn 20, not
+        because the reasoning was wrong, but because context had bloated past the effective
+        window. We sketched a compressor in an afternoon &mdash; pin the system prompt,
+        summarize anything older than the last two turns, prune tool calls whose results were
+        already restated.
+      </p>
+
+      <p>
+        The next run: <strong style={{ color: "#00D4FF" }}>7,800 tokens collapsed to 3,200</strong>.
+        Same answer, same latency, $0.018 less per call. At the volume our staging agent was
+        running, that was four figures a month off the bill. So we kept building: a cost meter,
+        a pattern guard, a diff viewer so we could see what was pinned versus pruned.
+      </p>
+
+      <SectionHeading>The call we kept having with every AI team</SectionHeading>
+
+      <p>
+        We started showing this to friends at other agent companies. Every one of them had
+        built or was about to build the same three things. Compressor. Cost meter. Guard. None
+        of them wanted to maintain it. All of them wanted it free, local, and without a vendor
+        signup wall between them and the first run.
+      </p>
+
+      <p>
+        So <strong style={{ color: "#ccc" }}>Statis Context Kit</strong> is what we wanted:
+        five lines of Python, zero account, MIT license, runs entirely in-process. It&rsquo;s
+        what we already use on our own agents. Now it&rsquo;s what you use on yours.
+      </p>
+
+      <div
+        className="rounded-xl p-5 my-6 font-mono text-[12px] leading-relaxed overflow-x-auto"
+        style={{ background: "#0E0E10", border: "1px solid rgba(255,255,255,0.06)", color: "#E4E4E7" }}
+      >
+        <pre className="text-white">
+{`pip install statis-kit
+
+from statis_kit import process
+
+result = process(messages, config={"pin_top": ["system"], "recent_turns": 2})
+print(result.report.token_delta, result.report.cost_estimate)`}
+        </pre>
+      </div>
+
+      <SectionHeading>What&rsquo;s in the box</SectionHeading>
+
+      <ol className="my-6 list-none space-y-4 pl-0">
+        {[
+          { n: "1", label: "Compressor", desc: "Pin, prune, summarize. Configurable. Deterministic. Reports the delta so you can audit what changed." },
+          { n: "2", label: "Cost meter", desc: "Per-turn, per-model token accounting. GPT-4o, Claude 4.5, Gemini, Llama \u2014 priced against the live rate cards." },
+          { n: "3", label: "Pattern guard", desc: "Prompt-injection, secret exfiltration, and PII patterns. Runs before the model call, not after the incident." },
+          { n: "4", label: "Diff viewer CLI", desc: "Paste two transcripts, get a side-by-side of what the compressor would do. Good for CI, good for debugging." },
+        ].map(({ n, label, desc }) => (
+          <li key={n} className="flex gap-3">
+            <span
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
+              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+            >
+              {n}
+            </span>
+            <span>
+              <strong style={{ color: "#ccc" }}>{label}</strong> &mdash; {desc}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <SectionHeading>Why free, not freemium</SectionHeading>
+
+      <p>
+        Because this is the <em>context in</em> pillar of the Statis trust layer &mdash; and
+        we want every agent on the planet to ship with it, not just the ones who are ready to
+        buy. The <a href="/pricing" style={{ color: "#00D4FF" }}>paid tiers</a> are what you
+        graduate into when you need a hosted policy editor, execution history, approvals, or a
+        hash-chain audit ledger that passes a SOC2 review.
+      </p>
+
+      <p>
+        Put differently: the Kit is the firewall. The cloud is the SIEM. The enterprise
+        product is the compliance report. You need all three eventually. You need the first
+        one <strong style={{ color: "#ccc" }}>today</strong>, for free, without asking
+        anyone&rsquo;s permission.
+      </p>
+
+      <hr className="my-10" style={{ borderColor: "#1a1a1a" }} />
+
+      <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
+        <code>pip install statis-kit</code>. Five minutes from now you&rsquo;ll know what your
+        context actually costs. And you&rsquo;ll stop paying for the turns you don&rsquo;t
+        need.
+      </p>
+    </>
+  );
+}
+
 const CONTENT_MAP: Record<string, () => React.ReactNode> = {
   "stale-state-problem": StaleStateContent,
+  "why-we-open-sourced-the-compressor": CompressorLaunchContent,
 };
 
 export default async function BlogPostPage({ params }: Props) {

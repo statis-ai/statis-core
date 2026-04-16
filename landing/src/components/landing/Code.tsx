@@ -16,7 +16,7 @@ const C = {
 };
 
 const CODE_LINES: Token[][] = [
-  [{ text: "from", color: C.keyword }, { text: " statis_ai ", color: C.plain }, { text: "import", color: C.keyword }, { text: " StatisClient", color: C.fn }],
+  [{ text: "from", color: C.keyword }, { text: " statis ", color: C.plain }, { text: "import", color: C.keyword }, { text: " StatisClient", color: C.fn }],
   [],
   [{ text: "client", color: C.plain }, { text: " = ", color: C.dim }, { text: "StatisClient", color: C.fn }, { text: "(api_key=", color: C.plain }, { text: '"sk-statis-..."', color: C.string }, { text: ")", color: C.plain }],
   [],
@@ -34,7 +34,7 @@ const CODE_LINES: Token[][] = [
 ];
 
 const STEPS = [
-  { num: "01", label: "pip install statis-ai" },
+  { num: "01", label: "pip install statis" },
   { num: "02", label: "Set STATIS_API_KEY" },
   { num: "03", label: "propose \u2192 execute" },
 ];
@@ -75,11 +75,11 @@ export function Code() {
           <div>
             <Eyebrow>SDK</Eyebrow>
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight mt-4 mb-4">
-              Three lines to<br />governed execution.
+              Three lines to<br />an authorized action.
             </h2>
             <p className="text-[15px] leading-relaxed mb-8" style={{ color: "var(--text-2)" }}>
-              Propose an action. The policy engine evaluates it against your rules.
-              Execute with an exactly-once guarantee. Every outcome gets a tamper-evident receipt.
+              Propose an action. The policy engine evaluates it against your rules. Execute
+              once, with a hash-chained receipt for every outcome.
             </p>
             <div className="flex flex-col gap-3">
               {STEPS.map(({ num, label }) => (

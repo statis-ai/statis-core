@@ -1,9 +1,10 @@
 import { PageShell } from "@/components/PageShell";
 import type { Metadata } from "next";
+import { IsoIntegrationGrid } from "@/components/ui/IsoIllustrations";
 
 export const metadata: Metadata = {
   title: "Integrations — Statis",
-  description: "Connect Statis to your existing stack. Adapters for infrastructure, observability, communication, and more.",
+  description: "Adapters for every production system your agents touch. Same context guard, same policy engine, same receipt ledger — whichever integration you pick.",
 };
 
 type Integration = {
@@ -38,9 +39,10 @@ export default function IntegrationsPage() {
   return (
     <PageShell
       eyebrow="Integrations"
-      title="Works with your"
-      titleAccent="entire stack."
-      subtitle="Every integration goes through the same policy engine, distributed lock, and receipt ledger. No special cases."
+      title="Every adapter,"
+      titleAccent="same trust layer."
+      subtitle="No featured integration. No preferred surface. Every adapter flows through the same three pillars — context checked, action authorized, execution receipted."
+      illustration={<IsoIntegrationGrid />}
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-8">
         {INTEGRATIONS.map((i) => {

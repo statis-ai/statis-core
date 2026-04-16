@@ -14,23 +14,23 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Statis — Agent Execution Infrastructure",
+  title: "Statis — The trust layer for agent runtimes",
   description:
-    "The execution layer for production AI agents. Policy before every action, exactly-once guarantee, SHA-256 receipt.",
+    "The trust layer for agent runtimes. Every context evaluated, every action authorized, every execution receipted.",
   metadataBase: new URL("https://statis.dev"),
   openGraph: {
-    title: "Statis — Agent Execution Infrastructure",
+    title: "Statis — The trust layer for agent runtimes",
     description:
-      "The execution layer for production AI agents. Policy before every action, exactly-once guarantee, SHA-256 receipt.",
+      "The trust layer for agent runtimes. Every context evaluated, every action authorized, every execution receipted.",
     url: "https://statis.dev",
     siteName: "Statis",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Statis — Agent Execution Infrastructure",
+    title: "Statis — The trust layer for agent runtimes",
     description:
-      "The execution layer for production AI agents. Policy before every action, exactly-once guarantee, SHA-256 receipt.",
+      "The trust layer for agent runtimes. Every context evaluated, every action authorized, every execution receipted.",
   },
   icons: {
     icon: [

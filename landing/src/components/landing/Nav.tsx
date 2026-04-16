@@ -5,11 +5,11 @@ import Link from "next/link";
 import { StatisGlyph } from "./StatisLogo";
 
 const NAV_LINKS = [
+  { label: "Pricing", href: "/pricing", external: false },
+  { label: "Debug", href: "/debug", external: false },
+  { label: "Integrations", href: "/integrations", external: false },
   { label: "Docs", href: "https://docs.statis.dev", external: true },
   { label: "GitHub", href: "https://github.com/statis-ai/statis-sdk", external: true },
-  { label: "Playground", href: "https://console.statis.dev", external: true },
-  { label: "Method", href: "#method", external: false },
-  { label: "FAQ", href: "#faq", external: false },
 ];
 
 export function Nav() {
@@ -84,9 +84,7 @@ export function Nav() {
             Log in
           </a>
           <a
-            href="https://www.surveymonkey.com/r/GVKH2KR"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/pricing"
             className="text-[13px] font-medium px-4 py-1.5 rounded-full transition-all"
             style={{
               background: "var(--text)",
@@ -99,7 +97,7 @@ export function Nav() {
               e.currentTarget.style.background = "var(--text)";
             }}
           >
-            Get Access
+            Get started
           </a>
         </div>
 
@@ -139,13 +137,11 @@ export function Nav() {
               Log in
             </a>
             <a
-              href="https://www.surveymonkey.com/r/GVKH2KR"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/pricing"
               className="text-[14px] font-medium px-4 py-1.5 rounded-full"
               style={{ background: "var(--text)", color: "var(--bg)" }}
             >
-              Get Access
+              Get started
             </a>
           </div>
         </div>
