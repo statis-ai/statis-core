@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "statis-kit"
+version = "0.1.0"
+description = "Offline context processing for LLM message arrays — compress, guard, meter"
+requires-python = ">=3.9"
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+tiktoken = ["tiktoken>=0.5.0"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+statis-kit = "statis_kit._cli:main"
+
+[project.urls]
+Homepage = "https://statis.dev"
+Repository = "https://github.com/statis-ai/statis-core"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/statis_kit"]
+artifacts = ["data/*"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/statis_kit", "data"]

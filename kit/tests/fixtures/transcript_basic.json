@@ -1,0 +1,12 @@
+[
+  {"role": "system", "content": "You are a helpful financial advisor assistant. Always verify account numbers before making changes."},
+  {"role": "user", "content": "Hi, I need to update my account settings for account 12345."},
+  {"role": "assistant", "content": "I'd be happy to help you update your account settings. Let me verify your account first."},
+  {"role": "assistant", "content": "I'll look up account 12345 now.", "tool_call_id": null, "name": "lookup_account"},
+  {"role": "tool", "content": "{\"account_id\": \"12345\", \"owner\": \"Jane Doe\", \"status\": \"active\", \"plan\": \"premium\"}", "tool_call_id": "call_001", "name": "lookup_account"},
+  {"role": "assistant", "content": "I found your account. It belongs to Jane Doe and is on the premium plan. What settings would you like to update?"},
+  {"role": "user", "content": "I want to change my notification preferences to email only."},
+  {"role": "assistant", "content": "I'll update your notification preferences to email only right away."},
+  {"role": "tool", "content": "{\"success\": true, \"updated_fields\": [\"notification_preference\"]}", "tool_call_id": "call_002", "name": "update_settings"},
+  {"role": "assistant", "content": "Done! Your notification preferences have been updated to email only. Is there anything else you'd like to change?"}
+]

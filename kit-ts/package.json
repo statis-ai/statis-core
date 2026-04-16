@@ -1,0 +1,30 @@
+{
+  "name": "statis-kit",
+  "version": "0.1.0",
+  "description": "Offline context processing for LLM message arrays — compress, guard, meter",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "data"],
+  "bin": {
+    "statis-kit": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/tests/*.test.js",
+    "prepare": "npm run build"
+  },
+  "keywords": ["ai", "agents", "statis", "context", "llm", "guard", "compress"],
+  "license": "MIT",
+  "homepage": "https://statis.dev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/statis-ai/statis-core"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}
