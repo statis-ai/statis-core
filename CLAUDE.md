@@ -41,16 +41,51 @@ memory/people.md       — team, collaborators, external contacts (if any)
 
 ## Project Overview
 
-Statis is agent execution infrastructure — the layer between AI agents and production systems.
+**Statis is the trust layer for production AI agents.** Three pillars, three tiers.
+
+### The three pillars
+
+1. **Context In** — pre-call hygiene. Strip prompt injection, redact PII/secrets, compress history, meter token cost before the model call.
+2. **Action Out** — policy-gated tool execution. Agents propose before executing; deterministic rules evaluate; distributed lock enforces exactly-once; escalation + kill switch for humans in the loop.
+3. **Receipt Through** — tamper-evident cryptographic proof of every transform and execution. SHA-256 hash chain today; signed receipts verifiable offline in Teams tier.
+
+Never lead with "MCP tool" or "context-only" framing. The three pillars together are the product; each is weaker alone.
+
+### The three tiers
+
+| Tier | What it is | State (2026-04-16) |
+|---|---|---|
+| **OSS Kit** — `statis-kit` | Offline, in-process Context-In primitives (guard + compressor + meter). No auth, no network. | **Shipped** to [PyPI](https://pypi.org/project/statis-kit/) + [npm](https://www.npmjs.com/package/statis-kit) at 0.1.1. Playground live at [statis.dev/debug](https://www.statis.dev/debug). |
+| **Developer Cloud** — `statis-ai` SDK + hosted API | Policy engine, execution ledger, escalation, console. Pillars 2 + 3 for individual/team developers. | **Largely built** (api/ + worker/ + console/). Free during beta — no Stripe at launch. |
+| **Enterprise Governance** | On-prem/VPC, SSO+SCIM, immutable audit, compliance exports (SOC2/HIPAA/SEC), admission engine. | Roughly 70% exists in api/; the Enterprise-only adds (SSO, SCIM, VPC deploy, compliance bundle) are contract-driven, not speculative. |
+
+The tier pivot was locked 2026-04-14 — see [memory/project_tier_strategy.md](/Users/aniketkumar/.claude/projects/-Users-aniketkumar-statis/memory/project_tier_strategy.md) and [.claude/plans/kit-tier-strategy.md](/Users/aniketkumar/.claude/plans/kit-tier-strategy.md).
+
+### The dividing rule (for any "OSS or paid?" question)
+
+> Works on a single call with no infrastructure → OSS Kit. Requires correlation across calls, storage, identity, or a hosted service → Developer Cloud / Enterprise.
+
+### Repo layout
 
 **Repo:** `/home/aniket/statis/statis-core`
-**Primary working dirs:** `api/`, `worker/`, `console/`, `sdk/` (Python), `sdk-ts/` (TypeScript), `kit/` (Python OSS), `kit-ts/` (TypeScript OSS), `landing/`, `docs/`
+
+| Directory | Tier | What it is |
+|---|---|---|
+| `kit/` | OSS | Python statis-kit package (guard/compress/meter) |
+| `kit-ts/` | OSS | TypeScript statis-kit package (mirrored) |
+| `landing/` | OSS surface | Marketing + /debug playground bundling kit-ts |
+| `sdk/` | Developer Cloud | Python statis-ai SDK (propose/execute/simulate) — re-exports kit |
+| `sdk-ts/` | Developer Cloud | TypeScript statis-ai SDK — re-exports kit |
+| `api/` | Developer Cloud | FastAPI backend (policy engine, ledger, escalation) |
+| `worker/` | Developer Cloud | Execution worker (poll APPROVED, call adapter, write receipt) |
+| `console/` | Developer Cloud | Next.js operator UI |
+| `docs/` | all | Mintlify docs |
 
 **Run tests:** `cd api && python -m pytest tests/unit/ -v`
 **Run migrations:** `cd api && DATABASE_URL=<url> python -m alembic upgrade head`
 **DB:** Neon PostgreSQL (connection string in session — not stored here)
 
-See `STATUS.md` for full build state.
+See `STATUS.md` for full build state. **Note:** `STATUS.md` was last updated 2026-04-04 and still uses the pre-pivot "agent execution infrastructure" framing — refresh it next time a Cloud feature ships.
 
 **Ops repo (cross-workstream context):** `/home/aniket/statis/statis-ops`
 At session start, also read `statis-ops/SYNC.md` for signals from other workstreams (landing, accelerator, marketing, security).
