@@ -1,10 +1,10 @@
 {
   "name": "statis-kit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Offline context processing for LLM message arrays — compress, guard, meter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": ["dist", "data"],
+  "files": ["dist", "data", "README.md"],
   "bin": {
     "statis-kit": "dist/cli.js"
   },
