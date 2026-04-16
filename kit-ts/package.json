@@ -10,8 +10,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node --test dist/tests/*.test.js",
-    "prepare": "npm run build"
+    "test": "node --test dist/tests/*.test.js"
   },
   "keywords": ["ai", "agents", "statis", "context", "llm", "guard", "compress"],
   "license": "MIT",
