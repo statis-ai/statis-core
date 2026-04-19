@@ -29,6 +29,11 @@ class PolicyRuleIn(BaseModel):
     priority: int = 0
     active: bool = True
     description: Optional[str] = None
+    # AARM R4 — DEFER tunables (applied when decision == DEFERRED).
+    defer_seconds: Optional[int] = None
+    max_defer_attempts: Optional[int] = None
+    # AARM R4 — MODIFY patch (shallow-merged into action.parameters when decision == MODIFIED).
+    modify_patch: Optional[dict[str, Any]] = None
 
     @field_validator("decision")
     @classmethod
@@ -44,6 +49,9 @@ class PolicyRuleUpdate(BaseModel):
     priority: Optional[int] = None
     active: Optional[bool] = None
     description: Optional[str] = None
+    defer_seconds: Optional[int] = None
+    max_defer_attempts: Optional[int] = None
+    modify_patch: Optional[dict[str, Any]] = None
 
     @field_validator("decision")
     @classmethod

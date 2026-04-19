@@ -24,6 +24,11 @@ class PolicyRule(Base):
     priority: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     description: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # AARM R4 — DEFER tunables (applied when the rule's decision is DEFERRED)
+    defer_seconds: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    max_defer_attempts: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # AARM R4 — MODIFY parameter patch (shallow-merged into action.parameters on MODIFIED decisions)
+    modify_patch: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

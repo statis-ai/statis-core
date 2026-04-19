@@ -41,6 +41,9 @@ def create_policy_rule(
         priority=rule_in.priority,
         active=rule_in.active,
         description=rule_in.description,
+        defer_seconds=rule_in.defer_seconds,
+        max_defer_attempts=rule_in.max_defer_attempts,
+        modify_patch=rule_in.modify_patch,
     )
     db.add(rule)
     try:

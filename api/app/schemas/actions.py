@@ -126,3 +126,7 @@ class ActionOut(BaseModel):
     agent_class: str | None = None
     org_unit: str | None = None
     trust_source: str | None = None
+    # AARM R4 — DEFER state machine. deferred_until is the wall-clock
+    # eligibility moment; defer_count tracks issued DEFER decisions.
+    deferred_until: datetime | None = None
+    defer_count: int = 0

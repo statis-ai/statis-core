@@ -43,6 +43,10 @@ import logging
 
 _signing_log = logging.getLogger(__name__)
 
+# AARM R4 — fallback wait before a DEFERRED action becomes eligible for
+# re-evaluation when the matched rule did not specify defer_seconds.
+DEFAULT_DEFER_SECONDS = 300
+
 router = APIRouter(tags=["actions"])
 _threat_detector = ThreatDetector()
 _pii_masker = PIIMasker()
@@ -311,6 +315,9 @@ def simulate_action(
             conditions=r.conditions or {},
             decision=r.decision,
             priority=r.priority,
+            defer_seconds=r.defer_seconds,
+            max_defer_attempts=r.max_defer_attempts,
+            modify_patch=r.modify_patch,
         )
         for r in rules
     ]
@@ -432,6 +439,9 @@ def evaluate_action(
             conditions=r.conditions,
             decision=r.decision,
             priority=r.priority,
+            defer_seconds=r.defer_seconds,
+            max_defer_attempts=r.max_defer_attempts,
+            modify_patch=r.modify_patch,
         )
         for r in db_rules
     ]
@@ -482,13 +492,42 @@ def evaluate_action(
                         "passed": passed,
                     }
 
-    # 6. Build receipt — generate id + timestamp in Python so they can be hashed
+    # 6. AARM R4 — apply DEFER / MODIFY runtime transformations.
+    # The policy engine is pure; the *effects* of DEFER (timeout cascade +
+    # attempt cap) and MODIFY (parameter patch) are computed here so the
+    # receipt records what actually happened.
+    effective_decision = decision.decision
+    effective_reason = decision.reason
+    modified_parameters: dict[str, Any] | None = None
+
+    if decision.decision == "DEFERRED":
+        next_defer_count = contract.defer_count + 1
+        if (
+            decision.max_defer_attempts is not None
+            and next_defer_count > decision.max_defer_attempts
+        ):
+            # AARM R4 — max_defer_attempts exceeded collapses to DENY.
+            effective_decision = "DENIED"
+            effective_reason = (
+                f"Auto-denied after {contract.defer_count} defer(s); "
+                f"exceeds max_defer_attempts={decision.max_defer_attempts} "
+                f"on rule '{decision.rule_id}'."
+            )
+    elif decision.decision == "MODIFIED" and decision.modify_patch:
+        # Shallow-merge the rule's modify_patch into the contract's parameters.
+        # The worker will dispatch the *patched* parameters; the original are
+        # preserved only in the hash chain of the immutable receipt payload.
+        patched = dict(contract.parameters or {})
+        patched.update(decision.modify_patch)
+        modified_parameters = patched
+
+    # 7. Build receipt — generate id + timestamp in Python so they can be hashed
     receipt_id = str(uuid.uuid4())
     created_at = datetime.now(timezone.utc)
     receipt_canonical = {
         "receipt_id": receipt_id,
         "action_id": action_id,
-        "decision": decision.decision,
+        "decision": effective_decision,
         "rule_id": decision.rule_id,
         "rule_version": decision.rule_version,
         "approved_by": "policy_engine",
@@ -510,7 +549,7 @@ def evaluate_action(
         payload = canonical_signing_payload(
             receipt_id=receipt_id,
             action_id=action_id,
-            decision=decision.decision,
+            decision=effective_decision,
             rule_id=decision.rule_id,
             rule_version=decision.rule_version,
             hash_hex=receipt_hash,
@@ -531,7 +570,7 @@ def evaluate_action(
     receipt = Receipt(
         receipt_id=receipt_id,
         action_id=action_id,
-        decision=decision.decision,
+        decision=effective_decision,
         rule_id=decision.rule_id,
         rule_version=decision.rule_version,
         approved_by="policy_engine",
@@ -547,29 +586,44 @@ def evaluate_action(
         mode=contract.mode,
     )
 
-    # 7. Persist receipt + status update atomically in one transaction.
+    # 8. Persist receipt + status update atomically in one transaction.
     # Shadow actions: write receipt but skip execution — terminal status SHADOW_COMPLETE.
-    # Live actions: APPROVED → worker dispatches; every other decision persists
-    # the decision as status (fail-closed — no side effects). DEFERRED and
-    # MODIFIED runtime semantics (timeout cascade / param rewrite) land in
-    # PR-AARM-05. AARM R4: no effects MUST occur on denied or deferred actions.
+    # Live actions:
+    #   APPROVED → worker dispatches.
+    #   MODIFIED w/ patch → apply patch, set status=APPROVED, worker dispatches
+    #     the patched parameters. Receipt.decision stays "MODIFIED" for audit.
+    #   MODIFIED w/o patch → status=MODIFIED, non-dispatchable (fail-closed).
+    #   DEFERRED → schedule deferred_until and increment defer_count. The caller
+    #     POSTs to /actions/{id}/reevaluate after deferred_until to retry.
+    #   Any other (DENIED, STEP_UP, ESCALATED) → persists decision as status.
+    # AARM R4: no effects MUST occur on denied or deferred actions.
+    now = datetime.now(timezone.utc)
     if contract.mode == "shadow":
         contract.status = ActionStatus.SHADOW_COMPLETE
         receipt.executed_at = None
         receipt.execution_result = {}
-    elif decision.decision == "APPROVED":
+    elif effective_decision == "APPROVED":
         contract.status = ActionStatus.APPROVED
-        # executed_at and execution_result stay None — the worker will
-        # pick up this action, call the adapter, and finalize the receipt.
+    elif effective_decision == "MODIFIED":
+        if modified_parameters is not None:
+            contract.parameters = modified_parameters
+            contract.status = ActionStatus.APPROVED
+        else:
+            contract.status = ActionStatus.MODIFIED
+    elif effective_decision == "DEFERRED":
+        wait_seconds = decision.defer_seconds or DEFAULT_DEFER_SECONDS
+        contract.deferred_until = now + timedelta(seconds=wait_seconds)
+        contract.defer_count = contract.defer_count + 1
+        contract.status = ActionStatus.DEFERRED
     else:
-        contract.status = decision.decision
-    contract.updated_at = datetime.now(timezone.utc)
+        contract.status = effective_decision
+    contract.updated_at = now
     db.add(receipt)
     db.commit()
 
     # Fire escalation notifications after commit — Slack + outbound webhooks.
     # STEP_UP is the AARM-canonical form of the legacy ESCALATED decision.
-    if decision.decision in ("ESCALATED", "STEP_UP"):
+    if effective_decision in ("ESCALATED", "STEP_UP"):
         _slack.notify_escalation(
             action_id=action_id,
             action_type=contract.action_type,
@@ -581,11 +635,71 @@ def evaluate_action(
     return EvaluateResponse(
         action_id=action_id,
         receipt_id=receipt_id,
-        decision=decision.decision,
+        decision=effective_decision,
         rule_id=decision.rule_id,
         rule_version=decision.rule_version,
-        reason=decision.reason,
+        reason=effective_reason,
     )
+
+
+@router.post("/actions/{action_id}/reevaluate", response_model=EvaluateResponse)
+def reevaluate_action(
+    action_id: str,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> EvaluateResponse:
+    """AARM R4 — re-evaluate a DEFERRED action after its wait window elapses.
+
+    A DEFERRED action sits in a holding pattern until ``deferred_until``.
+    Callers POST here once the timer has passed; this resets the contract
+    to PROPOSED and runs the evaluator again. The fresh decision may be
+    ALLOW, DENY, STEP_UP, MODIFIED — or DEFERRED again (defer_count++).
+    If max_defer_attempts is exceeded on the re-run it auto-denies.
+    """
+    contract = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.action_id == action_id,
+            ActionContract.tenant_id == auth.tenant_id,
+        )
+        .first()
+    )
+    if contract is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Action '{action_id}' not found",
+        )
+    if contract.status != ActionStatus.DEFERRED:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"Action '{action_id}' is in status '{contract.status}', "
+                "expected DEFERRED"
+            ),
+        )
+    now = datetime.now(timezone.utc)
+    if contract.deferred_until is not None:
+        deferred_until = contract.deferred_until
+        if deferred_until.tzinfo is None:
+            deferred_until = deferred_until.replace(tzinfo=timezone.utc)
+        if deferred_until > now:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=(
+                    f"Action '{action_id}' is still deferred until "
+                    f"{deferred_until.isoformat()}"
+                ),
+            )
+
+    # Reset to PROPOSED so evaluate_action's status gate accepts the action.
+    # defer_count is preserved so the max_defer_attempts cap counts across
+    # re-evaluations, as required by AARM R4.
+    contract.status = ActionStatus.PROPOSED
+    contract.deferred_until = None
+    contract.updated_at = now
+    db.flush()
+
+    return evaluate_action(action_id=action_id, db=db, auth=auth)
 
 
 @router.patch("/actions/{action_id}/complete", response_model=ActionOut)
