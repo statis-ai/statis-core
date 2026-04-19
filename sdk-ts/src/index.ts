@@ -6,6 +6,7 @@ export {
   StatisError,
   ActionDeniedError,
   ActionEscalatedError,
+  ActionDeferredError,
   ActionTimeoutError,
 } from "./types";
 

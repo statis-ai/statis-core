@@ -9,13 +9,43 @@ from pydantic import BaseModel, ConfigDict, field_validator
 class ActionStatus(str, Enum):
     PROPOSED = "PROPOSED"
     EVALUATING = "EVALUATING"
-    APPROVED = "APPROVED"
-    DENIED = "DENIED"
-    ESCALATED = "ESCALATED"
+    APPROVED = "APPROVED"          # AARM: ALLOW
+    DENIED = "DENIED"              # AARM: DENY
+    ESCALATED = "ESCALATED"        # legacy alias — equivalent to STEP_UP
+    STEP_UP = "STEP_UP"            # AARM R4: STEP_UP (canonical)
+    DEFERRED = "DEFERRED"          # AARM R4: DEFER
+    MODIFIED = "MODIFIED"          # AARM R4: MODIFY (parameter transformation lands in PR-AARM-05)
     EXECUTING = "EXECUTING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     SHADOW_COMPLETE = "SHADOW_COMPLETE"
+
+    @classmethod
+    def normalize(cls, v: str) -> "ActionStatus":
+        """Return the AARM-canonical form. ESCALATED collapses to STEP_UP."""
+        if v == "ESCALATED":
+            return cls.STEP_UP
+        return cls(v)
+
+
+# AARM R4 canonical decision set (spec §VII.B.R4).
+AARM_DECISIONS: frozenset[str] = frozenset({"ALLOW", "DENY", "STEP_UP", "DEFER", "MODIFY"})
+
+# Maps internal status values to AARM canonical decision names for receipts/telemetry.
+LEGACY_TO_AARM: dict[str, str] = {
+    "APPROVED": "ALLOW",
+    "DENIED": "DENY",
+    "ESCALATED": "STEP_UP",
+    "STEP_UP": "STEP_UP",
+    "DEFERRED": "DEFER",
+    "MODIFIED": "MODIFY",
+}
+
+# Decisions that evaluator/route handlers may persist on action_contracts.status.
+# Terminal-for-worker means the execution worker will not dispatch these.
+NON_DISPATCHABLE_DECISIONS: frozenset[str] = frozenset(
+    {"DENIED", "ESCALATED", "STEP_UP", "DEFERRED", "MODIFIED"}
+)
 
 
 def _check_depth(obj: Any, max_depth: int = 10, current: int = 0) -> None:

@@ -1,6 +1,7 @@
 """Statis Python SDK."""
 
 from ._models import (
+    ActionDeferredError,
     ActionDeniedError,
     ActionEscalatedError,
     ActionTimeoutError,
@@ -28,6 +29,7 @@ __all__ = [
     "StatisError",
     "ActionDeniedError",
     "ActionEscalatedError",
+    "ActionDeferredError",
     "ActionTimeoutError",
     "StatisActionDenied",
     "StatisActionEscalated",

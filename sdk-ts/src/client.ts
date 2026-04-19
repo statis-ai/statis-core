@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import {
+  ActionDeferredError,
   ActionDeniedError,
   ActionEscalatedError,
   ActionTimeoutError,
@@ -77,8 +78,21 @@ export class StatisClient {
         throw new ActionDeniedError(receipt);
       }
 
-      if (status === "ESCALATED") {
+      // AARM R4: STEP_UP is the canonical form of ESCALATED.
+      if (status === "ESCALATED" || status === "STEP_UP") {
         throw new ActionEscalatedError(aid);
+      }
+
+      // AARM R4 DEFER: full resolution workflow lands in PR-AARM-05.
+      if (status === "DEFERRED") {
+        throw new ActionDeferredError(aid);
+      }
+
+      // AARM R4 MODIFY: param-rewrite semantics land in PR-AARM-05. Until then,
+      // surface as a denial so agents don't silently execute modified params.
+      if (status === "MODIFIED") {
+        const receipt = await this.getReceipt(aid);
+        throw new ActionDeniedError(receipt);
       }
 
       if (status === "COMPLETED" || status === "FAILED") {

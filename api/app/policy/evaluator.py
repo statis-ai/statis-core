@@ -17,13 +17,17 @@ class RuleSpec:
     rule_version: str
     action_type: str
     conditions: dict[str, Any]
-    decision: str  # APPROVED | DENIED | ESCALATED
+    # AARM R4 five decisions + legacy ESCALATED (alias for STEP_UP).
+    decision: str  # APPROVED | DENIED | ESCALATED | STEP_UP | DEFERRED | MODIFIED
     priority: int  # higher wins when multiple rules match
 
 
 @dataclass(frozen=True)
 class PolicyDecision:
-    decision: str  # APPROVED | DENIED | ESCALATED
+    # Widened in PR-AARM-01 to carry any of the five AARM decisions.
+    # Runtime semantics for DEFERRED (cascade/timeout) and MODIFIED (param
+    # transformation) land in PR-AARM-05; PR-01 only propagates the value.
+    decision: str  # APPROVED | DENIED | ESCALATED | STEP_UP | DEFERRED | MODIFIED
     rule_id: str | None
     rule_version: str | None
     reason: str

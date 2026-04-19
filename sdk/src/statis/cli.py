@@ -173,7 +173,14 @@ def cmd_simulate(args: argparse.Namespace) -> None:
     rule_id = data.get("rule_id") or "—"
     reason = data.get("reason", "")
 
-    symbol = {"APPROVED": "✓", "DENIED": "✗", "ESCALATED": "?"}.get(decision, "?")
+    symbol = {
+        "APPROVED": "✓",
+        "DENIED": "✗",
+        "ESCALATED": "?",
+        "STEP_UP": "?",
+        "DEFERRED": "~",
+        "MODIFIED": "±",
+    }.get(decision, "?")
     print(f"\n  {symbol}  {decision}")
     print(f"     rule:   {rule_id}")
     print(f"     reason: {reason}\n")

@@ -15,7 +15,9 @@ router = APIRouter(tags=["analytics"])
 # Statuses that count as "approved" for approval-rate purposes
 _APPROVED_STATUSES = {"APPROVED", "COMPLETED", "SHADOW_COMPLETE"}
 _DENIED_STATUSES = {"DENIED"}
-_ESCALATED_STATUSES = {"ESCALATED"}
+# AARM R4: STEP_UP is the canonical form of ESCALATED; DEFERRED is a new
+# "awaiting resolution" state that should surface in the same analytics bucket.
+_ESCALATED_STATUSES = {"ESCALATED", "STEP_UP", "DEFERRED"}
 
 
 @router.get("/analytics/summary", response_model=AnalyticsSummary)
