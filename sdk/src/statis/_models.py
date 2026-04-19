@@ -24,6 +24,11 @@ class Receipt:
     executed_at: Optional[datetime]
     hash: str
     created_at: datetime
+    # AARM R5 — Ed25519 signature fields. None on legacy receipts that
+    # predate PR-AARM-02, populated on everything signed after that.
+    signature: Optional[str] = None
+    signature_alg: Optional[str] = None
+    public_key_id: Optional[str] = None
 
 
 class StatisError(Exception):

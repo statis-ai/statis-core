@@ -10,7 +10,10 @@ requires-python = ">=3.9"
 dependencies = ["httpx>=0.24.0", "pyyaml>=6.0", "statis-kit>=0.1.0"]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "respx>=0.20", "pytest-asyncio"]
+# AARM R5 receipt verification — opt-in to keep the base install slim.
+# Enable via:  pip install "statis-ai[verify]"
+verify = ["cryptography>=42.0"]
+dev = ["pytest>=7.0", "respx>=0.20", "pytest-asyncio", "cryptography>=42.0"]
 
 [project.scripts]
 statis = "statis.cli:main"

@@ -1,6 +1,7 @@
 export { StatisClient } from "./client";
 export {
   Receipt,
+  AARMPubkeyEnvelope,
   ProposeOptions,
   ExecuteOptions,
   StatisError,
@@ -9,6 +10,8 @@ export {
   ActionDeferredError,
   ActionTimeoutError,
 } from "./types";
+export { verifyReceiptOffline } from "./crypto";
+export type { VerifyResult } from "./crypto";
 
 // Re-export statis-kit context processing (offline, zero-auth)
 export {

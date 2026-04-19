@@ -28,6 +28,17 @@ from app.schemas.policy import EvaluateResponse
 from app.security.pii_masker import PIIMasker
 from app.security.threat_detector import ThreatDetector
 from app.utils.hashing import canonical_state_hash
+from app.crypto import (
+    SIGNATURE_ALG,
+    KeyNotConfiguredError,
+    canonical_signing_payload,
+    get_active_key_id,
+    sign_receipt_payload,
+)
+
+import logging
+
+_signing_log = logging.getLogger(__name__)
 
 router = APIRouter(tags=["actions"])
 _threat_detector = ThreatDetector()
@@ -451,6 +462,36 @@ def evaluate_action(
     }
     receipt_hash = canonical_state_hash(receipt_canonical)
 
+    # AARM R5 — sign the canonical signing payload with the active Ed25519
+    # key. If no key is configured (dev env), fall back to unsigned receipt
+    # (NULL signature columns) and log once; in production the API boot
+    # should fail fast rather than silently ship unsigned receipts.
+    signature: str | None = None
+    signature_alg: str | None = None
+    public_key_id: str | None = None
+    try:
+        active_kid = get_active_key_id()
+        payload = canonical_signing_payload(
+            receipt_id=receipt_id,
+            action_id=action_id,
+            decision=decision.decision,
+            rule_id=decision.rule_id,
+            rule_version=decision.rule_version,
+            hash_hex=receipt_hash,
+            created_at_iso=created_at.isoformat(),
+            public_key_id=active_kid,
+        )
+        signature = sign_receipt_payload(payload)
+        signature_alg = SIGNATURE_ALG
+        public_key_id = active_kid
+    except KeyNotConfiguredError:
+        _signing_log.warning(
+            "STATIS_SIGNING_PRIVATE_KEY not configured — receipt %s written "
+            "without Ed25519 signature. AARM R5 requires signed receipts in "
+            "production; set the env var before claiming compliance.",
+            receipt_id,
+        )
+
     receipt = Receipt(
         receipt_id=receipt_id,
         action_id=action_id,
@@ -461,6 +502,9 @@ def evaluate_action(
         executed_at=None,
         execution_result=None,
         hash=receipt_hash,
+        signature=signature,
+        signature_alg=signature_alg,
+        public_key_id=public_key_id,
         conditions_evaluated=conditions_evaluated,
         entity_state_snapshot=dict(entity_state),
         created_at=created_at,

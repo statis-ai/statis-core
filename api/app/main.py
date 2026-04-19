@@ -19,6 +19,8 @@ from app.api.routes.threat_logs import router as threat_logs_router
 from app.api.routes.auth_oidc import router as auth_oidc_router
 from app.api.routes.agents import router as agents_router
 from app.api.routes.analytics import router as analytics_router
+from app.api.routes.connectors import router as connectors_router
+from app.api.routes.well_known import router as well_known_router
 
 import os
 
@@ -82,6 +84,10 @@ app.include_router(threat_logs_router)
 app.include_router(auth_oidc_router)
 app.include_router(analytics_router)
 app.include_router(agents_router)
+app.include_router(connectors_router)
+# AARM R5 — public-key discovery. No auth, no prefix (path literally
+# starts with /.well-known/), no rate limit overrides.
+app.include_router(well_known_router)
 
 
 @app.get("/health")
