@@ -20,17 +20,27 @@ class RuleSpec:
     # AARM R4 five decisions + legacy ESCALATED (alias for STEP_UP).
     decision: str  # APPROVED | DENIED | ESCALATED | STEP_UP | DEFERRED | MODIFIED
     priority: int  # higher wins when multiple rules match
+    # AARM R4 — DEFER tunables. Only meaningful when decision == "DEFERRED".
+    defer_seconds: int | None = None
+    max_defer_attempts: int | None = None
+    # AARM R4 — MODIFY parameter patch. Only meaningful when decision == "MODIFIED".
+    modify_patch: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
 class PolicyDecision:
     # Widened in PR-AARM-01 to carry any of the five AARM decisions.
-    # Runtime semantics for DEFERRED (cascade/timeout) and MODIFIED (param
-    # transformation) land in PR-AARM-05; PR-01 only propagates the value.
+    # PR-AARM-05 adds DEFER/MODIFY config passthrough so the route handler
+    # can apply the runtime transformations without re-querying the rule.
     decision: str  # APPROVED | DENIED | ESCALATED | STEP_UP | DEFERRED | MODIFIED
     rule_id: str | None
     rule_version: str | None
     reason: str
+    # DEFER tunables from the matched rule (None if decision != DEFERRED).
+    defer_seconds: int | None = None
+    max_defer_attempts: int | None = None
+    # MODIFY patch from the matched rule (None if decision != MODIFIED).
+    modify_patch: dict[str, Any] | None = None
 
 
 class PolicyEvaluator:
@@ -70,6 +80,9 @@ class PolicyEvaluator:
                     rule_id=rule.rule_id,
                     rule_version=rule.rule_version,
                     reason=f"Matched rule '{rule.rule_id}' v{rule.rule_version}",
+                    defer_seconds=rule.defer_seconds,
+                    max_defer_attempts=rule.max_defer_attempts,
+                    modify_patch=rule.modify_patch,
                 )
 
         return PolicyDecision(

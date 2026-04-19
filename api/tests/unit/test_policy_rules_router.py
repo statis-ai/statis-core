@@ -38,6 +38,9 @@ def _make_rule(
     rule.priority = priority
     rule.active = active
     rule.description = None
+    rule.defer_seconds = None
+    rule.max_defer_attempts = None
+    rule.modify_patch = None
     rule.created_at = datetime(2026, 3, 25, tzinfo=timezone.utc)
     return rule
 
