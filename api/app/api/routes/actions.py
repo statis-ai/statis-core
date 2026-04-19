@@ -469,14 +469,18 @@ def evaluate_action(
 
     # 7. Persist receipt + status update atomically in one transaction.
     # Shadow actions: write receipt but skip execution — terminal status SHADOW_COMPLETE.
-    # Live actions: APPROVED → COMPLETED (worker not needed), DENIED/ESCALATED keep decision.
+    # Live actions: APPROVED → worker dispatches; every other decision persists
+    # the decision as status (fail-closed — no side effects). DEFERRED and
+    # MODIFIED runtime semantics (timeout cascade / param rewrite) land in
+    # PR-AARM-05. AARM R4: no effects MUST occur on denied or deferred actions.
     if contract.mode == "shadow":
         contract.status = ActionStatus.SHADOW_COMPLETE
         receipt.executed_at = None
         receipt.execution_result = {}
     elif decision.decision == "APPROVED":
-        contract.status = ActionStatus.COMPLETED
-        receipt.executed_at = created_at
+        contract.status = ActionStatus.APPROVED
+        # executed_at and execution_result stay None — the worker will
+        # pick up this action, call the adapter, and finalize the receipt.
     else:
         contract.status = decision.decision
     contract.updated_at = datetime.now(timezone.utc)
@@ -484,7 +488,8 @@ def evaluate_action(
     db.commit()
 
     # Fire escalation notifications after commit — Slack + outbound webhooks.
-    if decision.decision == "ESCALATED":
+    # STEP_UP is the AARM-canonical form of the legacy ESCALATED decision.
+    if decision.decision in ("ESCALATED", "STEP_UP"):
         _slack.notify_escalation(
             action_id=action_id,
             action_type=contract.action_type,
@@ -553,12 +558,16 @@ def list_escalated_actions(
     db: Session = Depends(get_db),
     auth: AuthContext = Depends(get_auth_context),
 ) -> list[EscalatedActionOut]:
-    """Return all ESCALATED action contracts for the tenant (admin queue view)."""
+    """Return all actions awaiting human review for the tenant.
+
+    Covers legacy ESCALATED and AARM-canonical STEP_UP — they are semantically
+    the same class of decision (AARM R4 STEP_UP == legacy ESCALATED).
+    """
     contracts = (
         db.query(ActionContract)
         .filter(
             ActionContract.tenant_id == auth.tenant_id,
-            ActionContract.status == ActionStatus.ESCALATED,
+            ActionContract.status.in_([ActionStatus.ESCALATED, ActionStatus.STEP_UP]),
         )
         .order_by(ActionContract.created_at.asc())
         .all()
@@ -586,10 +595,13 @@ def _handle_escalation_review(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Action '{action_id}' not found",
         )
-    if contract.status != ActionStatus.ESCALATED:
+    if contract.status not in (ActionStatus.ESCALATED, ActionStatus.STEP_UP):
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Action '{action_id}' is in status '{contract.status}', expected ESCALATED",
+            detail=(
+                f"Action '{action_id}' is in status '{contract.status}', "
+                "expected ESCALATED or STEP_UP"
+            ),
         )
 
     # Write the audit record

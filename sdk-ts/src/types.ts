@@ -88,3 +88,22 @@ export class ActionTimeoutError extends Error {
     this.timeout = timeout;
   }
 }
+
+/**
+ * Raised when the policy engine defers an action (AARM R4 DEFER).
+ *
+ * A deferred action is not yet decided — the engine suspended execution
+ * because available context was insufficient, ambiguous, or conflicting.
+ * Full resolution workflow (poll until resolved) lands in PR-AARM-05.
+ */
+export class ActionDeferredError extends Error {
+  readonly action_id: string;
+  readonly reason: string | null;
+
+  constructor(action_id: string, reason: string | null = null) {
+    super(`Action '${action_id}' was deferred: ${reason ?? "awaiting resolution"}`);
+    this.name = "ActionDeferredError";
+    this.action_id = action_id;
+    this.reason = reason;
+  }
+}

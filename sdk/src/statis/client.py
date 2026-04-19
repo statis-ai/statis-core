@@ -8,6 +8,7 @@ from typing import Any, Optional
 import httpx
 
 from ._models import (
+    ActionDeferredError,
     ActionDeniedError,
     ActionEscalatedError,
     ActionTimeoutError,
@@ -99,15 +100,31 @@ class StatisClient:
         eval_data = resp.json()
 
         # Fast-path: evaluate response carries receipt_id and decision.
-        # Terminal decisions are resolved immediately — no polling needed.
+        # Terminal-for-worker decisions are resolved immediately — no polling
+        # needed. AARM R4 decisions: DENY/STEP_UP/DEFER/MODIFY all block the
+        # worker dispatch (fail-closed). ESCALATED is the legacy alias for
+        # STEP_UP.
         eval_decision: str = eval_data.get("decision", "")
         if eval_decision == "DENIED":
             receipt = self.get_receipt(aid)
             raise ActionDeniedError(reason="Action denied by policy", receipt=receipt)
-        if eval_decision == "ESCALATED":
+        if eval_decision in ("ESCALATED", "STEP_UP"):
             raise ActionEscalatedError(action_id=aid)
+        if eval_decision == "DEFERRED":
+            raise ActionDeferredError(
+                action_id=aid, reason=eval_data.get("reason")
+            )
+        if eval_decision == "MODIFIED":
+            # Param-transformation semantics land in PR-AARM-05. Until then,
+            # surface as a denial with the rewrite reason so agents don't
+            # silently execute unexpectedly-modified actions.
+            receipt = self.get_receipt(aid)
+            raise ActionDeniedError(
+                reason=f"Action modified by policy (pending PR-AARM-05): {eval_data.get('reason', '')}",
+                receipt=receipt,
+            )
         if eval_decision == "APPROVED":
-            return self.get_receipt(aid)
+            pass  # Fall through to polling — worker will execute and set COMPLETED
 
         # Fallback: poll until terminal status (handles unexpected states)
         deadline = time.monotonic() + (timeout or float("inf"))
@@ -123,8 +140,18 @@ class StatisClient:
                 receipt = self.get_receipt(aid)
                 raise ActionDeniedError(reason="Action denied by policy", receipt=receipt)
 
-            if status == "ESCALATED":
+            if status in ("ESCALATED", "STEP_UP"):
                 raise ActionEscalatedError(action_id=aid)
+
+            if status == "DEFERRED":
+                raise ActionDeferredError(action_id=aid)
+
+            if status == "MODIFIED":
+                receipt = self.get_receipt(aid)
+                raise ActionDeniedError(
+                    reason="Action modified by policy (pending PR-AARM-05)",
+                    receipt=receipt,
+                )
 
             if status in ("COMPLETED", "FAILED"):
                 return self.get_receipt(aid)
@@ -202,8 +229,19 @@ class StatisClient:
                     reason=f"Action denied by policy (rule={receipt.rule_id})",
                 )
 
-            if action_status == "ESCALATED":
+            if action_status in ("ESCALATED", "STEP_UP"):
                 raise StatisActionEscalated(action_id=action_id)
+
+            if action_status == "DEFERRED":
+                raise ActionDeferredError(action_id=action_id)
+
+            if action_status == "MODIFIED":
+                receipt = self.get_receipt(action_id)
+                raise StatisActionDenied(
+                    action_id=action_id,
+                    rule_id=receipt.rule_id,
+                    reason="Action modified by policy (pending PR-AARM-05)",
+                )
 
             if time.monotonic() >= deadline:
                 raise ActionTimeoutError(action_id=action_id, timeout=timeout)

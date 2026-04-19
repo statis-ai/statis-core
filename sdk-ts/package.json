@@ -1,7 +1,7 @@
 {
   "name": "statis-ai",
-  "version": "0.2.0",
-  "description": "TypeScript SDK for Statis — agent execution infrastructure",
+  "version": "0.3.0",
+  "description": "TypeScript SDK for Statis — agent runtime trust layer (AARM-aligned)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": ["dist"],

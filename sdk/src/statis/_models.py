@@ -94,3 +94,25 @@ class StatisActionEscalated(Exception):
         )
         self.action_id = action_id
         self.escalation_id = escalation_id
+
+
+class ActionDeferredError(Exception):
+    """Raised when the policy engine defers an action (AARM R4 DEFER).
+
+    A deferred action is not yet decided — the engine suspended execution
+    because available context was insufficient, ambiguous, or conflicting.
+    The action will resolve (allow/deny) once additional context arrives,
+    a timeout triggers, or a human resolves it via the Console.
+
+    In PR-AARM-01 this is surfaced to SDK callers as a distinct error so
+    agents can handle DEFER differently from DENY/STEP_UP. Full resolution
+    workflow (polling a deferred action until resolution) lands in
+    PR-AARM-05.
+    """
+
+    def __init__(self, action_id: str, reason: Optional[str] = None) -> None:
+        super().__init__(
+            f"Action '{action_id}' was deferred: {reason or 'awaiting resolution'}"
+        )
+        self.action_id = action_id
+        self.reason = reason
