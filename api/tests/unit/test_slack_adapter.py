@@ -96,7 +96,7 @@ def test_send_message_uses_idempotency_key():
     action = _action(action_type="slack_send_message", channel="#general", text="Hello!")
     action.action_id = "statis-abc-123"
     adapter.execute(action)
-    assert _FakeSlackHandler.last_request_headers.get("x-slack-idempotency-key") == "statis-abc-123"
+    assert _FakeSlackHandler.last_request_headers.get("X-Slack-Idempotency-Key") == "statis-abc-123"
 
 
 def test_send_message_missing_params():
