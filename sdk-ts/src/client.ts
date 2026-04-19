@@ -1,5 +1,6 @@
 import { randomUUID } from "crypto";
 import {
+  AARMPubkeyEnvelope,
   ActionDeferredError,
   ActionDeniedError,
   ActionEscalatedError,
@@ -137,6 +138,47 @@ export class StatisClient {
   }
 
   // ---------------------------------------------------------------------------
+  // AARM R5 — offline receipt verification
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Fetch the active AARM Ed25519 public key(s) from the API.
+   *
+   * No authentication required — this endpoint is public by design so
+   * third parties can verify receipts they received out-of-band.
+   */
+  async getAARMPubkey(): Promise<AARMPubkeyEnvelope> {
+    const resp = await fetch(`${this.baseUrl}/.well-known/aarm-pubkey`);
+    if (!resp.ok) {
+      throw new StatisError(resp.status, resp.statusText);
+    }
+    return (await resp.json()) as AARMPubkeyEnvelope;
+  }
+
+  /**
+   * Verify a receipt's Ed25519 signature offline.
+   *
+   * If `publicKeyPem` is omitted, fetches the active public key from
+   * `/.well-known/aarm-pubkey` once. For bulk verification, fetch the
+   * pubkey once and pass it in to avoid the round-trip per receipt.
+   */
+  async verifyReceipt(
+    receipt: Receipt,
+    publicKeyPem?: string
+  ): Promise<boolean> {
+    let pem = publicKeyPem;
+    if (!pem) {
+      const envelope = await this.getAARMPubkey();
+      const targetKid = receipt.public_key_id ?? envelope.active;
+      const match = envelope.keys.find((k) => k.kid === targetKid);
+      if (!match) return false;
+      pem = match.public_key_pem;
+    }
+    const { verifyReceiptOffline } = await import("./crypto");
+    return verifyReceiptOffline(receipt, pem).valid;
+  }
+
+  // ---------------------------------------------------------------------------
   // HTTP helpers
   // ---------------------------------------------------------------------------
 
@@ -195,5 +237,8 @@ function parseReceipt(data: Record<string, unknown>): Receipt {
     executed_at: data["executed_at"] ? new Date(data["executed_at"] as string) : null,
     hash: data["hash"] as string,
     created_at: new Date(data["created_at"] as string),
+    signature: (data["signature"] as string | null) ?? null,
+    signature_alg: (data["signature_alg"] as string | null) ?? null,
+    public_key_id: (data["public_key_id"] as string | null) ?? null,
   };
 }

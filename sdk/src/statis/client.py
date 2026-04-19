@@ -197,6 +197,56 @@ class StatisClient:
         self._raise_for_status(resp)
         return self._parse_receipt(resp.json())
 
+    # ------------------------------------------------------------------
+    # AARM R5 — offline receipt verification
+    # ------------------------------------------------------------------
+
+    def get_aarm_pubkey(self) -> dict[str, Any]:
+        """Fetch the active AARM Ed25519 public key(s) from the API.
+
+        No authentication required — this endpoint is public by design so
+        third parties can verify receipts they received out-of-band.
+        Returns the raw JSON envelope: ``{v, spec, active, keys: [...]}``.
+        """
+        resp = self._http.get("/.well-known/aarm-pubkey")
+        self._raise_for_status(resp)
+        return resp.json()
+
+    def verify_receipt(
+        self,
+        receipt: Receipt,
+        public_key_pem: Optional[str] = None,
+    ) -> bool:
+        """Verify a receipt's Ed25519 signature offline.
+
+        If ``public_key_pem`` is omitted, fetches the active public key
+        from ``/.well-known/aarm-pubkey`` once. For bulk verification,
+        fetch the pubkey once and pass it in to avoid the round-trip per
+        receipt.
+
+        Returns True on valid signature, False otherwise (including when
+        the receipt predates signing, i.e. signature is None).
+        """
+        from ._crypto import verify_receipt_offline
+
+        if public_key_pem is None:
+            envelope = self.get_aarm_pubkey()
+            # Pick the key matching the receipt's public_key_id, else
+            # fall back to the envelope's active key.
+            target_kid = receipt.public_key_id or envelope.get("active")
+            match = next(
+                (k for k in envelope.get("keys", []) if k.get("kid") == target_kid),
+                None,
+            )
+            if match is None:
+                return False
+            public_key_pem = match["public_key_pem"]
+
+        result = verify_receipt_offline(
+            receipt=receipt, public_key_pem=public_key_pem
+        )
+        return result.valid
+
     def wait_for_completion(
         self,
         action_id: str,
@@ -293,4 +343,7 @@ class StatisClient:
             executed_at=_dt(data.get("executed_at")),
             hash=data["hash"],
             created_at=datetime.fromisoformat(data["created_at"]),
+            signature=data.get("signature"),
+            signature_alg=data.get("signature_alg"),
+            public_key_id=data.get("public_key_id"),
         )

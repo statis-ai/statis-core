@@ -10,3 +10,4 @@ testcontainers[postgres]
 passlib[bcrypt]
 bcrypt==4.0.1
 slowapi
+cryptography>=42.0

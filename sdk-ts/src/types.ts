@@ -10,6 +10,22 @@ export interface Receipt {
   executed_at: Date | null;
   hash: string;
   created_at: Date;
+  // AARM R5 — Ed25519 signature fields. null on legacy receipts that
+  // predate PR-AARM-02; populated on everything signed after that.
+  signature: string | null;
+  signature_alg: string | null;
+  public_key_id: string | null;
+}
+
+export interface AARMPubkeyEnvelope {
+  v: number;
+  spec: string;
+  active: string;
+  keys: Array<{
+    kid: string;
+    alg: string;
+    public_key_pem: string;
+  }>;
 }
 
 export interface SimulateOptions {

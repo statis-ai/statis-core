@@ -6,6 +6,13 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.api.deps import AuthContext, get_auth_context
+from app.crypto import (
+    KeyNotConfiguredError,
+    SignatureVerificationError,
+    active_public_key_pem,
+    canonical_signing_payload,
+    verify_receipt_signature,
+)
 from app.db.session import get_db
 from app.models.action_contract import ActionContract
 from app.models.receipt import Receipt
@@ -23,6 +30,11 @@ class ReceiptVerifyResponse(BaseModel):
     evaluated_at: datetime
     hash: str
     hash_valid: bool
+    # AARM R5 — Ed25519 signature verification result.
+    # None on legacy (pre-PR-AARM-02) receipts that predate signing.
+    signature_valid: Optional[bool] = None
+    signature_alg: Optional[str] = None
+    public_key_id: Optional[str] = None
     rule_ids_evaluated: list[str]
 
 
@@ -93,6 +105,32 @@ def verify_receipt(
 
     rule_ids_evaluated = [receipt.rule_id] if receipt.rule_id else []
 
+    # AARM R5 — if the receipt carries an Ed25519 signature, verify it
+    # against the currently-active public key. Legacy receipts (NULL
+    # signature) return signature_valid=None; they still have a valid
+    # hash check above, they just predate the signing pipeline.
+    sig_valid: Optional[bool] = None
+    if receipt.signature is not None and receipt.signature_alg is not None:
+        try:
+            pub_pem = active_public_key_pem()
+            payload = canonical_signing_payload(
+                receipt_id=receipt.receipt_id,
+                action_id=receipt.action_id,
+                decision=receipt.decision,
+                rule_id=receipt.rule_id,
+                rule_version=receipt.rule_version,
+                hash_hex=receipt.hash,
+                created_at_iso=receipt.created_at.isoformat(),
+                public_key_id=receipt.public_key_id or "",
+            )
+            sig_valid = verify_receipt_signature(
+                payload, receipt.signature, pub_pem
+            )
+        except (KeyNotConfiguredError, SignatureVerificationError):
+            # Could not establish a verdict — report False rather than
+            # pretending the signature is valid. AARM R5 fail-closed.
+            sig_valid = False
+
     return ReceiptVerifyResponse(
         receipt_id=receipt.receipt_id,
         action_type=contract.action_type,
@@ -101,5 +139,8 @@ def verify_receipt(
         evaluated_at=receipt.created_at,
         hash=receipt.hash,
         hash_valid=(recomputed == receipt.hash),
+        signature_valid=sig_valid,
+        signature_alg=receipt.signature_alg,
+        public_key_id=receipt.public_key_id,
         rule_ids_evaluated=rule_ids_evaluated,
     )
