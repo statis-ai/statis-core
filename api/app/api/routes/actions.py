@@ -25,6 +25,9 @@ from app.policy.evaluator import PolicyEvaluator, RuleSpec
 from app.schemas.actions import ActionAccepted, ActionCompleteIn, ActionIn, ActionOut, ActionStatus
 from app.schemas.escalation import EscalatedActionOut, EscalationReviewIn, EscalationReviewOut
 from app.schemas.policy import EvaluateResponse
+from app.models.context_log import ContextLogEntry
+from app.schemas.context_log import ContextLogEntryOut, ContextLogVerifyOut
+from app.security.context_log import verify_chain, write_context_log
 from app.security.pii_masker import PIIMasker
 from app.security.threat_detector import ThreatDetector
 from app.utils.hashing import canonical_state_hash
@@ -207,13 +210,26 @@ def propose_action(
     )
     db.add(contract)
     try:
-        db.commit()
+        db.flush()
     except IntegrityError:
         db.rollback()
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=f"Action '{action_in.action_id}' already exists",
         )
+
+    # AARM R2 — append-only hash-chained context log. Every context field
+    # produces one entry classified by sensitivity (PUBLIC/INTERNAL/PII/
+    # SECRET/SYSTEM) with a tamper-evidence chain hash. Raw values are
+    # never persisted in the log — only SHA-256 hashes.
+    write_context_log(
+        db=db,
+        action_id=contract.action_id,
+        tenant_id=auth.tenant_id,
+        context=action_in.context,
+    )
+    db.commit()
+
     return ActionAccepted(action_id=contract.action_id, status=ActionStatus.PROPOSED)
 
 
@@ -709,3 +725,52 @@ def reject_escalated_action(
 ) -> ActionOut:
     """Reject an ESCALATED action — transitions to DENIED."""
     return _handle_escalation_review(action_id, review_in, "REJECTED", db, auth)
+
+
+# ---------------------------------------------------------------------------
+# AARM R2 — context log retrieval + chain verification
+# ---------------------------------------------------------------------------
+
+
+@router.get("/actions/{action_id}/context-log", response_model=ContextLogVerifyOut)
+def get_context_log(
+    action_id: str,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> ContextLogVerifyOut:
+    """Return the append-only context log for an action with chain validity.
+
+    Pre-AARM-R2 actions have no entries and return chain_valid=True with
+    sequence_count=0 (vacuously valid). A False chain_valid indicates the
+    log has been tampered with (insertion, deletion, reorder, or content
+    mutation) and the auditor must not trust the context provenance.
+    """
+    contract = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.action_id == action_id,
+            ActionContract.tenant_id == auth.tenant_id,
+        )
+        .first()
+    )
+    if contract is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Action '{action_id}' not found",
+        )
+
+    entries = (
+        db.query(ContextLogEntry)
+        .filter(
+            ContextLogEntry.action_id == action_id,
+            ContextLogEntry.tenant_id == auth.tenant_id,
+        )
+        .order_by(ContextLogEntry.sequence.asc())
+        .all()
+    )
+    return ContextLogVerifyOut(
+        action_id=action_id,
+        sequence_count=len(entries),
+        chain_valid=verify_chain(entries),
+        entries=[ContextLogEntryOut.model_validate(e) for e in entries],
+    )
