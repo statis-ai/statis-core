@@ -121,6 +121,7 @@ def propose_action(
                 context=action_in.context,
                 status=ActionStatus.DENIED,
                 mode=action_in.mode,
+                trust_source=auth.trust_source,
             )
             try:
                 db.add(contract)
@@ -132,6 +133,17 @@ def propose_action(
                 detail={"threat_detected": True, "threat_level": scan.threat_level, "details": scan.details},
             )
         # low/medium: log and proceed — policy engine makes the final call
+
+    # AARM R6 — layer 1: enforce identity binding when the API key is scoped
+    # to a specific agent. A key-scoped caller MUST NOT impersonate another agent.
+    if auth.agent_id and action_in.proposed_by != auth.agent_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                f"Identity mismatch: API key is bound to agent '{auth.agent_id}' "
+                f"but proposed_by is '{action_in.proposed_by}'"
+            ),
+        )
 
     # Mask PII/sensitive fields before persisting — raw payload is never stored
     masked_parameters = _pii_masker.mask(action_in.parameters)
@@ -173,6 +185,11 @@ def propose_action(
                     detail=f"Agent '{action_in.proposed_by}' has exceeded its rate limit of {registered_agent.rate_limit_per_hour} actions/hour",
                 )
 
+    # AARM R6 — resolve layers 2–4 from the registered agent record (if any).
+    # Unregistered agents get NULL class/unit; trust_source always comes from the key.
+    resolved_agent_class = registered_agent.agent_class if registered_agent else None
+    resolved_org_unit = registered_agent.org_unit if registered_agent else None
+
     contract = ActionContract(
         action_id=action_in.action_id,
         tenant_id=auth.tenant_id,
@@ -184,6 +201,9 @@ def propose_action(
         context=action_in.context,
         status=ActionStatus.PROPOSED,
         mode=action_in.mode,
+        agent_class=resolved_agent_class,
+        org_unit=resolved_org_unit,
+        trust_source=auth.trust_source,
     )
     db.add(contract)
     try:
