@@ -17,6 +17,8 @@ class ApiKey(Base):
     role: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     agent_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     key_prefix: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    # AARM R6 — layer 4 (trust chain source). Values: "api_key" | "oauth" | "mtls"
+    trust_source: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

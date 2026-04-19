@@ -122,3 +122,7 @@ class ActionOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     mode: str | None = None
+    # AARM R6 — 4-layer identity binding. NULL on pre-R6 actions.
+    agent_class: str | None = None
+    org_unit: str | None = None
+    trust_source: str | None = None

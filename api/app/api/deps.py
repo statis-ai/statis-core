@@ -14,6 +14,9 @@ class AuthContext:
     tenant_id: str
     role: Optional[str] = None
     agent_id: Optional[str] = None
+    # AARM R6 layer 4: trust chain source resolved from the API key record.
+    # Defaults to "api_key"; future values: "oauth", "mtls".
+    trust_source: str = "api_key"
 
     @property
     def is_admin(self) -> bool:
@@ -37,6 +40,7 @@ def get_auth_context(
         tenant_id=api_key_record.tenant_id,
         role=api_key_record.role,
         agent_id=api_key_record.agent_id,
+        trust_source=api_key_record.trust_source or "api_key",
     )
 
 

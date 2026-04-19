@@ -19,6 +19,9 @@ class Agent(Base):
         JSONB, nullable=False, default=list
     )
     rate_limit_per_hour: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    # AARM R6 — layer 2 (agent class/capability) and layer 3 (org unit)
+    agent_class: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    org_unit: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
