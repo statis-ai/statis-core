@@ -44,6 +44,13 @@ from app.models.action_contract import ActionContract
 from app.models.escalation_review import EscalationReview
 from app.models.execution_lock import ExecutionLock
 from app.models.receipt import Receipt
+from app.security.r1_gate import pre_execute_check
+
+# AARM R1 — require a valid Ed25519 signature before dispatch.
+# Default False so dev environments without STATIS_SIGNING_PRIVATE_KEY
+# continue to run; production MUST set STATIS_WORKER_REQUIRE_SIGNATURE=1
+# to enforce signed-receipts-or-no-dispatch.
+_REQUIRE_SIGNATURE = os.getenv("STATIS_WORKER_REQUIRE_SIGNATURE", "0") == "1"
 
 POLL_INTERVAL = float(os.getenv("POLL_INTERVAL", "1"))
 BATCH_SIZE = int(os.getenv("BATCH_SIZE", "10"))
@@ -229,6 +236,31 @@ def process_action(db: Session, action: ActionContract) -> None:
     # Acquire distributed lock — if another worker beat us, skip silently
     if not _try_acquire_lock(db, action_id):
         logger.debug("Lock for action %s held by another worker, skipping", action_id)
+        return
+
+    # AARM R1 — pre-execution interception. Before any adapter is
+    # touched, re-verify that the action carries a receipt with an
+    # ALLOW-class decision and (optionally) a valid Ed25519 signature.
+    # This is the last line of defense against a DB-level tamper that
+    # flipped status to APPROVED without going through the policy engine.
+    receipt = (
+        db.query(Receipt).filter(Receipt.action_id == action_id).first()
+    )
+    gate = pre_execute_check(
+        action, receipt, require_signature=_REQUIRE_SIGNATURE
+    )
+    if not gate.ok:
+        logger.warning(
+            "R1 gate refused dispatch for action %s: %s",
+            action_id, gate.reason,
+        )
+        _finalize(
+            db, action, success=False,
+            execution_result={
+                "error": "r1_gate_refused",
+                "reason": gate.reason,
+            },
+        )
         return
 
     # Mark EXECUTING atomically with the lock acquisition (already flushed above)
