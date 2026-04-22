@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <!-- subtle radial glow in top-right corner -->
+    <radialGradient id="glow" cx="85%" cy="15%" r="55%">
+      <stop offset="0%" stop-color="#b8442e" stop-opacity="0.08"/>
+      <stop offset="60%" stop-color="#b8442e" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- grid pattern -->
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 L 0 40" fill="none" stroke="#111111" stroke-opacity="0.035" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <!-- background layers -->
+  <rect width="1200" height="630" fill="#f3efe7"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- top-left: mark + wordmark lockup -->
+  <g transform="translate(72, 72)">
+    <!-- D·04 mark at 56px -->
+    <g transform="scale(0.233)">
+      <rect x="20" y="40" width="40" height="180" fill="#111111"/>
+      <rect x="180" y="40" width="40" height="180" fill="#111111"/>
+      <rect x="110" y="40" width="110" height="30" fill="#b8442e"/>
+      <rect x="110" y="200" width="20" height="20" fill="#111111"/>
+    </g>
+    <!-- wordmark -->
+    <text x="74" y="43"
+          font-family="Inter, system-ui, sans-serif"
+          font-weight="600"
+          font-size="38"
+          letter-spacing="-1.3"
+          fill="#111111">Statis</text>
+    <!-- beta tag, inline with wordmark -->
+    <g transform="translate(188, 21)">
+      <rect x="0" y="0" width="132" height="28" fill="none" stroke="#d6cfbe" stroke-width="1" rx="2"/>
+      <text x="12" y="19"
+            font-family="JetBrains Mono, monospace"
+            font-size="11"
+            letter-spacing="1.5"
+            fill="#8a8478">V0.1.1 · BETA</text>
+    </g>
+  </g>
+
+  <!-- top-right: eyebrow / section label -->
+  <g transform="translate(1128, 88)">
+    <text x="0" y="0"
+          text-anchor="end"
+          font-family="JetBrains Mono, monospace"
+          font-size="12"
+          letter-spacing="2.2"
+          fill="#8a8478">§ THE AGENT RUNTIME TRUST LAYER</text>
+  </g>
+
+  <!-- horizontal rule under header -->
+  <line x1="72" y1="170" x2="1128" y2="170" stroke="#d6cfbe" stroke-width="1"/>
+
+  <!-- center-left: the triad headline -->
+  <g transform="translate(72, 252)">
+    <text x="0" y="0"
+          font-family="Inter, system-ui, sans-serif"
+          font-weight="300"
+          font-size="64"
+          letter-spacing="-2.5"
+          fill="#111111">Every context evaluated.</text>
+    <text x="0" y="78"
+          font-family="Inter, system-ui, sans-serif"
+          font-weight="300"
+          font-size="64"
+          letter-spacing="-2.5"
+          fill="#111111">Every action authorized.</text>
+    <text x="0" y="156"
+          font-family="Inter, system-ui, sans-serif"
+          font-weight="600"
+          font-size="64"
+          letter-spacing="-2.5"
+          fill="#b8442e">Every execution receipted.</text>
+  </g>
+
+  <!-- bottom rule -->
+  <line x1="72" y1="520" x2="1128" y2="520" stroke="#d6cfbe" stroke-width="1"/>
+
+  <!-- bottom-left: signed / chained / audited -->
+  <g transform="translate(72, 572)">
+    <!-- small all-rust mark as stamp -->
+    <g transform="scale(0.11)">
+      <rect x="20" y="40" width="40" height="180" fill="#b8442e"/>
+      <rect x="180" y="40" width="40" height="180" fill="#b8442e"/>
+      <rect x="110" y="40" width="110" height="30" fill="#b8442e"/>
+      <rect x="110" y="200" width="20" height="20" fill="#b8442e"/>
+    </g>
+    <text x="40" y="18"
+          font-family="JetBrains Mono, monospace"
+          font-size="13"
+          letter-spacing="3"
+          fill="#4a4a4a">SIGNED · CHAINED · AUDITED</text>
+  </g>
+
+  <!-- bottom-right: url / compliance flavor -->
+  <g transform="translate(1128, 572)">
+    <text x="0" y="18"
+          text-anchor="end"
+          font-family="JetBrains Mono, monospace"
+          font-size="13"
+          letter-spacing="3"
+          fill="#4a4a4a">SOC 2 · HIPAA · SEC 17a-4 · STATIS.DEV</text>
+  </g>
+</svg>

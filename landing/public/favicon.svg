@@ -1,18 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <rect width="32" height="32" rx="6" fill="#0a0a0a"/>
-  <!-- Outer wireframe cube -->
-  <g stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.5" fill="none">
-    <path d="M16 6.5 L25.093 11.75 L16 17 L6.907 11.75 Z"/>
-    <line x1="25.093" y1="11.75" x2="25.093" y2="22.25"/>
-    <line x1="16" y1="17" x2="16" y2="27.5"/>
-    <line x1="6.907" y1="11.75" x2="6.907" y2="22.25"/>
-    <line x1="25.093" y1="22.25" x2="16" y2="27.5"/>
-    <line x1="16" y1="27.5" x2="6.907" y2="22.25"/>
-  </g>
-  <!-- Inner solid cube -->
-  <g stroke="#ffffff" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M16 12.275 L11.453 14.9 L11.453 20.15 L16 17.525 Z" fill="#ffffff" fill-opacity="0.45"/>
-    <path d="M20.547 14.9 L20.547 20.15 L16 22.775 L16 17.525 Z" fill="#ffffff" fill-opacity="0.7"/>
-    <path d="M16 12.275 L20.547 14.9 L16 17.525 L11.453 14.9 Z" fill="#ffffff"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240">
+  <rect x="20" y="40" width="40" height="180" fill="#111111"/>
+  <rect x="180" y="40" width="40" height="180" fill="#111111"/>
+  <rect x="110" y="40" width="110" height="30" fill="#b8442e"/>
+  <rect x="110" y="200" width="20" height="20" fill="#111111"/>
 </svg>
