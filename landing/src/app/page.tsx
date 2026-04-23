@@ -1,4 +1,4 @@
-import LandingPage from "@/components/landing";
+import LandingV5 from "@/components/landing/v5/LandingV5";
 
 const JSONLD = {
   "@context": "https://schema.org",
@@ -28,7 +28,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }}
       />
-      <LandingPage />
+      <LandingV5 />
     </>
   );
 }
