@@ -59,12 +59,15 @@ body:has(.landing-v5)::before {
 
 /* -------- top bar -------- */
 .landing-v5 .topbar {
-  position: relative; z-index: 10;
-  padding: 22px 40px;
+  position: sticky; top: 0; z-index: 50;
+  padding: 18px 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--rule);
+  background: rgba(243, 239, 231, 0.72);
+  backdrop-filter: saturate(140%) blur(14px);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid rgba(60, 40, 20, 0.06);
 }
 
 .landing-v5 .brand {
@@ -104,8 +107,10 @@ body:has(.landing-v5)::before {
 .landing-v5 .nav {
   display: flex;
   gap: 34px;
-  font-size: 14px;
-  font-weight: 450;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 400;
+  letter-spacing: -0.005em;
   color: var(--ink-soft);
 }
 .landing-v5 .nav a {
@@ -354,6 +359,7 @@ body:has(.landing-v5)::before {
 .landing-v5 .receipt-wrap {
   position: relative;
   padding-top: 8px;
+  align-self: center;
 }
 
 .landing-v5 .receipt {
@@ -366,10 +372,11 @@ body:has(.landing-v5)::before {
     0 12px 32px -8px rgba(60,40,20,0.15),
     0 40px 64px -24px rgba(60,40,20,0.18);
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.55;
   color: var(--ink);
-  transform: rotate(-0.4deg);
+  transform: scale(0.88) rotate(-0.4deg);
+  transform-origin: top right;
   position: relative;
   overflow: hidden;
 }
@@ -678,7 +685,7 @@ body:has(.landing-v5)::before {
 
 /* subtle hover on receipt */
 .landing-v5 .receipt-wrap:hover .receipt {
-  transform: rotate(-0.2deg) translateY(-2px);
+  transform: scale(0.88) rotate(-0.2deg) translateY(-2px);
   transition: transform 0.4s ease;
 }
 .landing-v5 .receipt { transition: transform 0.4s ease; }
