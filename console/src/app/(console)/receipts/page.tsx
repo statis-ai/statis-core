@@ -1,33 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  Receipt,
-  RefreshCw,
-  Check,
-  X,
-  Copy,
-  ShieldCheck,
-  ShieldAlert,
-  Hash,
-  CircleAlert,
-} from "lucide-react";
+import type { ReactNode } from "react";
+import Link from "next/link";
 import {
   fetchAllActions,
-  fetchReceipt,
-  verifyReceipt,
   type ActionContract,
-  type ReceiptDetail,
-  type ReceiptVerifyResult,
 } from "@/lib/api";
-import { PageHeader } from "@/components/observe/PageHeader";
-import { LiveBadge } from "@/components/observe/LiveBadge";
-import { StatTile, StatTileGrid } from "@/components/observe/StatTile";
-import { StatusPill } from "@/components/observe/StatusPill";
-import {
-  DataTableShell,
-  DataTableEmpty,
-} from "@/components/observe/DataTableShell";
 
 function formatRelative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -49,22 +28,49 @@ function formatAbsolute(iso: string): string {
   });
 }
 
+function SectionHeader({ label, right }: { label: string; right?: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 px-3.5 py-2 bg-bg border border-rule border-b-0 rounded-t-[3px]">
+      <span className="font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted font-medium">
+        {label}
+      </span>
+      {right ? <div className="flex items-center gap-2">{right}</div> : null}
+    </div>
+  );
+}
+
+function KpiTile({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: ReactNode;
+  hint?: ReactNode;
+}) {
+  return (
+    <div className="bg-paper border border-rule rounded-[3px] px-3.5 py-3">
+      <div className="font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted font-medium mb-1.5">
+        {label}
+      </div>
+      <div className="font-sans text-[26px] leading-none tracking-[-0.02em] text-ink tabular-nums">
+        {value}
+      </div>
+      {hint ? (
+        <div className="text-[11px] text-ink-muted tracking-[-0.005em] mt-1.5">
+          {hint}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export default function ReceiptsPage() {
   const [actions, setActions] = useState<ActionContract[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
-
-  const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [receipts, setReceipts] = useState<Record<string, ReceiptDetail>>({});
-  const [receiptLoading, setReceiptLoading] = useState<Record<string, boolean>>({});
-  const [receiptErrors, setReceiptErrors] = useState<Record<string, string>>({});
-  const [verifications, setVerifications] = useState<
-    Record<string, ReceiptVerifyResult>
-  >({});
-  const [verifyLoading, setVerifyLoading] = useState<Record<string, boolean>>({});
-  const [copied, setCopied] = useState<string | null>(null);
 
   async function load(showSpinner = false) {
     if (showSpinner) setRefreshing(true);
@@ -88,549 +94,201 @@ export default function ReceiptsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleExpand(actionId: string) {
-    if (expandedId === actionId) {
-      setExpandedId(null);
-      return;
-    }
-    setExpandedId(actionId);
-    if (!receipts[actionId] && !receiptLoading[actionId]) {
-      setReceiptLoading((p) => ({ ...p, [actionId]: true }));
-      fetchReceipt(actionId)
-        .then((r) => setReceipts((p) => ({ ...p, [actionId]: r })))
-        .catch((err) =>
-          setReceiptErrors((p) => ({ ...p, [actionId]: err.message }))
-        )
-        .finally(() =>
-          setReceiptLoading((p) => ({ ...p, [actionId]: false }))
-        );
-    }
-  }
-
-  function handleVerify(e: React.MouseEvent, receiptId: string) {
-    e.stopPropagation();
-    if (verifyLoading[receiptId]) return;
-    setVerifyLoading((p) => ({ ...p, [receiptId]: true }));
-    verifyReceipt(receiptId)
-      .then((result) =>
-        setVerifications((p) => ({ ...p, [receiptId]: result }))
-      )
-      .catch(() =>
-        setVerifications((p) => ({
-          ...p,
-          [receiptId]: {
-            receipt_id: receiptId,
-            hash_valid: false,
-            stored_hash: "",
-            computed_hash: "",
-          },
-        }))
-      )
-      .finally(() => setVerifyLoading((p) => ({ ...p, [receiptId]: false })));
-  }
-
-  function copyHash(hash: string, id: string) {
-    navigator.clipboard.writeText(hash);
-    setCopied(id);
-    setTimeout(() => setCopied(null), 2000);
-  }
-
-  // ── Stats ──────────────────────────────────────────────
   const stats = useMemo(() => {
     const total = actions.length;
-    let verified = 0;
-    let invalid = 0;
-    for (const v of Object.values(verifications)) {
-      if (v.hash_valid) verified++;
-      else invalid++;
-    }
-    const pending = total - verified - invalid;
-    const integrity =
-      verified + invalid > 0
-        ? ((verified / (verified + invalid)) * 100).toFixed(2)
-        : "100.00";
-    return { total, verified, invalid, pending, integrity };
-  }, [actions, verifications]);
+    const entities = new Set(
+      actions.map(
+        (a) => `${a.target_entity.entity_type}/${a.target_entity.entity_id}`,
+      ),
+    ).size;
+    const agents = new Set(actions.map((a) => a.proposed_by)).size;
+    const last = actions.length > 0 ? actions[0].created_at : null;
+    return { total, entities, agents, last };
+  }, [actions]);
 
   return (
     <div className="p-6 lg:p-8 w-full">
-      <PageHeader
-        title="Receipts"
-        subtitle={
-          <span className="inline-flex items-center gap-2">
-            <span>
-              {loading
-                ? "Loading receipts…"
-                : `${stats.total.toLocaleString()} completed actions`}
-            </span>
-            {lastRefreshed && (
+      {/* Header */}
+      <header className="flex items-start justify-between gap-6 mb-6">
+        <div className="min-w-0">
+          <h1 className="font-sans text-[24px] tracking-[-0.025em] leading-none text-ink font-medium">
+            Receipts
+          </h1>
+          <p className="text-[12.5px] text-ink-soft tracking-[-0.005em] mt-1.5">
+            {loading ? (
+              "Loading receipts…"
+            ) : (
               <>
-                <span style={{ color: "var(--text-muted)" }}>·</span>
-                <span>
-                  Refreshed {formatRelative(lastRefreshed.toISOString())}
-                </span>
+                <span className="tabular-nums">{stats.total.toLocaleString()}</span> completed
+                actions
+                {lastRefreshed ? (
+                  <>
+                    {" · "}
+                    <span className="font-mono text-[11px] text-ink-muted tracking-[0.02em]">
+                      synced {formatRelative(lastRefreshed.toISOString())} · auto-refresh 15s
+                    </span>
+                  </>
+                ) : null}
               </>
             )}
-          </span>
-        }
-        actions={
-          <>
-            <LiveBadge refreshSeconds={15} />
-            <button
-              type="button"
-              onClick={() => load(true)}
-              disabled={refreshing}
-              className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full font-medium transition-colors disabled:opacity-60"
-              style={{
-                color: "var(--text-2)",
-                background: "color-mix(in srgb, var(--text) 4%, transparent)",
-                border: "1px solid var(--border)",
-              }}
-              title="Refresh now"
-            >
-              <RefreshCw
-                size={12}
-                className={refreshing ? "animate-spin" : undefined}
-              />
-              Refresh
-            </button>
-          </>
-        }
-      />
-
-      {error && (
-        <div
-          className="mb-5 rounded-xl px-4 py-3 text-[12px] font-mono flex items-center gap-3"
-          style={{
-            background: "rgba(248,113,113,0.08)",
-            border: "1px solid rgba(248,113,113,0.25)",
-            color: "#F87171",
-          }}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => load(true)}
+          disabled={refreshing}
+          className="inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.1em] uppercase font-medium px-3 py-2 bg-paper border border-rule rounded-[3px] text-ink-soft hover:border-ink-muted transition-colors disabled:opacity-60"
+          title="Refresh now"
         >
-          <CircleAlert size={14} />
-          {error}
+          {refreshing ? "◎ Refreshing…" : "◎ Refresh"}
+        </button>
+      </header>
+
+      {/* Error card */}
+      {error ? (
+        <div className="mb-5 bg-[rgba(184,68,46,0.06)] border border-accent/30 border-l-2 border-l-accent rounded-[3px] px-3.5 py-2.5 flex items-start gap-3">
+          <span className="font-mono text-[9.5px] tracking-[0.14em] uppercase text-accent font-medium shrink-0 pt-[1px]">
+            ⚠ ERROR
+          </span>
+          <p className="flex-1 text-[12.5px] leading-[1.5] text-ink tracking-[-0.005em] font-mono break-all">
+            {error}
+          </p>
           <button
             onClick={() => setError(null)}
-            className="ml-auto underline opacity-70 hover:opacity-100"
+            className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-ink-muted hover:text-accent shrink-0"
           >
-            dismiss
+            Dismiss
           </button>
         </div>
-      )}
+      ) : null}
 
-      {/* Stat tiles */}
-      <div className="mb-6">
-        <StatTileGrid>
-          <StatTile
-            label="Total receipts"
-            value={stats.total.toLocaleString()}
-            hint="Completed actions, all time"
-            icon={<Receipt size={13} />}
-          />
-          <StatTile
-            label="Chain integrity"
-            value={`${stats.integrity}%`}
-            trend={Number(stats.integrity) >= 99.9 ? "up" : "neutral"}
-            hint={`${stats.verified} verified, ${stats.invalid} invalid`}
-            icon={<ShieldCheck size={13} />}
-          />
-          <StatTile
-            label="Verified this session"
-            value={stats.verified.toLocaleString()}
-            trend={stats.verified > 0 ? "up" : "neutral"}
-            hint="Click Verify on any row"
-            icon={<Check size={13} />}
-          />
-          <StatTile
-            label="Pending verification"
-            value={stats.pending.toLocaleString()}
-            hint="Not yet re-hashed this session"
-            icon={<Hash size={13} />}
-          />
-        </StatTileGrid>
+      {/* KPI tiles */}
+      <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+        <KpiTile
+          label="◈ Total receipts"
+          value={stats.total.toLocaleString()}
+          hint="Completed actions, all time"
+        />
+        <KpiTile
+          label="◎ Distinct entities"
+          value={stats.entities.toLocaleString()}
+          hint="Covered by this ledger"
+        />
+        <KpiTile
+          label="◆ Agents writing"
+          value={stats.agents.toLocaleString()}
+          hint="Unique proposers"
+        />
+        <KpiTile
+          label="◇ Last receipt"
+          value={stats.last ? formatRelative(stats.last) : "—"}
+          hint={stats.last ? formatAbsolute(stats.last) : "No receipts yet"}
+        />
       </div>
 
-      {/* Data table */}
-      <DataTableShell
-        title={`Receipt ledger · ${stats.total.toLocaleString()} rows`}
-        actions={
-          <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
-            Click any row to inspect the receipt
-          </span>
-        }
-        footer={
-          loading
-            ? "Loading…"
-            : `Showing ${stats.total.toLocaleString()} receipts from COMPLETED actions`
-        }
-      >
-        {loading ? (
-          <div>
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="grid grid-cols-[180px_1fr_1fr_160px_140px] items-center gap-6 px-5 py-3.5"
-                style={{
-                  borderTop: i === 0 ? "none" : "1px solid var(--border)",
-                }}
-              >
-                {[120, 180, 140, 100, 80].map((w, j) => (
-                  <div
-                    key={j}
-                    className="h-3 rounded animate-pulse"
-                    style={{
-                      width: w,
-                      background:
-                        "color-mix(in srgb, var(--text) 5%, transparent)",
-                    }}
-                  />
-                ))}
+      {/* Ledger */}
+      <div>
+        <SectionHeader
+          label={`◈ Receipt ledger · ${stats.total.toLocaleString()} rows`}
+          right={
+            <span className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-ink-muted">
+              click any row to inspect
+            </span>
+          }
+        />
+        <div className="bg-paper border border-rule rounded-b-[3px] overflow-hidden">
+          {loading ? (
+            <div>
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className={
+                    "grid grid-cols-[180px_1fr_1fr_160px_120px] items-center gap-6 px-5 py-3.5 " +
+                    (i === 0 ? "" : "border-t border-rule")
+                  }
+                >
+                  {[120, 180, 140, 100, 80].map((w, j) => (
+                    <div
+                      key={j}
+                      className="h-3 rounded-[2px] bg-bg animate-pulse"
+                      style={{ width: w }}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+          ) : actions.length === 0 ? (
+            <div className="flex flex-col items-center justify-center text-center py-16 px-6">
+              <div className="w-10 h-10 rounded-[4px] bg-bg border border-rule flex items-center justify-center mb-3 text-ink-muted text-[16px]">
+                ◈
               </div>
-            ))}
-          </div>
-        ) : actions.length === 0 ? (
-          <DataTableEmpty
-            icon={<Receipt size={18} />}
-            title="No receipts yet"
-            description="When your agents complete actions, the ledger will grow here. Every receipt is SHA-256 hashed and verifiable."
-          />
-        ) : (
-          <div>
-            {/* Sticky header */}
-            <div
-              className="grid grid-cols-[180px_1fr_1fr_160px_140px] gap-6 px-5 py-3 sticky top-0 z-10"
-              style={{
-                background: "color-mix(in srgb, var(--bg) 92%, transparent)",
-                borderBottom: "1px solid var(--border)",
-                backdropFilter: "blur(8px)",
-              }}
-            >
-              {["Action ID", "Entity", "Action", "Time", "Integrity"].map(
-                (h) => (
+              <p className="text-[14px] text-ink font-medium mb-1 tracking-[-0.01em]">
+                No receipts yet
+              </p>
+              <p className="text-[12px] text-ink-soft max-w-sm tracking-[-0.005em] leading-[1.55]">
+                When your agents complete actions, the ledger will grow here. Every receipt is
+                SHA-256 hashed and verifiable.
+              </p>
+            </div>
+          ) : (
+            <div>
+              {/* Sticky header row */}
+              <div className="grid grid-cols-[180px_1fr_1fr_160px_120px] gap-6 px-5 py-2.5 sticky top-0 z-10 bg-bg/95 backdrop-blur border-b border-rule">
+                {["Action ID", "Entity", "Action type", "Time", ""].map((h, i) => (
                   <div
-                    key={h}
-                    className="text-[9px] font-semibold tracking-[0.14em] uppercase"
-                    style={{ color: "var(--text-muted)" }}
+                    key={i}
+                    className="font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted font-medium"
                   >
                     {h}
                   </div>
-                )
-              )}
+                ))}
+              </div>
+
+              <ul>
+                {actions.map((row) => (
+                  <li key={row.action_id} className="border-t border-rule">
+                    <Link
+                      href={`/receipts/${row.action_id}`}
+                      className="grid grid-cols-[180px_1fr_1fr_160px_120px] items-center gap-6 px-5 py-3 transition-colors hover:bg-bg/60"
+                    >
+                      <span className="font-mono text-[11px] text-ink truncate tracking-[0.01em]">
+                        {row.action_id}
+                      </span>
+                      <span
+                        className="font-mono text-[11px] text-ink-soft truncate tracking-[0.01em]"
+                        title={`${row.target_entity.entity_type}/${row.target_entity.entity_id}`}
+                      >
+                        {row.target_entity.entity_type}/{row.target_entity.entity_id}
+                      </span>
+                      <span className="font-mono text-[11px] text-ink-soft truncate tracking-[0.01em]">
+                        {row.action_type}
+                      </span>
+                      <span
+                        className="text-[11px] tabular-nums text-ink-muted"
+                        title={formatAbsolute(row.created_at)}
+                      >
+                        {formatRelative(row.created_at)}
+                      </span>
+                      <span className="font-mono text-[9.5px] tracking-[0.12em] uppercase text-ink-muted text-right">
+                        Inspect →
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
+          )}
 
-            {actions.map((row) => {
-              const expanded = expandedId === row.action_id;
-              const receipt = receipts[row.action_id];
-              const rLoading = receiptLoading[row.action_id];
-              const rError = receiptErrors[row.action_id];
-              const verification = receipt
-                ? verifications[receipt.receipt_id]
-                : undefined;
-              const vLoading = receipt
-                ? verifyLoading[receipt.receipt_id]
-                : false;
-
-              return (
-                <div
-                  key={row.action_id}
-                  style={{ borderTop: "1px solid var(--border)" }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleExpand(row.action_id)}
-                    className="w-full grid grid-cols-[180px_1fr_1fr_160px_140px] items-center gap-6 px-5 py-3 text-left transition-colors"
-                    style={{
-                      background: expanded
-                        ? "color-mix(in srgb, var(--text) 3%, transparent)"
-                        : "transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!expanded)
-                        (e.currentTarget as HTMLElement).style.background =
-                          "color-mix(in srgb, var(--text) 2%, transparent)";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!expanded)
-                        (e.currentTarget as HTMLElement).style.background =
-                          "transparent";
-                    }}
-                  >
-                    <span
-                      className="font-mono text-[11px] truncate"
-                      style={{ color: "var(--text)" }}
-                    >
-                      {row.action_id}
-                    </span>
-                    <span
-                      className="font-mono text-[11px] truncate"
-                      style={{ color: "var(--text-2)" }}
-                      title={`${row.target_entity.entity_type}/${row.target_entity.entity_id}`}
-                    >
-                      {row.target_entity.entity_type}/{row.target_entity.entity_id}
-                    </span>
-                    <span
-                      className="font-mono text-[11px] truncate"
-                      style={{ color: "var(--text-2)" }}
-                    >
-                      {row.action_type}
-                    </span>
-                    <span
-                      className="text-[11px] tabular-nums"
-                      style={{ color: "var(--text-muted)" }}
-                      title={formatAbsolute(row.created_at)}
-                    >
-                      {formatRelative(row.created_at)}
-                    </span>
-                    <span>
-                      {verification ? (
-                        verification.hash_valid ? (
-                          <StatusPill status="SUCCESS">
-                            <ShieldCheck size={10} />
-                            Verified
-                          </StatusPill>
-                        ) : (
-                          <StatusPill status="FAILED">
-                            <ShieldAlert size={10} />
-                            Invalid
-                          </StatusPill>
-                        )
-                      ) : receipt ? (
-                        <span
-                          role="button"
-                          onClick={(e) => handleVerify(e, receipt.receipt_id)}
-                          className="inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-semibold cursor-pointer transition-colors"
-                          style={{
-                            color: "var(--text-2)",
-                            background:
-                              "color-mix(in srgb, var(--text) 5%, transparent)",
-                            border: "1px solid var(--border)",
-                          }}
-                        >
-                          <Hash size={10} />
-                          {vLoading ? "Verifying…" : "Verify hash"}
-                        </span>
-                      ) : (
-                        <span
-                          className="text-[10px]"
-                          style={{ color: "var(--text-muted)" }}
-                        >
-                          —
-                        </span>
-                      )}
-                    </span>
-                  </button>
-                  {expanded && (
-                    <div
-                      className="px-5 pt-3 pb-5"
-                      style={{
-                        background:
-                          "color-mix(in srgb, var(--text) 2%, transparent)",
-                        borderTop: "1px solid var(--border)",
-                      }}
-                    >
-                      {rLoading && (
-                        <p
-                          className="text-[12px]"
-                          style={{ color: "var(--text-2)" }}
-                        >
-                          Loading receipt…
-                        </p>
-                      )}
-                      {rError && (
-                        <p
-                          className="text-[12px] font-mono"
-                          style={{ color: "#F87171" }}
-                        >
-                          {rError}
-                        </p>
-                      )}
-                      {receipt && (
-                        <div className="space-y-4">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3">
-                            <ReceiptField
-                              label="Receipt ID"
-                              value={
-                                <span
-                                  className="font-mono text-[11px]"
-                                  style={{ color: "var(--text)" }}
-                                >
-                                  {receipt.receipt_id}
-                                </span>
-                              }
-                            />
-                            <ReceiptField
-                              label="Decision"
-                              value={<StatusPill status={receipt.decision} />}
-                            />
-                            <ReceiptField
-                              label="Rule"
-                              value={
-                                <span
-                                  className="font-mono text-[11px]"
-                                  style={{ color: "var(--text-2)" }}
-                                >
-                                  {receipt.rule_id ?? "—"}
-                                  {receipt.rule_version && (
-                                    <span
-                                      className="ml-1"
-                                      style={{ color: "var(--text-muted)" }}
-                                    >
-                                      v{receipt.rule_version}
-                                    </span>
-                                  )}
-                                </span>
-                              }
-                            />
-                            <ReceiptField
-                              label="Executed at"
-                              value={
-                                <span
-                                  className="text-[11px]"
-                                  style={{ color: "var(--text-2)" }}
-                                >
-                                  {receipt.executed_at
-                                    ? formatAbsolute(receipt.executed_at)
-                                    : "—"}
-                                </span>
-                              }
-                            />
-                          </div>
-
-                          <div>
-                            <p
-                              className="text-[9px] font-semibold uppercase tracking-[0.14em] mb-1.5"
-                              style={{ color: "var(--text-muted)" }}
-                            >
-                              SHA-256 hash
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <code
-                                className="flex-1 font-mono text-[11px] px-3 py-2 rounded-lg break-all"
-                                style={{
-                                  background:
-                                    "color-mix(in srgb, var(--text) 3%, transparent)",
-                                  border: "1px solid var(--border)",
-                                  color: "var(--text)",
-                                }}
-                              >
-                                {receipt.hash}
-                              </code>
-                              <button
-                                onClick={() =>
-                                  copyHash(receipt.hash, receipt.receipt_id)
-                                }
-                                className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-3 py-2 rounded-lg transition-colors shrink-0"
-                                style={{
-                                  color: "var(--text-2)",
-                                  background:
-                                    "color-mix(in srgb, var(--text) 4%, transparent)",
-                                  border: "1px solid var(--border)",
-                                }}
-                              >
-                                {copied === receipt.receipt_id ? (
-                                  <>
-                                    <Check size={11} />
-                                    Copied
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy size={11} />
-                                    Copy
-                                  </>
-                                )}
-                              </button>
-                            </div>
-                          </div>
-
-                          {receipt.conditions_evaluated && (
-                            <div>
-                              <p
-                                className="text-[9px] font-semibold uppercase tracking-[0.14em] mb-1.5"
-                                style={{ color: "var(--text-muted)" }}
-                              >
-                                Conditions evaluated
-                              </p>
-                              <div className="space-y-1.5">
-                                {Object.entries(receipt.conditions_evaluated).map(
-                                  ([key, cond]) => (
-                                    <div
-                                      key={key}
-                                      className="flex items-center gap-2 text-[12px]"
-                                    >
-                                      {cond.passed ? (
-                                        <Check
-                                          size={12}
-                                          style={{ color: "#34D399" }}
-                                        />
-                                      ) : (
-                                        <X
-                                          size={12}
-                                          style={{ color: "#F87171" }}
-                                        />
-                                      )}
-                                      <span style={{ color: "var(--text-2)" }}>
-                                        {cond.label}
-                                      </span>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          )}
-
-                          {!!receipt.execution_result && (
-                            <div>
-                              <p
-                                className="text-[9px] font-semibold uppercase tracking-[0.14em] mb-1.5"
-                                style={{ color: "var(--text-muted)" }}
-                              >
-                                Execution result
-                              </p>
-                              <pre
-                                className="text-[11px] font-mono leading-relaxed whitespace-pre-wrap break-all rounded-lg p-3"
-                                style={{
-                                  color: "var(--text-2)",
-                                  background:
-                                    "color-mix(in srgb, var(--text) 3%, transparent)",
-                                  border: "1px solid var(--border)",
-                                  maxHeight: 280,
-                                  overflow: "auto",
-                                }}
-                              >
-                                {JSON.stringify(receipt.execution_result, null, 2)}
-                              </pre>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+          {/* Footer */}
+          <div className="px-4 py-2.5 border-t border-rule bg-bg">
+            <span className="font-mono text-[10.5px] tracking-[0.02em] text-ink-muted">
+              {loading
+                ? "Loading…"
+                : `Showing ${stats.total.toLocaleString()} receipts from COMPLETED actions`}
+            </span>
           </div>
-        )}
-      </DataTableShell>
-    </div>
-  );
-}
-
-function ReceiptField({
-  label,
-  value,
-}: {
-  label: string;
-  value: React.ReactNode;
-}) {
-  return (
-    <div>
-      <p
-        className="text-[9px] font-semibold uppercase tracking-[0.14em] mb-1"
-        style={{ color: "var(--text-muted)" }}
-      >
-        {label}
-      </p>
-      <div>{value}</div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -11,8 +11,6 @@ import {
   Webhook,
   Settings,
   Plus,
-  Sun,
-  Moon,
   PowerOff,
   ScrollText,
   Radar,
@@ -209,27 +207,4 @@ export const COMMANDS: Command[] = [
     run: ({ router }) => router.push("/developers?new=1"),
   },
 
-  // ─── THEME ──────────────────────────────────────────────
-  {
-    id: "theme-toggle-dark",
-    title: "Switch to Dark Mode",
-    section: "theme",
-    icon: <Moon {...iconProps} />,
-    keywords: ["theme", "dark", "night"],
-    run: ({ toggleTheme }) => toggleTheme(),
-    when: () =>
-      typeof document !== "undefined" &&
-      document.documentElement.getAttribute("data-theme") === "light",
-  },
-  {
-    id: "theme-toggle-light",
-    title: "Switch to Light Mode",
-    section: "theme",
-    icon: <Sun {...iconProps} />,
-    keywords: ["theme", "light", "day"],
-    run: ({ toggleTheme }) => toggleTheme(),
-    when: () =>
-      typeof document === "undefined" ||
-      document.documentElement.getAttribute("data-theme") !== "light",
-  },
 ];
