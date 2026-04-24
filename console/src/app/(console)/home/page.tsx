@@ -21,57 +21,25 @@ import type {
   AnalyticsSummary,
 } from "@/lib/api";
 
-type StatusTone = "ok" | "warn" | "muted";
-
-const STATUS_TONE: Record<string, StatusTone> = {
-  COMPLETED: "ok",
-  APPROVED: "ok",
-  EXECUTING: "ok",
-  ESCALATED: "warn",
-  PROPOSED: "muted",
-  DENIED: "muted",
-};
-
-const STATUS_CLASS: Record<StatusTone, string> = {
-  ok: "bg-[rgba(29,58,46,0.08)] text-seal border-seal",
-  warn: "bg-[rgba(201,138,43,0.1)] text-amber border-amber",
-  muted: "bg-bg text-ink-muted border-rule",
+const STATUS_STYLES: Record<string, string> = {
+  COMPLETED: "bg-white/[0.06] text-[#d4d4d4] border border-[#1a1a1a]",
+  ESCALATED: "bg-white/[0.04] text-[#888888] border border-[#1a1a1a]",
+  DENIED: "bg-white/[0.04] text-[#444444] border border-[#1a1a1a]",
+  EXECUTING: "bg-white/[0.06] text-[#d4d4d4] border border-[#1a1a1a]",
+  APPROVED: "bg-white/[0.06] text-[#d4d4d4] border border-[#1a1a1a]",
+  PROPOSED: "bg-white/[0.04] text-[#888888] border border-[#1a1a1a]",
 };
 
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
-  const s = Math.floor(diff / 1000);
-  if (s < 60) return `${s}s ago`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
-}
-
-function SectionHeader({ label, right }: { label: string; right?: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between bg-bg border border-rule border-b-0 rounded-t-[3px] px-3.5 py-2">
-      <span className="font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted font-medium">
-        {label}
-      </span>
-      {right}
-    </div>
-  );
-}
-
-function KpiTile({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="bg-paper border border-rule rounded-[3px] p-4">
-      <p className="font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted mb-2">
-        {label}
-      </p>
-      <p className="font-sans text-[26px] tracking-[-0.025em] text-ink leading-none">{value}</p>
-      {hint ? (
-        <p className="text-[11px] leading-[1.4] text-ink-muted mt-2 tracking-[-0.005em]">{hint}</p>
-      ) : null}
-    </div>
-  );
+  const seconds = Math.floor(diff / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
 }
 
 export default function HomePage() {
@@ -85,7 +53,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number>(0);
   const [secondsAgo, setSecondsAgo] = useState(0);
-  const [ksBusy, setKsBusy] = useState(false);
+  const [killSwitchLoading, setKillSwitchLoading] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -115,325 +83,333 @@ export default function HomePage() {
 
   useEffect(() => {
     loadData();
-    const id = setInterval(loadData, 15000);
-    return () => clearInterval(id);
+    const interval = setInterval(loadData, 15000);
+    return () => clearInterval(interval);
   }, [loadData]);
 
   useEffect(() => {
     if (!lastUpdated) return;
-    const id = setInterval(() => {
+    const tick = setInterval(() => {
       setSecondsAgo(Math.floor((Date.now() - lastUpdated) / 1000));
     }, 1000);
-    return () => clearInterval(id);
+    return () => clearInterval(tick);
   }, [lastUpdated]);
+
+  // Metrics
+  const pendingEscalations = escalations.length;
+  const activePolicies = policyRules.filter((r) => r.active).length;
+  const approvalRateDisplay = analytics
+    ? `${(analytics.approval_rate * 100).toFixed(1)}%`
+    : "--";
 
   async function handleKillSwitchToggle() {
     if (!killSwitch) return;
     if (killSwitch.active) {
-      setKsBusy(true);
+      setKillSwitchLoading(true);
       try {
-        setKillSwitch(await deactivateKillSwitch());
+        const res = await deactivateKillSwitch();
+        setKillSwitch(res);
       } catch {
         /* ignore */
       } finally {
-        setKsBusy(false);
+        setKillSwitchLoading(false);
       }
-      return;
-    }
-    if (!window.confirm("Activate kill switch? This will deny ALL actions until deactivated.")) return;
-    setKsBusy(true);
-    try {
-      setKillSwitch(await activateKillSwitch());
-    } catch {
-      /* ignore */
-    } finally {
-      setKsBusy(false);
+    } else {
+      const confirmed = window.confirm(
+        "Activate kill switch? This will deny ALL actions until deactivated."
+      );
+      if (!confirmed) return;
+      setKillSwitchLoading(true);
+      try {
+        const res = await activateKillSwitch();
+        setKillSwitch(res);
+      } catch {
+        /* ignore */
+      } finally {
+        setKillSwitchLoading(false);
+      }
     }
   }
-
-  const pendingEscalations = escalations.length;
-  const activePolicies = policyRules.filter((r) => r.active).length;
-  const approvalRate = analytics ? `${(analytics.approval_rate * 100).toFixed(1)}%` : "--";
-  const actionsTotal = analytics ? String(analytics.actions_total) : "--";
 
   if (loading) {
     return (
-      <div className="p-8 max-w-[1100px]">
-        <p className="text-[12px] text-ink-muted tracking-[-0.005em]">Loading…</p>
+      <div className="p-8 max-w-6xl">
+        <p className="text-sm text-[#444444]">Loading...</p>
       </div>
     );
   }
+
   if (error) {
     return (
-      <div className="p-8 max-w-[1100px]">
-        <div className="bg-[rgba(184,68,46,0.06)] border border-accent rounded-[3px] px-3 py-2 text-[12px] leading-[1.5] text-accent tracking-[-0.005em]">
-          {error}
-        </div>
+      <div className="p-8 max-w-6xl">
+        <p className="text-sm text-[#888888]">Error: {error}</p>
       </div>
     );
   }
 
-  const recentActions = actions.slice(0, 8);
+  const recentActions = actions.slice(0, 10);
   const recentEvents = events.slice(0, 5);
-  const ksActive = killSwitch?.active ?? false;
 
   return (
-    <div className="p-8 max-w-[1100px]">
-      <div className="flex items-end justify-between mb-5">
+    <div className="p-8 max-w-6xl">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="font-sans font-medium text-[22px] tracking-[-0.025em] text-ink leading-none">
-            Home
-          </h1>
-          <p className="text-[11.5px] text-ink-muted mt-1.5 tracking-[-0.005em] font-mono">
-            {lastUpdated ? `Synced ${secondsAgo}s ago · auto-refresh 15s` : "Warming up…"}
+          <h1 className="text-[20px] font-semibold text-white">Home</h1>
+          <p className="text-xs text-[#444444] mt-0.5">
+            Last updated {secondsAgo}s ago
           </p>
         </div>
-        <Link
-          href="/receipts"
-          className="font-mono text-[10.5px] tracking-[0.1em] uppercase text-ink-soft border-b border-dotted border-ink-muted hover:text-accent hover:border-accent"
-        >
-          View receipt chain →
-        </Link>
       </div>
 
-      {killSwitch ? (
+      {/* Kill Switch Strip */}
+      {killSwitch && (
         <div
-          className={
-            "rounded-[3px] border px-4 py-3 mb-5 flex items-center justify-between " +
-            (ksActive
-              ? "bg-[rgba(184,68,46,0.06)] border-accent"
-              : "bg-paper border-rule")
-          }
+          className={`rounded border p-3 mb-6 flex items-center justify-between ${
+            killSwitch.active
+              ? "bg-red-950/40 border-red-900/50"
+              : "bg-[#111111] border-[#1a1a1a]"
+          }`}
         >
           <div className="flex items-center gap-3">
             <span
-              className={
-                "w-2 h-2 rounded-full " +
-                (ksActive ? "bg-accent animate-[pulse-dot_2s_ease-out_infinite]" : "bg-seal")
-              }
+              className={`w-2 h-2 rounded-full ${
+                killSwitch.active ? "bg-red-500" : "bg-[#444444]"
+              }`}
             />
-            <span className="font-mono text-[10.5px] tracking-[0.1em] uppercase font-medium">
-              <span className={ksActive ? "text-accent" : "text-seal"}>
-                {ksActive ? "Kill switch active" : "Systems nominal"}
-              </span>
-              <span className="text-ink-muted"> · </span>
-              <span className="text-ink-soft">
-                {ksActive
-                  ? "all actions being denied"
-                  : `${pendingEscalations} awaiting approval`}
-              </span>
+            <span
+              className={`text-sm font-medium ${
+                killSwitch.active ? "text-red-400" : "text-[#444444]"
+              }`}
+            >
+              {killSwitch.active
+                ? "KILL SWITCH ACTIVE -- all actions denied"
+                : "Kill Switch: Off"}
             </span>
           </div>
           <button
             onClick={handleKillSwitchToggle}
-            disabled={ksBusy}
-            className={
-              "font-mono text-[10.5px] tracking-[0.1em] uppercase font-medium px-3 py-1.5 rounded-[3px] border transition-colors disabled:opacity-40 " +
-              (ksActive
-                ? "bg-paper text-ink border-ink hover:bg-bg"
-                : "bg-transparent text-accent border-accent hover:bg-[rgba(184,68,46,0.06)]")
-            }
+            disabled={killSwitchLoading}
+            className={`text-xs font-semibold px-4 py-1.5 rounded transition-colors disabled:opacity-40 ${
+              killSwitch.active
+                ? "bg-white/[0.06] text-[#d4d4d4] hover:bg-white/[0.1] border border-[#1a1a1a]"
+                : "bg-[#d4d4d4] text-[#0a0a0a] hover:bg-white"
+            }`}
           >
-            {ksBusy ? "…" : ksActive ? "Deactivate" : "Activate"}
+            {killSwitchLoading
+              ? "..."
+              : killSwitch.active
+                ? "Deactivate"
+                : "Activate"}
           </button>
         </div>
-      ) : null}
+      )}
 
-      <div className="grid grid-cols-4 gap-3 mb-6">
-        <KpiTile label="Actions · 7d" value={actionsTotal} hint="proposals through the ledger" />
-        <KpiTile
-          label="Approval rate"
-          value={approvalRate}
-          hint={analytics ? `${analytics.actions_approved} approved` : undefined}
-        />
-        <KpiTile
-          label="Pending approvals"
-          value={String(pendingEscalations)}
-          hint={pendingEscalations > 0 ? "review in Approvals" : "queue empty"}
-        />
-        <KpiTile
-          label="Active policies"
-          value={String(activePolicies)}
-          hint={`${policyRules.length} total rules`}
-        />
+      {/* Metrics */}
+      <div className="grid grid-cols-4 gap-4 mb-8">
+        {[
+          { label: "Actions (7d)", value: analytics ? String(analytics.actions_total) : "--" },
+          { label: "Approval Rate", value: approvalRateDisplay },
+          { label: "Pending Escalations", value: String(pendingEscalations) },
+          { label: "Active Policies", value: String(activePolicies) },
+        ].map((m) => (
+          <div
+            key={m.label}
+            className="bg-[#111111] rounded border border-[#1a1a1a] p-5"
+          >
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
+              {m.label}
+            </p>
+            <p className="text-3xl font-bold text-white">{m.value}</p>
+          </div>
+        ))}
       </div>
 
-      {analytics ? (
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          <div>
-            <SectionHeader label="◇ 7-day trend" />
-            <div className="bg-paper border border-rule rounded-b-[3px] p-4">
-              {analytics.daily_trend.length > 0 ? (() => {
-                const W = 260, H = 60;
-                const days = analytics.daily_trend;
-                const totals = days.map((d) => d.approved + d.denied + d.escalated);
-                const approveds = days.map((d) => d.approved);
-                const maxTotal = Math.max(...totals, 1);
-                const pts = (vals: number[]) =>
-                  vals
-                    .map((v, i) => {
-                      const x = (i / Math.max(vals.length - 1, 1)) * W;
-                      const y = H - (v / maxTotal) * H;
-                      return `${x.toFixed(1)},${y.toFixed(1)}`;
-                    })
-                    .join(" ");
-                return (
-                  <svg width={W} height={H} className="overflow-visible" aria-label="7-day action trend">
-                    <polyline points={pts(totals)} fill="none" stroke="var(--rule)" strokeWidth="1.25" />
-                    <polyline points={pts(approveds)} fill="none" stroke="var(--seal)" strokeWidth="1.5" />
-                  </svg>
-                );
-              })() : (
-                <p className="text-[12px] text-ink-muted tracking-[-0.005em]">No data yet.</p>
-              )}
-              <div className="flex gap-4 mt-3">
-                <span className="flex items-center gap-1.5 font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted">
-                  <span className="w-3 h-px bg-rule inline-block" /> Total
-                </span>
-                <span className="flex items-center gap-1.5 font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted">
-                  <span className="w-3 h-px bg-seal inline-block" /> Approved
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <SectionHeader label="◆ Top rules · 7d" />
-            <div className="bg-paper border border-rule rounded-b-[3px] p-4 min-h-[108px]">
-              {analytics.top_rules.length === 0 ? (
-                <p className="text-[12px] text-ink-muted tracking-[-0.005em]">No rule activity.</p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {analytics.top_rules.slice(0, 4).map((r) => (
-                    <div key={r.rule_id} className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[11.5px] text-ink-soft truncate" title={r.rule_id}>
-                        {r.rule_id.length > 22 ? `${r.rule_id.slice(0, 22)}…` : r.rule_id}
-                      </span>
-                      <span className="font-mono text-[11px] text-ink-muted shrink-0">{r.fires}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <SectionHeader label="◈ Top agents · 7d" />
-            <div className="bg-paper border border-rule rounded-b-[3px] p-4 min-h-[108px]">
-              {analytics.top_agents.length === 0 ? (
-                <p className="text-[12px] text-ink-muted tracking-[-0.005em]">No agent activity.</p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {analytics.top_agents.slice(0, 4).map((a) => (
-                    <div key={a.agent_id} className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[11.5px] text-ink-soft truncate" title={a.agent_id}>
-                        {a.agent_id.length > 22 ? `${a.agent_id.slice(0, 22)}…` : a.agent_id}
-                      </span>
-                      <span className="font-mono text-[11px] text-ink-muted shrink-0">{a.actions}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="grid grid-cols-3 gap-3">
-        <div className="col-span-2">
-          <SectionHeader
-            label="▤ Recent actions"
-            right={
-              <Link
-                href="/actions"
-                className="font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-soft border-b border-dotted border-ink-muted hover:text-accent hover:border-accent"
-              >
-                View all →
-              </Link>
-            }
-          />
-          <div className="bg-paper border border-rule rounded-b-[3px]">
-            {recentActions.length === 0 ? (
-              <p className="p-4 text-[12px] text-ink-muted tracking-[-0.005em]">No actions yet.</p>
-            ) : (
-              <table className="w-full">
-                <thead>
-                  <tr className="font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted">
-                    <th className="text-left px-4 pt-3 pb-2 font-medium">Action</th>
-                    <th className="text-left px-2 pt-3 pb-2 font-medium">Entity</th>
-                    <th className="text-left px-2 pt-3 pb-2 font-medium">Type</th>
-                    <th className="text-left px-2 pt-3 pb-2 font-medium">Status</th>
-                    <th className="text-left px-4 pt-3 pb-2 font-medium">Time</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentActions.map((a) => {
-                    const entity = a.target_entity
-                      ? `${a.target_entity.entity_type || ""}/${a.target_entity.entity_id || ""}`
-                      : "--";
-                    const tone = STATUS_TONE[a.status] ?? "muted";
-                    const cls = STATUS_CLASS[tone];
-                    return (
-                      <tr key={a.action_id} className="border-t border-rule">
-                        <td className="px-4 py-2.5">
-                          <Link
-                            href={`/receipts/${a.action_id}`}
-                            className="font-mono text-[11.5px] text-ink hover:text-accent"
-                          >
-                            {a.action_id.slice(0, 12)}
-                          </Link>
-                        </td>
-                        <td className="px-2 py-2.5 text-[12px] text-ink-soft tracking-[-0.005em]">
-                          {entity}
-                        </td>
-                        <td className="px-2 py-2.5 font-mono text-[11.5px] text-ink-soft">
-                          {a.action_type}
-                        </td>
-                        <td className="px-2 py-2.5">
-                          <span
-                            className={
-                              "inline-flex items-center px-1.5 py-0.5 rounded-[2px] border font-mono text-[9.5px] tracking-[0.14em] uppercase " +
-                              cls
-                            }
-                          >
-                            {a.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5 font-mono text-[11px] text-ink-muted">
-                          {timeAgo(a.created_at)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+      {/* Analytics row */}
+      {analytics && (
+        <div className="flex gap-5 mb-5">
+          {/* 7-Day Trend sparkline */}
+          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-[2]">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
+              7-Day Trend
+            </p>
+            {analytics.daily_trend.length > 0 ? (() => {
+              const W = 240, H = 48;
+              const days = analytics.daily_trend;
+              const totals = days.map(d => d.approved + d.denied + d.escalated);
+              const approveds = days.map(d => d.approved);
+              const maxTotal = Math.max(...totals, 1);
+              const pts = (vals: number[]) =>
+                vals
+                  .map((v, i) => {
+                    const x = (i / Math.max(vals.length - 1, 1)) * W;
+                    const y = H - (v / maxTotal) * H;
+                    return `${x.toFixed(1)},${y.toFixed(1)}`;
+                  })
+                  .join(" ");
+              return (
+                <svg width={W} height={H} className="overflow-visible">
+                  <polyline
+                    points={pts(totals)}
+                    fill="none"
+                    stroke="#333"
+                    strokeWidth="1.5"
+                  />
+                  <polyline
+                    points={pts(approveds)}
+                    fill="none"
+                    stroke="#888"
+                    strokeWidth="1.5"
+                  />
+                </svg>
+              );
+            })() : (
+              <p className="text-xs text-[#444444]">No data yet.</p>
             )}
+            <div className="flex gap-4 mt-3">
+              <span className="flex items-center gap-1.5 text-[10px] text-[#444444]">
+                <span className="w-3 h-px bg-[#333] inline-block" /> Total
+              </span>
+              <span className="flex items-center gap-1.5 text-[10px] text-[#444444]">
+                <span className="w-3 h-px bg-[#888] inline-block" /> Approved
+              </span>
+            </div>
           </div>
-        </div>
 
-        <div>
-          <SectionHeader label="◎ Recent events" />
-          <div className="bg-paper border border-rule rounded-b-[3px] p-4">
-            {recentEvents.length === 0 ? (
-              <p className="text-[12px] text-ink-muted tracking-[-0.005em]">No events yet.</p>
+          {/* Top Rules */}
+          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
+              Top Rules (7d)
+            </p>
+            {analytics.top_rules.length === 0 ? (
+              <p className="text-xs text-[#444444]">No rule activity.</p>
             ) : (
-              <div className="flex flex-col gap-3">
-                {recentEvents.map((ev) => (
-                  <div key={ev.event_id} className="flex flex-col gap-0.5">
-                    <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-ink-muted">
-                      {timeAgo(ev.occurred_at)}
+              <div className="flex flex-col gap-2">
+                {analytics.top_rules.map((r) => (
+                  <div key={r.rule_id} className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11px] text-[#888888] truncate" title={r.rule_id}>
+                      {r.rule_id.length > 20 ? `${r.rule_id.slice(0, 20)}…` : r.rule_id}
                     </span>
-                    <span className="text-[12.5px] text-ink tracking-[-0.005em]">
-                      {ev.event_type}
-                    </span>
-                    <span className="font-mono text-[11px] text-ink-soft">
-                      {ev.entity_type}/{ev.entity_id}
-                    </span>
+                    <span className="text-[11px] text-[#555555] shrink-0">{r.fires}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
+
+          {/* Top Agents */}
+          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-1">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
+              Top Agents (7d)
+            </p>
+            {analytics.top_agents.length === 0 ? (
+              <p className="text-xs text-[#444444]">No agent activity.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {analytics.top_agents.map((a) => (
+                  <div key={a.agent_id} className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[11px] text-[#888888] truncate" title={a.agent_id}>
+                      {a.agent_id.length > 20 ? `${a.agent_id.slice(0, 20)}…` : a.agent_id}
+                    </span>
+                    <span className="text-[11px] text-[#555555] shrink-0">{a.actions}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Bottom row */}
+      <div className="flex gap-5">
+        {/* Recent Actions */}
+        <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-[3]">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444]">
+              Recent Actions
+            </p>
+            <Link
+              href="/actions"
+              className="text-xs text-[#d4d4d4] hover:text-white"
+            >
+              View all
+            </Link>
+          </div>
+          {recentActions.length === 0 ? (
+            <p className="text-xs text-[#444444]">No actions yet.</p>
+          ) : (
+            <table className="w-full">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-widest text-[#444444]">
+                  <th className="text-left pb-3 font-semibold">Action ID</th>
+                  <th className="text-left pb-3 font-semibold">Entity</th>
+                  <th className="text-left pb-3 font-semibold">Action Type</th>
+                  <th className="text-left pb-3 font-semibold">Status</th>
+                  <th className="text-left pb-3 font-semibold">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentActions.map((a) => {
+                  const entity = a.target_entity
+                    ? `${a.target_entity.entity_type || ""}/${a.target_entity.entity_id || ""}`
+                    : "--";
+                  const style =
+                    STATUS_STYLES[a.status] ?? STATUS_STYLES.COMPLETED;
+                  return (
+                    <tr key={a.action_id} className="border-t border-[#1a1a1a]">
+                      <td className="py-2.5 pr-4">
+                        <span className="font-mono text-xs text-[#d4d4d4]">
+                          {a.action_id.slice(0, 12)}
+                        </span>
+                      </td>
+                      <td className="py-2.5 pr-4 text-xs text-[#888888]">
+                        {entity}
+                      </td>
+                      <td className="py-2.5 pr-4 font-mono text-xs text-[#888888]">
+                        {a.action_type}
+                      </td>
+                      <td className="py-2.5 pr-4">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${style}`}
+                        >
+                          {a.status}
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-xs text-[#444444]">
+                        {timeAgo(a.created_at)}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Recent Events */}
+        <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-[1.5]">
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
+            Recent Events
+          </p>
+          {recentEvents.length === 0 ? (
+            <p className="text-xs text-[#444444]">No events yet.</p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {recentEvents.map((ev) => (
+                <div key={ev.event_id} className="flex flex-col gap-0.5">
+                  <span className="font-mono text-[11px] text-[#444444]">
+                    {timeAgo(ev.occurred_at)}
+                  </span>
+                  <span className="text-xs text-[#888888]">
+                    {ev.event_type}
+                  </span>
+                  <span className="text-[11px] text-[#444444]">
+                    {ev.entity_type}/{ev.entity_id}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
