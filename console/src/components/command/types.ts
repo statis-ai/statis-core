@@ -1,10 +1,11 @@
 import type { ReactNode } from "react";
 
-export type CommandSection = "navigate" | "create" | "action" | "search";
+export type CommandSection = "navigate" | "create" | "action" | "search" | "theme";
 
 export type CommandContext = {
   router: { push: (href: string) => void };
   pathname: string;
+  toggleTheme: () => void;
 };
 
 export type Command = {
@@ -27,4 +28,5 @@ export const SECTION_LABELS: Record<CommandSection, string> = {
   create: "Create",
   action: "Actions",
   search: "Search",
+  theme: "Preferences",
 };

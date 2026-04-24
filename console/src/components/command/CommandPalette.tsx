@@ -9,9 +9,12 @@ import {
   type KeyboardEvent,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { Search, ArrowUp, ArrowDown, CornerDownLeft } from "lucide-react";
 import { COMMANDS } from "./commands";
 import { SECTION_LABELS, type Command, type CommandContext } from "./types";
+import { useTheme } from "@/components/ThemeProvider";
 
+// Simple scoring: prefix match > word-boundary match > substring match.
 function score(cmd: Command, query: string): number {
   if (!query) return 1;
   const q = query.toLowerCase();
@@ -37,6 +40,7 @@ export function CommandPalette({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const { toggle: toggleTheme } = useTheme();
   const [query, setQuery] = useState("");
   const [activeIdx, setActiveIdx] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,10 +50,12 @@ export function CommandPalette({
     () => ({
       router: { push: (href: string) => router.push(href) },
       pathname: pathname ?? "/",
+      toggleTheme,
     }),
-    [router, pathname],
+    [router, pathname, toggleTheme]
   );
 
+  // Filter + score + group
   const { visible, grouped } = useMemo(() => {
     const scored = COMMANDS.filter((cmd) => (cmd.when ? cmd.when(ctx) : true))
       .map((cmd) => ({ cmd, s: score(cmd, query.trim()) }))
@@ -66,19 +72,23 @@ export function CommandPalette({
     return { visible: list, grouped: groups };
   }, [query, ctx]);
 
+  // Clamp active index when list changes
   useEffect(() => {
     if (activeIdx >= visible.length) setActiveIdx(0);
   }, [visible.length, activeIdx]);
 
+  // Focus input on open, reset state on close
   useEffect(() => {
     if (open) {
       setQuery("");
       setActiveIdx(0);
+      // Slight delay so focus doesn't fight with opening transition
       const t = window.setTimeout(() => inputRef.current?.focus(), 20);
       return () => window.clearTimeout(t);
     }
   }, [open]);
 
+  // Scroll active into view
   useEffect(() => {
     const list = listRef.current;
     if (!list) return;
@@ -89,11 +99,12 @@ export function CommandPalette({
   const run = useCallback(
     async (cmd: Command) => {
       onClose();
+      // Give the close animation a frame to start before navigating
       requestAnimationFrame(() => {
         cmd.run(ctx);
       });
     },
-    [onClose, ctx],
+    [onClose, ctx]
   );
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
@@ -121,6 +132,7 @@ export function CommandPalette({
 
   if (!open) return null;
 
+  // Build flat-index lookup so clicks and keyboard nav use the same index space
   let flatIdx = 0;
 
   return (
@@ -130,15 +142,29 @@ export function CommandPalette({
       aria-modal="true"
       aria-label="Command palette"
     >
+      {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-ink/30 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="relative w-full max-w-[580px] bg-paper border border-rule rounded-[4px] shadow-[0_1px_0_rgba(0,0,0,0.02),0_20px_40px_-12px_rgba(60,40,20,0.2)] overflow-hidden animate-palette-in">
+      {/* Panel */}
+      <div
+        className="relative w-full max-w-[580px] rounded-lg shadow-2xl overflow-hidden animate-palette-in"
+        style={{
+          background: "var(--bg-surface)",
+          color: "var(--text)",
+          border: "1px solid var(--border)",
+          boxShadow:
+            "0 30px 60px -15px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03)",
+        }}
+      >
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-rule">
-          <span className="font-mono text-[12px] text-ink-muted shrink-0">◎</span>
+        <div
+          className="flex items-center gap-3 px-4 py-3"
+          style={{ borderBottom: "1px solid var(--border)" }}
+        >
+          <Search size={15} style={{ color: "var(--text-muted)" }} />
           <input
             ref={inputRef}
             value={query}
@@ -148,19 +174,29 @@ export function CommandPalette({
             }}
             onKeyDown={handleKeyDown}
             placeholder="Type a command or search…"
-            className="flex-1 bg-transparent font-sans text-[14px] text-ink placeholder:text-ink-muted tracking-[-0.005em] focus:outline-none"
+            className="flex-1 bg-transparent text-[14px] focus:outline-none"
+            style={{ color: "var(--text)" }}
             autoComplete="off"
             spellCheck={false}
           />
-          <kbd className="hidden sm:inline-flex font-mono text-[9.5px] tracking-[0.1em] uppercase text-ink-muted border border-rule rounded-[2px] px-1.5 py-0.5">
+          <kbd
+            className="hidden sm:inline-flex text-[10px] px-1.5 py-0.5 rounded font-mono"
+            style={{
+              color: "var(--text-muted)",
+              border: "1px solid var(--border)",
+            }}
+          >
             esc
           </kbd>
         </div>
 
         {/* Results */}
-        <div ref={listRef} className="max-h-[54vh] overflow-y-auto py-1.5">
+        <div ref={listRef} className="max-h-[54vh] overflow-y-auto py-2">
           {visible.length === 0 ? (
-            <div className="px-4 py-12 text-center text-[12.5px] text-ink-muted tracking-[-0.005em]">
+            <div
+              className="px-4 py-12 text-center text-[12px]"
+              style={{ color: "var(--text-muted)" }}
+            >
               No commands match &ldquo;{query}&rdquo;
             </div>
           ) : (
@@ -168,8 +204,11 @@ export function CommandPalette({
               const items = grouped[section];
               if (!items || items.length === 0) return null;
               return (
-                <div key={section} className="mb-1 last:mb-0">
-                  <div className="px-4 py-1.5 font-mono text-[9.5px] tracking-[0.14em] uppercase text-ink-muted font-medium">
+                <div key={section} className="mb-2 last:mb-0">
+                  <div
+                    className="px-4 py-1.5 text-[9px] font-semibold uppercase tracking-widest"
+                    style={{ color: "var(--text-muted)" }}
+                  >
                     {label}
                   </div>
                   <div>
@@ -183,46 +222,55 @@ export function CommandPalette({
                           data-idx={idx}
                           onMouseEnter={() => setActiveIdx(idx)}
                           onClick={() => run(cmd)}
-                          className={
-                            "w-full flex items-center gap-3 px-4 py-2 text-left transition-colors " +
-                            (active ? "bg-bg" : "hover:bg-bg/60")
-                          }
+                          className="w-full flex items-center gap-3 px-4 py-2 text-left transition-colors"
+                          style={{
+                            background: active
+                              ? "color-mix(in srgb, var(--text) 8%, transparent)"
+                              : "transparent",
+                            color: active ? "var(--text)" : "var(--text-2)",
+                          }}
                         >
                           <span
-                            className={
-                              "flex items-center justify-center w-5 text-[13px] " +
-                              (active ? "text-ink" : "text-ink-muted")
-                            }
+                            className="flex items-center justify-center w-6 h-6 rounded"
+                            style={{
+                              color: active
+                                ? "var(--text)"
+                                : "var(--text-muted)",
+                            }}
                           >
                             {cmd.icon}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <div
-                              className={
-                                "text-[13px] truncate tracking-[-0.005em] " +
-                                (active ? "text-ink" : "text-ink-soft")
-                              }
-                            >
+                            <div className="text-[13px] truncate">
                               {cmd.title}
                             </div>
-                            {cmd.subtitle ? (
-                              <div className="text-[11px] text-ink-muted truncate tracking-[-0.005em]">
+                            {cmd.subtitle && (
+                              <div
+                                className="text-[11px] truncate"
+                                style={{ color: "var(--text-muted)" }}
+                              >
                                 {cmd.subtitle}
                               </div>
-                            ) : null}
+                            )}
                           </div>
-                          {cmd.shortcut ? (
+                          {cmd.shortcut && (
                             <div className="flex items-center gap-1 shrink-0">
                               {cmd.shortcut.map((k, i) => (
                                 <kbd
                                   key={`${cmd.id}-${i}`}
-                                  className="font-mono text-[9.5px] tracking-[0.1em] uppercase text-ink-soft bg-bg border border-rule rounded-[2px] px-1.5 py-0.5"
+                                  className="text-[9px] px-1.5 py-0.5 rounded font-mono uppercase"
+                                  style={{
+                                    color: "var(--text-2)",
+                                    border: "1px solid var(--border)",
+                                    background:
+                                      "color-mix(in srgb, var(--text) 4%, transparent)",
+                                  }}
                                 >
                                   {k}
                                 </kbd>
                               ))}
                             </div>
-                          ) : null}
+                          )}
                         </button>
                       );
                     })}
@@ -234,22 +282,37 @@ export function CommandPalette({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-4 px-4 py-2 border-t border-rule bg-bg">
-          <div className="flex items-center gap-3 font-mono text-[9.5px] tracking-[0.1em] uppercase text-ink-muted">
+        <div
+          className="flex items-center justify-between gap-4 px-4 py-2 text-[10px]"
+          style={{
+            borderTop: "1px solid var(--border)",
+            color: "var(--text-muted)",
+          }}
+        >
+          <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1">
-              <span>↑↓</span>
+              <ArrowUp size={10} />
+              <ArrowDown size={10} />
               <span>navigate</span>
             </span>
             <span className="inline-flex items-center gap-1">
-              <span>↵</span>
+              <CornerDownLeft size={10} />
               <span>select</span>
             </span>
           </div>
-          <span className="hidden sm:inline font-mono text-[9.5px] tracking-[0.1em] uppercase text-ink-muted">
-            <kbd className="text-ink-soft bg-paper border border-rule rounded-[2px] px-1 mr-1">
+          <span className="hidden sm:inline">
+            Press{" "}
+            <kbd
+              className="text-[9px] px-1 rounded"
+              style={{
+                color: "var(--text-2)",
+                border: "1px solid var(--border)",
+                background: "color-mix(in srgb, var(--text) 4%, transparent)",
+              }}
+            >
               ?
-            </kbd>
-            shortcuts
+            </kbd>{" "}
+            for shortcuts
           </span>
         </div>
       </div>

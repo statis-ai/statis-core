@@ -6,11 +6,11 @@ import { KeyboardShortcutsProvider } from "@/components/command/KeyboardShortcut
 export default function ConsoleLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthGuard>
-      <div className="flex flex-col h-screen overflow-hidden bg-paper">
+      <div className="flex flex-col h-screen overflow-hidden bg-[#0a0a0a]">
         <SandboxBanner />
         <div className="flex flex-1 overflow-hidden">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto bg-paper">
+          <main className="flex-1 overflow-y-auto bg-[#0a0a0a] dot-texture">
             {children}
           </main>
         </div>
