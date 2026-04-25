@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
+# LEGACY (v0.1.x reference) — webhook receiver harness. Useful for any version
+# (the webhook contract didn't change in v0.4.0). Lives under legacy/ for
+# co-location with the v0.1.x demos that drive subscriptions.
 """Minimal webhook receiver for Statis delivery demos.
 
 Accepts POST requests, prints JSON payloads to stdout. Optionally returns
 500 for the first N requests (for retry/DLQ testing).
 
 Usage:
-    python examples/webhook_receiver.py [--port 9999] [--fail-first 2]
+    python examples/legacy/webhook_receiver.py [--port 9999] [--fail-first 2]
 """
 from __future__ import annotations
 

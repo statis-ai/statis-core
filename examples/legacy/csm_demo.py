@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# LEGACY (v0.1.x reference) — uses raw HTTP against the Statis API.
+# v0.4.0 prefers @statis.gate. See ../vanilla_demo.py for the new pattern,
+# or MIGRATION.md (repo root) for the full upgrade guide.
 """CSM coordination demo — Account State Pack.
 
 Posts a realistic sequence of events to the Statis API and prints the
@@ -11,8 +14,8 @@ to the given URL; after posting events, prints delivery trace summary.
 Usage:
     # Start the API first:
     #   cd api && uvicorn app.main:app --reload
-    python examples/csm_demo.py [--base-url http://localhost:8000]
-    python examples/csm_demo.py --webhook-url http://localhost:9999/
+    python examples/legacy/csm_demo.py [--base-url http://localhost:8000]
+    python examples/legacy/csm_demo.py --webhook-url http://localhost:9999/
 """
 from __future__ import annotations
 

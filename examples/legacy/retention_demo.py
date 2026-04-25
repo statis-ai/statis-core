@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+# LEGACY (v0.1.x reference) — uses raw HTTP against the Statis API to walk through
+# the four primitives. v0.4.0 prefers @statis.gate which collapses propose/poll/
+# receipt into a single decorator. See ../discount_demo.py for the production-shape
+# v0.4.0 example, or MIGRATION.md (repo root).
 """Statis Retention Demo — end-to-end churn retention flow.
 
 Demonstrates all four primitives in a single script:
@@ -8,8 +12,8 @@ Demonstrates all four primitives in a single script:
   P4  Receipt           — tamper-evident audit record returned to caller
 
 Usage:
-    STATIS_API_KEY=<key> python examples/retention_demo.py
-    STATIS_API_KEY=<key> STATIS_BASE_URL=https://your-api.com python examples/retention_demo.py
+    STATIS_API_KEY=<key> python examples/legacy/retention_demo.py
+    STATIS_API_KEY=<key> STATIS_BASE_URL=https://your-api.com python examples/legacy/retention_demo.py
 
 Prerequisites:
     pip install httpx
