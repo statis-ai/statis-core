@@ -1,0 +1,62 @@
+name: Feature request
+description: Suggest a new feature, improvement, or change
+title: "[feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a feature. The more concrete the better — name a specific user, a specific situation, and a specific outcome.
+
+        For exploratory ideas or design discussion, [Discussions](https://github.com/statis-ai/statis-core/discussions) is often a better starting point.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: Describe the pain point in concrete terms. Whose pain? When does it happen? What do they do today instead?
+      placeholder: |
+        When my LangGraph agent calls a @gate-protected function inside a node, the entire graph hangs because the event loop is blocked. Today I work around this with `asyncio.to_thread`, but it would be cleaner if @gate had a native async mode.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed_solution
+    attributes:
+      label: Proposed solution
+      description: A specific design or behavior, not a vague direction.
+      placeholder: |
+        `@gate(mode="async")` would mark the function as awaitable, and the decorator would use httpx.AsyncClient + asyncio.sleep for the polling loop instead of blocking sync calls.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches did you weigh? Why is this one better?
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Approximate scope
+      options:
+        - Small (touch one or two files)
+        - Medium (touches several files, no architectural change)
+        - Large (architectural change, new subsystem, breaking change)
+        - Not sure
+    validations:
+      required: true
+
+  - type: input
+    id: impacted_versions
+    attributes:
+      label: Versions impacted
+      description: Which version of statis-ai are you using today?
+      placeholder: "0.4.0"
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Code samples, links to similar features in other tools, anything else useful.

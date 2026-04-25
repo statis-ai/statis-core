@@ -1,0 +1,96 @@
+name: Bug report
+description: Something is broken or behaving unexpectedly
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill in as much as you can — the more specific you are, the faster we can fix it.
+
+        For general questions about how to use Statis, please use [Discussions](https://github.com/statis-ai/statis-core/discussions) instead.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of what you expected, what you got, and how the two differ.
+      placeholder: |
+        I called `@statis.gate(action_name="apply_discount")` and expected the function to block until I approved via the signed URL. Instead, it raised X immediately.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimum reproduction
+      description: A minimal Python snippet that triggers the bug. Smaller is better.
+      placeholder: |
+        ```python
+        from statis import gate
+
+        @gate(action_name="test")
+        def my_func(): ...
+
+        my_func()
+        ```
+      render: markdown
+    validations:
+      required: true
+
+  - type: input
+    id: error_code
+    attributes:
+      label: Error code (if applicable)
+      description: If the bug surfaced via a Statis error class, the `error_code` attribute (E001-E012). See https://statis.dev/errors for the full table.
+      placeholder: "E007"
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stack trace
+      description: Paste the relevant log output. Set `STATIS_DEBUG=1` for verbose decorator-stage logging if it helps.
+      render: shell
+
+  - type: input
+    id: statis_version
+    attributes:
+      label: statis-ai version
+      description: Output of `pip show statis-ai | grep Version`
+      placeholder: "0.4.0"
+    validations:
+      required: true
+
+  - type: input
+    id: python_version
+    attributes:
+      label: Python version
+      description: Output of `python --version`
+      placeholder: "3.11.6"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux
+        - Windows
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: input
+    id: framework
+    attributes:
+      label: Agent framework (if any)
+      description: LangGraph, CrewAI, Anthropic SDK, OpenAI SDK, plain Python, etc.
+      placeholder: "LangGraph 0.2.x"
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional context
+      description: Anything else that might help — recent changes, related issues, what you've already tried.

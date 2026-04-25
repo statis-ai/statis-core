@@ -1,0 +1,31 @@
+name: Question
+description: How do I do X with Statis?
+title: "[question] "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > **For most questions, [Discussions](https://github.com/statis-ai/statis-core/discussions) is a better fit** — questions there get more visibility, get indexed for the next person with the same question, and don't pile up in the issue tracker.
+
+        Use this template if Discussions doesn't fit (e.g., you suspect a real bug but you're not 100% sure, or you want to make a specific concrete request that's narrower than a feature).
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: Be specific — what are you trying to do, what code did you try, what happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What you've tried
+      description: Code you've tried, docs you've read, similar issues you've seen.
+
+  - type: input
+    id: statis_version
+    attributes:
+      label: statis-ai version
+      placeholder: "0.4.0"
