@@ -26,3 +26,4 @@ from app.models.user import User  # noqa
 from app.models.webhook import Webhook  # noqa
 from app.models.threat_log import ThreatLog  # noqa
 from app.models.context_log import ContextLogEntry  # noqa  (AARM R2)
+from app.models.tenant_signing_key import TenantSigningKey  # noqa  (spine: HMAC URL signing)
