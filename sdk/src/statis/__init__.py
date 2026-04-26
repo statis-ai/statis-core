@@ -22,6 +22,7 @@ from ._models import (
     SignatureVerificationError,  # E011 — receipt tampering or wrong pubkey
     StatisDeprecationError,  # E012 — v0.1.x import path used
 )
+from ._idempotency import kwargs_only
 from .client import StatisClient
 from .decorator import gate
 
@@ -39,6 +40,7 @@ from statis_kit import process as process_context
 __all__ = [
     # v0.4.0 primary surface
     "gate",
+    "kwargs_only",
     "StatisClient",
     "Receipt",
     # Errors — pre-v0.4.0 (kept)
