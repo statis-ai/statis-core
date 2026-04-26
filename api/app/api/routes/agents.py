@@ -1,10 +1,15 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import AuthContext, get_auth_context
 from app.db.session import get_db
+from app.models.action_contract import ActionContract
 from app.models.agent import Agent
+from app.schemas.actions import ActionStatus
 from app.schemas.agents import AgentCreate, AgentOut, AgentUpdate
+from app.schemas.approval import AgentIdentitySnapshot
 
 router = APIRouter(tags=["agents"])
 
@@ -83,6 +88,61 @@ def update_agent(
     db.commit()
     db.refresh(agent)
     return AgentOut.model_validate(agent)
+
+
+@router.get("/agents/{agent_id}/identity", response_model=AgentIdentitySnapshot)
+def get_agent_identity(
+    agent_id: str,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> AgentIdentitySnapshot:
+    """Live identity card for the operator console.
+
+    Powers the right-hand panel on the escalation queue — same shape as the
+    snapshot frozen on `action_contracts.agent_identity_snapshot`, but recomputed
+    from current data. The token-gated public approval page reads the frozen
+    snapshot off the contract; this endpoint is for in-app callers that want
+    today's counters.
+    """
+    agent = (
+        db.query(Agent)
+        .filter(Agent.agent_id == agent_id, Agent.tenant_id == auth.tenant_id)
+        .first()
+    )
+    if agent is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Agent not found")
+
+    since = datetime.now(timezone.utc) - timedelta(hours=24)
+    actions_today = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.tenant_id == auth.tenant_id,
+            ActionContract.proposed_by == agent_id,
+            ActionContract.decided_at >= since,
+        )
+        .count()
+    )
+    denied_today = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.tenant_id == auth.tenant_id,
+            ActionContract.proposed_by == agent_id,
+            ActionContract.decided_at >= since,
+            ActionContract.status == ActionStatus.DENIED,
+        )
+        .count()
+    )
+
+    return AgentIdentitySnapshot(
+        handle=agent.agent_id,
+        version=None,
+        spawned_by=None,
+        actions_today=actions_today,
+        denied_today=denied_today,
+        agent_class=agent.agent_class,
+        org_unit=agent.org_unit,
+        trust_source=auth.trust_source,
+    )
 
 
 @router.delete("/agents/{agent_id}", status_code=status.HTTP_204_NO_CONTENT)
