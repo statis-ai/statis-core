@@ -5,11 +5,9 @@ import Link from "next/link";
 import { StatisGlyph } from "./StatisLogo";
 
 const NAV_LINKS = [
-  { label: "Pricing", href: "/pricing", external: false },
-  { label: "Debug", href: "/debug", external: false },
-  { label: "Integrations", href: "/integrations", external: false },
+  { label: "Blog", href: "/blog", external: false },
   { label: "Docs", href: "https://docs.statis.dev", external: true },
-  { label: "GitHub", href: "https://github.com/statis-ai/statis-sdk", external: true },
+  { label: "GitHub", href: "https://github.com/statis-ai", external: true },
 ];
 
 export function Nav() {
@@ -81,10 +79,10 @@ export function Nav() {
             onMouseEnter={(e) => (e.currentTarget.style.color = "var(--text)")}
             onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-2)")}
           >
-            Log in
+            Sign in
           </a>
           <a
-            href="/pricing"
+            href="https://console.statis.dev/auth?mode=signup"
             className="text-[13px] font-medium px-4 py-1.5 rounded-full transition-all"
             style={{
               background: "var(--text)",

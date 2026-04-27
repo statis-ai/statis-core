@@ -156,7 +156,7 @@ export default function LandingV6() {
           <a href="https://docs.statis.dev" rel="noopener">Docs</a>
         </nav>
         <div className="topbar-right">
-          <a href="#cta" className="signin">Sign in</a>
+          <a href="https://console.statis.dev" className="signin">Sign in</a>
         </div>
       </div>
 
