@@ -5,7 +5,7 @@ import { posts } from "@/data/posts";
 export const metadata: Metadata = {
   title: "Blog — Statis",
   description:
-    "Thoughts on AI state management, multi-agent coordination, and building reliable autonomous systems.",
+    "Notes on agent governance, decorator-first design, and what we learn running Statis on Statis.",
 };
 
 function ArrowIcon({ external }: { external?: boolean }) {
@@ -37,7 +37,7 @@ export default function BlogPage() {
           Writing.
         </h1>
         <p className="mt-3 text-sm max-w-xl" style={{ color: "var(--text-2)" }}>
-          Thoughts on AI state management, multi-agent coordination, and building reliable autonomous systems.
+          Notes on agent governance, decorator-first design, and what we learn running Statis on Statis.
         </p>
       </header>
 
