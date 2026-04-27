@@ -110,8 +110,6 @@ def main() -> None:
         # API unreachable. Decide: retry, fail-open, or bail.
         print(f"\nnetwork error: tried {e.attempts} times against {e.base_url}")
         print(f"  last: {e.last_error}")
-    except NotImplementedError as e:
-        print(f"\n(spine skeleton) {e}")
 
 
 if __name__ == "__main__":

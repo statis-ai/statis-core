@@ -155,8 +155,18 @@ export interface SimilarApproval {
   decision: "APPROVED" | "DENIED";
 }
 
+export interface GraduatedRuleRef {
+  rule_id: string;
+  graduated_from_action_id?: string | null;
+  created_at: string; // ISO-8601
+}
+
 export interface SimilarApprovalsResponse {
   count: number;
   window_seconds: number;
   approvals: SimilarApproval[];
+  // Populated when services/graduation has already drafted a rule for this
+  // shape. AuditPanel renders an inline "Rule auto-drafted" line below the
+  // prior-approvals list when this is non-null.
+  graduated_rule?: GraduatedRuleRef | null;
 }

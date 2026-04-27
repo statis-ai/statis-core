@@ -4,6 +4,13 @@
   "description": "Offline context processing for LLM message arrays — compress, guard, meter",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": ["dist", "data", "README.md"],
   "bin": {
     "statis-kit": "dist/cli.js"

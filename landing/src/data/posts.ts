@@ -10,6 +10,15 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: "statis-on-statis",
+    title: "We run Statis on Statis: 100+ governed actions, 0 incidents",
+    description:
+      "Every CI merge, deploy, release, Linear ticket, and Slack message in this repo goes through our own policy engine. Here's what 20 days of production dogfooding actually looks like.",
+    date: "2026-04-24",
+    readTime: "4 min read",
+    tag: "Dogfooding",
+  },
+  {
     slug: "why-we-open-sourced-the-compressor",
     title: "Why we open-sourced the agent compressor",
     description:

@@ -5,7 +5,7 @@ This is the file referenced from the README's quick-start. A vanilla Python
 function wrapped in @statis.gate. No external service credentials. No
 framework assumptions. Just the canonical decorator pattern.
 
-What you'll see when you run this (after the LANE 2 runtime ships):
+What you'll see when you run this:
 
     [statis] action_kind 'send_money' pending approval.
     [statis] approval URL: https://statis.dev/a/01HXJ4...?sig=ed25519...
@@ -41,13 +41,8 @@ def send_money(amount: int, recipient: str) -> dict:
 
 
 def main() -> None:
-    try:
-        result = send_money(50, "alice@example.com")
-        print(f"\nfunction returned: {result}")
-    except NotImplementedError as e:
-        # Until LANE 2 ships the runtime, the decorator skeleton raises
-        # NotImplementedError on call. The message points to the plan.
-        print(f"\n(spine skeleton) {e}")
+    result = send_money(50, "alice@example.com")
+    print(f"\nfunction returned: {result}")
 
 
 if __name__ == "__main__":

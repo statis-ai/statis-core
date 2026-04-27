@@ -10,7 +10,7 @@ Three examples for the v0.4.0 `@statis.gate` decorator (the primary surface), pl
 | [`discount_demo.py`](discount_demo.py) | Production-shape. Custom `idempotency_key` Callable, `entity=` snapshot callback, full error taxonomy (ActionDenied / ActionPending / IdempotencyConflict / NetworkError). | When you're wrapping your first real agent function. |
 | [`async_workaround.py`](async_workaround.py) | `@gate` inside async code via `asyncio.to_thread`. Cancellation, idempotency, FastAPI integration caveats. | If your agent runs in LangGraph / CrewAI / FastAPI / any async runtime. Native async support arrives v0.5.0. |
 
-Each example has a `try/except NotImplementedError` block at the bottom — until LANE 2 ships the runtime, calling the decorated function raises a clear "spine skeleton" message pointing at the plan. Once LANE 2 lands, the same examples become live demos with no code changes.
+LANE 2 has shipped — the decorator runs end-to-end. With `STATIS_BASE_URL=mock://`, the function executes deterministically without network. With a real `STATIS_API_KEY` it goes through propose → evaluate → approve → execute → receipt against the cloud.
 
 ## Run them
 

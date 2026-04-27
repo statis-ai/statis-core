@@ -123,9 +123,6 @@ async def main() -> None:
         print(f"  resume at: {e.resume_url}")
     except NetworkError as e:
         print(f"\nnetwork error: {e.last_error}")
-    except NotImplementedError as e:
-        # Spine skeleton — runtime ships in LANE 2.
-        print(f"\n(spine skeleton) {e}")
 
 
 if __name__ == "__main__":

@@ -322,9 +322,179 @@ print(result.report.token_delta, result.report.cost_estimate)`}
   );
 }
 
+function StatisOnStatisContent() {
+  return (
+    <>
+      <p className="text-base font-medium leading-relaxed" style={{ color: "#ccc" }}>
+        Every CI merge, deploy, release, Linear ticket, and Slack notification
+        in this repo goes through our own policy engine. Twenty days in, here&rsquo;s
+        the ledger.
+      </p>
+
+      <p>
+        There&rsquo;s a kind of infrastructure company that builds a trust product,
+        ships it, and then quietly merges its own PRs the way it always did.
+        We didn&rsquo;t want to be that. So on April 4th we pointed five agents
+        at our own GitHub, Linear, and Slack, seeded eleven policy rules, and
+        started routing every internal automation through the same API we hand
+        to customers.
+      </p>
+
+      <SectionHeading>What&rsquo;s actually governed</SectionHeading>
+
+      <p>
+        Five agents, each with a narrow allowed-action list and an hourly rate
+        limit:
+      </p>
+
+      <ol className="my-6 list-none space-y-3 pl-0">
+        {[
+          { n: "1", label: "ci-gate-agent", desc: "Proposes every PR merge. Escalates to a human if CI hasn’t passed or there are no approvals." },
+          { n: "2", label: "deploy-agent", desc: "Staging deploys auto-approve; production deploys escalate; anything else is denied." },
+          { n: "3", label: "release-agent", desc: "Tags and publishes GitHub releases, but only with an operator attestation." },
+          { n: "4", label: "issue-triage-agent", desc: "Creates and updates Linear issues from CI failures and user reports." },
+          { n: "5", label: "notify-agent", desc: "Posts and edits Slack notifications — deploys, incidents, weekly retros." },
+        ].map(({ n, label, desc }) => (
+          <li key={n} className="flex gap-3">
+            <span
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
+              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+            >
+              {n}
+            </span>
+            <span>
+              <strong style={{ color: "#ccc" }}>
+                <code>{label}</code>
+              </strong>{" "}
+              &mdash; {desc}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <p>
+        The rules live in{" "}
+        <code>dogfood/policies.yaml</code>. They&rsquo;re not secret, they&rsquo;re not
+        bespoke, they&rsquo;re the same primitives anyone gets from{" "}
+        <code>pip install statis-ai</code>.
+      </p>
+
+      <SectionHeading>The ledger, April 4 &ndash; April 24</SectionHeading>
+
+      <div
+        className="rounded-xl p-5 my-6 font-mono text-[12px] leading-relaxed overflow-x-auto"
+        style={{ background: "#0E0E10", border: "1px solid rgba(255,255,255,0.06)", color: "#E4E4E7" }}
+      >
+        <pre className="text-white">
+{`GET /analytics/summary?days=30
+
+{
+  "actions_total":     111,
+  "actions_approved":  110,
+  "actions_escalated": 1,
+  "actions_denied":    0,
+  "approval_rate":     0.991
+}`}
+        </pre>
+      </div>
+
+      <p>
+        One hundred and eleven actions. One hundred and ten auto-approved.
+        One escalation. Zero denials.
+      </p>
+
+      <SectionHeading>What &ldquo;zero incidents&rdquo; means here</SectionHeading>
+
+      <p>
+        We&rsquo;re being specific about this on purpose, because the word gets
+        abused. Over those twenty days:
+      </p>
+
+      <ol className="my-6 list-none space-y-3 pl-0">
+        {[
+          { n: "0", label: "FAILED executions", desc: "Every APPROVED action that reached the worker also reached its target system and returned a receipt." },
+          { n: "0", label: "Policy bypasses", desc: "No action skipped evaluation. No agent went around the contract. The engine is fail-closed." },
+          { n: "0", label: "Kill-switch activations", desc: "We never had to pull the emergency brake. It still works — we test it weekly." },
+          { n: "0", label: "Threat-log entries", desc: "No anomaly detector tripped. No exfiltration pattern matched. No rate-limit breach." },
+        ].map(({ n, label, desc }) => (
+          <li key={n} className="flex gap-3">
+            <span
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
+              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+            >
+              {n}
+            </span>
+            <span>
+              <strong style={{ color: "#ccc" }}>{label}</strong> &mdash; {desc}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <p>
+        The one escalation isn&rsquo;t an incident &mdash; it&rsquo;s the
+        product. Earlier today <code>ci-gate-agent</code> proposed a merge on PR
+        #15 before CI had posted a green status. The{" "}
+        <code>dogfood_merge_default</code> rule routed it to a human. It&rsquo;s
+        still sitting in the escalation queue as of this writing. That&rsquo;s
+        exactly what we want.
+      </p>
+
+      <SectionHeading>What this proves, and what it doesn&rsquo;t</SectionHeading>
+
+      <p>
+        It proves the engine works under the specific load of a small
+        infra startup&rsquo;s own CI/CD. It does not prove Statis can take a
+        thousand agents writing to Salesforce at once &mdash; that bar is
+        higher, and customers are the ones pushing it. What we can say is that
+        the internal team stopped asking for exceptions. There is no
+        &ldquo;oh but just this one merge can skip&rdquo; side channel. The
+        console is the console, the receipts are the receipts, and when
+        something needs a human the queue makes that visible.
+      </p>
+
+      <p>
+        We also gave up nothing. Deploy latency didn&rsquo;t change. No
+        engineer has filed a &ldquo;Statis is in the way&rdquo; ticket.
+        Approving an escalation is one click. The trade we thought we&rsquo;d
+        be making &mdash; safety for speed &mdash; didn&rsquo;t materialize.
+      </p>
+
+      <SectionHeading>How to run it on your stack</SectionHeading>
+
+      <div
+        className="rounded-xl p-5 my-6 font-mono text-[12px] leading-relaxed overflow-x-auto"
+        style={{ background: "#0E0E10", border: "1px solid rgba(255,255,255,0.06)", color: "#E4E4E7" }}
+      >
+        <pre className="text-white">
+{`pip install statis-ai
+
+# register agents, seed policies, verify with simulate
+STATIS_API_KEY=st_... ./dogfood/bootstrap.sh`}
+        </pre>
+      </div>
+
+      <p>
+        The agents file, the policy YAML, and the bootstrap script are in the
+        repo. Fork them, swap our agent IDs for yours, and you have the same
+        setup running against your GitHub inside of ten minutes.
+      </p>
+
+      <hr className="my-10" style={{ borderColor: "#1a1a1a" }} />
+
+      <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
+        We&rsquo;ll publish this ledger monthly. When the number gets bigger
+        and the incidents are still zero, we&rsquo;ll tell you. When something
+        breaks, we&rsquo;ll tell you that too &mdash; with the receipt hash.
+      </p>
+    </>
+  );
+}
+
 const CONTENT_MAP: Record<string, () => React.ReactNode> = {
   "stale-state-problem": StaleStateContent,
   "why-we-open-sourced-the-compressor": CompressorLaunchContent,
+  "statis-on-statis": StatisOnStatisContent,
 };
 
 export default async function BlogPostPage({ params }: Props) {

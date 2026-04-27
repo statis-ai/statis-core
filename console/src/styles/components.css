@@ -226,6 +226,26 @@
   border-top: 1px solid var(--border);
 }
 
+.audit-panel__graduated {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(139, 92, 246, 0.30);
+  border-radius: var(--radius);
+  background: rgba(139, 92, 246, 0.08);
+  color: #c4b5fd;
+  font-size: 12px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+
+.audit-panel__graduated a {
+  color: #a78bfa;
+  text-decoration: none;
+}
+
+.audit-panel__graduated a:hover {
+  text-decoration: underline;
+}
+
 /* ---------------------------------------------------------------- */
 /* GraduationOverlay — D22, D25, D26 — Lane 3b renders                */
 /* 5 states: edit, validate-error, expand, save-confirm, snooze.      */

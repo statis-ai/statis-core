@@ -69,3 +69,4 @@ sdk-ts/dist/
 landing/public/_archive/
 landing/src/components/_archive/
 .vercel
+.gstack/

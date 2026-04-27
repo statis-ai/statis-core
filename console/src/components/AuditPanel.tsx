@@ -56,22 +56,39 @@ export function AuditPanel({
 
   if (errored) return null;
   if (data === null) return null;
-  if (data.count === 0) return null;
+  // Hide the panel only if there's truly nothing to surface — neither
+  // priors nor a graduated rule. The graduated-rule branch is the
+  // post-trigger view: the action under review IS the 3rd, prior count
+  // is 2, and the graduated rule has been drafted server-side.
+  if (data.count === 0 && !data.graduated_rule) return null;
 
   return (
-    <details className="audit-panel" data-testid="audit-panel">
-      <summary className="audit-panel__summary">
-        {data.count} prior identical approval{data.count === 1 ? "" : "s"} in the
-        last {Math.round(windowSeconds / 3600)}h — expand to inspect
-      </summary>
-      {data.approvals.map((a: SimilarApproval) => (
-        <div key={a.action_id} className="audit-panel__row">
-          <span>{a.action_id}</span>
-          <span>{formatRelative(a.decided_at)}</span>
-          <span>{a.decided_by ?? "system"}</span>
+    <>
+      {data.count > 0 && (
+        <details className="audit-panel" data-testid="audit-panel">
+          <summary className="audit-panel__summary">
+            {data.count} prior identical approval{data.count === 1 ? "" : "s"} in the
+            last {Math.round(windowSeconds / 3600)}h — expand to inspect
+          </summary>
+          {data.approvals.map((a: SimilarApproval) => (
+            <div key={a.action_id} className="audit-panel__row">
+              <span>{a.action_id}</span>
+              <span>{formatRelative(a.decided_at)}</span>
+              <span>{a.decided_by ?? "system"}</span>
+            </div>
+          ))}
+        </details>
+      )}
+
+      {data.graduated_rule && (
+        <div className="audit-panel__graduated" data-testid="audit-panel-graduated">
+          Rule auto-drafted:{" "}
+          <a href={`/policies?rule_id=${data.graduated_rule.rule_id}`}>
+            <code>{data.graduated_rule.rule_id}</code>
+          </a>
         </div>
-      ))}
-    </details>
+      )}
+    </>
   );
 }
 
