@@ -11,7 +11,13 @@ export const metadata: Metadata = {
   title: "Statis Console",
   description: "Agent execution inspector for the Statis platform.",
   icons: {
-    icon: "/favicon.svg",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", type: "image/png", sizes: "32x32" },
+      { url: "/favicon.ico" },
+    ],
+    apple: [{ url: "/favicon-32.png", sizes: "32x32" }],
+    shortcut: ["/favicon.ico"],
   },
 };
 

@@ -393,9 +393,19 @@ export default function AuthPage() {
             </div>
 
             <div>
-              <label className="block text-[11px] font-medium text-[#444444] uppercase tracking-wider mb-1.5">
-                Password
-              </label>
+              <div className="flex items-baseline justify-between mb-1.5">
+                <label className="block text-[11px] font-medium text-[#444444] uppercase tracking-wider">
+                  Password
+                </label>
+                {mode === "signin" && (
+                  <a
+                    href="mailto:founders@statis.dev?subject=Password%20reset%20request&body=Hi%20Statis%20team%2C%0A%0AI%20need%20to%20reset%20the%20password%20for%20my%20Statis%20console%20account.%0A%0AAccount%20email%3A%20"
+                    className="text-[11px] text-[#666] hover:text-[#999] transition-colors"
+                  >
+                    Forgot password?
+                  </a>
+                )}
+              </div>
               <input
                 type="password"
                 placeholder="••••••••"
