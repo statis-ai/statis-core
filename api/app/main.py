@@ -1,5 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
@@ -60,7 +61,7 @@ if _app_env == "production":
 else:
     # Development / staging: include localhost defaults so local UIs work
     # without requiring FRONTEND_URL to be set.
-    _defaults = ["http://localhost:3000", "http://localhost:3001"]
+    _defaults = ["http://localhost:3000", "http://localhost:3001", "http://localhost:8765"]
     allow_origins = list(dict.fromkeys(_origins + _defaults))
 
 app.add_middleware(
@@ -70,6 +71,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def _unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    # Starlette's ServerErrorMiddleware catches unhandled exceptions before
+    # CORSMiddleware can attach headers, so 500s arrive at the browser with no
+    # Access-Control-Allow-Origin and look like "Failed to fetch" instead of
+    # "API 500: ...". Re-attach CORS headers here so the browser can read the
+    # actual error message.
+    origin = request.headers.get("origin", "")
+    headers: dict[str, str] = {}
+    if origin in allow_origins:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+        headers=headers,
+    )
 app.include_router(actions_router)
 app.include_router(events_router)
 app.include_router(policy_rules_router)
