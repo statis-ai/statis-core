@@ -172,10 +172,13 @@ def gate(
             resolved_agent_id = (
                 agent_id or os.environ.get("STATIS_AGENT_ID") or "anonymous-agent"
             )
+            from . import _config as _cfg
             resolved_base_url = (
-                base_url or os.environ.get("STATIS_BASE_URL") or "https://api.statis.dev"
+                base_url or os.environ.get("STATIS_BASE_URL")
+                or _cfg.load().get("base_url")
+                or "https://api.statis.dev"
             )
-            resolved_api_key = api_key or os.environ.get("STATIS_API_KEY")
+            resolved_api_key = api_key or os.environ.get("STATIS_API_KEY") or _cfg.get_api_key()
             if not resolved_api_key:
                 raise MissingAPIKeyError()
 

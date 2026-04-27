@@ -1,17 +1,19 @@
-"""Statis CLI — Policy as Code.
+"""Statis CLI — agent governance for production AI agents.
 
 Usage:
-    statis apply policies.yaml      Upsert rules from YAML (creates new, updates changed)
-    statis diff policies.yaml       Show what would change without writing
-    statis simulate --action-type X --entity-state entity.json [--parameters params.json]
+    statis init                                  Set up your Statis workspace
+    statis apply policies.yaml                   Upsert policy rules from a YAML file
+    statis diff policies.yaml                    Show what would change without writing
+    statis simulate --action-type X ...          Dry-run policy evaluation
 
-Environment variables:
-    STATIS_API_KEY     Required. Your API key.
-    STATIS_BASE_URL    Optional. Defaults to https://api.statis.dev
+Environment variables (override saved config):
+    STATIS_API_KEY     Your API key (set by statis init, or export manually)
+    STATIS_BASE_URL    Defaults to https://api.statis.dev
 """
 from __future__ import annotations
 
 import argparse
+import getpass
 import json
 import os
 import sys
@@ -20,12 +22,18 @@ from typing import Any
 import httpx
 import yaml  # type: ignore[import]
 
+from . import _config
+
 
 def _client() -> httpx.Client:
-    api_key = os.environ.get("STATIS_API_KEY", "")
-    base_url = os.environ.get("STATIS_BASE_URL", "https://api.statis.dev").rstrip("/")
+    api_key = _config.get_api_key()
+    base_url = _config.get_base_url().rstrip("/")
     if not api_key:
-        sys.exit("Error: STATIS_API_KEY is not set.")
+        sys.exit(
+            "Error: no API key found.\n"
+            "  Run `statis init` to create or log in to your workspace.\n"
+            "  Or set the STATIS_API_KEY environment variable."
+        )
     return httpx.Client(
         base_url=base_url,
         headers={"X-API-Key": api_key},
@@ -186,12 +194,87 @@ def cmd_simulate(args: argparse.Namespace) -> None:
     print(f"     reason: {reason}\n")
 
 
+def cmd_init(args: argparse.Namespace) -> None:
+    base_url = _config.get_base_url().rstrip("/")
+
+    # Already configured — short-circuit unless --force
+    existing = _config.load()
+    if existing.get("api_key") and not args.force:
+        print(
+            f"Already initialised — tenant {existing.get('tenant_id', '?')}.\n"
+            f"Config: {_config.config_path()}\n"
+            f"Run `statis init --force` to re-authenticate."
+        )
+        return
+
+    print("Welcome to Statis — agent governance for production AI agents.\n")
+
+    # Choose signup vs login
+    try:
+        new_user_raw = input("New user? [Y/n]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print("\nAborted.")
+        sys.exit(0)
+    is_new = new_user_raw in ("", "y", "yes")
+
+    try:
+        email = input("Email: ").strip()
+        if not email:
+            sys.exit("Error: email is required.")
+        password = getpass.getpass("Password: ")
+        if not password:
+            sys.exit("Error: password is required.")
+        project_name = None
+        if is_new:
+            project_name = input("Project name (e.g. My Agent): ").strip() or "My Project"
+    except (EOFError, KeyboardInterrupt):
+        print("\nAborted.")
+        sys.exit(0)
+
+    endpoint = f"{base_url}/admin/{'signup' if is_new else 'login'}"
+    payload: dict[str, Any] = {"email": email, "password": password}
+    if is_new:
+        payload["project_name"] = project_name
+
+    try:
+        resp = httpx.post(endpoint, json=payload, timeout=15.0)
+    except httpx.ConnectError:
+        sys.exit(f"Error: could not connect to {base_url}. Is the API reachable?")
+
+    if resp.status_code == 409:
+        sys.exit("Error: an account with that email already exists. Use 'statis init' and answer 'n' to sign in.")
+    if resp.status_code == 401:
+        sys.exit("Error: invalid email or password.")
+    if not resp.is_success:
+        sys.exit(f"Error: {resp.status_code} {resp.text}")
+
+    data = resp.json()
+    api_key = data["api_key"]
+    tenant_id = data["tenant_id"]
+
+    _config.save(api_key=api_key, tenant_id=tenant_id, base_url=base_url)
+
+    action = "Workspace created" if is_new else "Signed in"
+    print(f"\n✓ {action} — {tenant_id}")
+    print(f"✓ API key saved to {_config.config_path()}")
+    print(
+        f"\nAll set. Try:\n"
+        f"  STATIS_BASE_URL=mock:// python -c \""
+        f"from statis import gate; "
+        f"@gate('hello'); f=lambda: print('ready'); f()\""
+    )
+    print("\nDocs: https://docs.statis.dev")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="statis",
-        description="Statis CLI — Policy as Code",
+        description="Statis CLI — agent governance for production AI agents",
     )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    p_init = sub.add_parser("init", help="Create or sign in to your Statis workspace")
+    p_init.add_argument("--force", action="store_true", help="Re-authenticate even if already configured")
 
     p_apply = sub.add_parser("apply", help="Upsert policy rules from a YAML file")
     p_apply.add_argument("file", help="Path to policies YAML file")
@@ -206,7 +289,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.command == "apply":
+    if args.command == "init":
+        cmd_init(args)
+    elif args.command == "apply":
         cmd_apply(args)
     elif args.command == "diff":
         cmd_diff(args)
