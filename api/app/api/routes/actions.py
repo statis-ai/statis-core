@@ -1005,6 +1005,18 @@ def complete_action(
     receipt.execution_result = body.execution_result
     if receipt.executed_at is None:
         receipt.executed_at = now
+    # Recompute hash after updating execution fields so /verify stays valid.
+    receipt.hash = canonical_state_hash({
+        "receipt_id": receipt.receipt_id,
+        "action_id": receipt.action_id,
+        "decision": receipt.decision,
+        "rule_id": receipt.rule_id,
+        "rule_version": receipt.rule_version,
+        "approved_by": receipt.approved_by,
+        "executed_at": receipt.executed_at.isoformat() if receipt.executed_at else None,
+        "execution_result": receipt.execution_result,
+        "created_at": receipt.created_at.isoformat(),
+    })
     contract.status = ActionStatus.COMPLETED
     contract.updated_at = now
     db.commit()
