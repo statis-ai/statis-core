@@ -17,11 +17,13 @@ What you'll see when you run this:
     [statis] done. Receipt: https://statis.dev/r/your-tenant/019638e5-3f02
 
 Usage:
-    pip install statis-ai
-    statis init                                  # registers tenant, sets STATIS_API_KEY
-    python examples/vanilla_demo.py
+    1. pip install statis-ai
+    2. Sign up at https://console.statis.dev — click "Create workspace"
+    3. Go to Developers tab → create an API key → copy it
+    4. export STATIS_API_KEY=st_...
+    5. python examples/vanilla_demo.py
 
-    # Or run against the in-process mock (no api_key, no cloud calls):
+    # Or run against the in-process mock (no account, no network required):
     STATIS_BASE_URL=mock:// python examples/vanilla_demo.py
 
 Plan ref: aniketkumar-setup-gstack-design-20260424-090306.md (DX12 — vanilla case).
