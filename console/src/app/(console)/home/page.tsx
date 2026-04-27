@@ -147,6 +147,103 @@ export default function HomePage() {
     );
   }
 
+  // New tenant empty state — shown when no actions have ever been recorded
+  const isNewTenant = !loading && actions.length === 0 && (!analytics || analytics.actions_total === 0);
+  if (isNewTenant) {
+    return (
+      <div className="p-8 max-w-3xl">
+        <div className="mb-8">
+          <h1 className="text-[20px] font-semibold text-white">Home</h1>
+          <p className="text-xs text-[#444444] mt-0.5">Your workspace is ready.</p>
+        </div>
+
+        <div className="bg-[#111111] rounded border border-[#1a1a1a] p-8">
+          <p className="text-xs font-semibold uppercase tracking-widest text-[#444444] mb-6">
+            Get started in 3 steps
+          </p>
+
+          <div className="space-y-8">
+            {/* Step 1 */}
+            <div className="flex gap-5">
+              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
+                <span className="text-[11px] font-bold text-[#888888]">1</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white mb-1">Get your API key</p>
+                <p className="text-xs text-[#444444] mb-3">
+                  Create a key in the Developers tab. Your agents will use it to propose actions.
+                </p>
+                <Link
+                  href="/developers"
+                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#d4d4d4] bg-white/[0.06] hover:bg-white/[0.1] border border-[#1a1a1a] px-3 py-1.5 rounded transition-colors"
+                >
+                  Developers →
+                </Link>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="flex gap-5">
+              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
+                <span className="text-[11px] font-bold text-[#888888]">2</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white mb-1">Install the SDK</p>
+                <p className="text-xs text-[#444444] mb-3">
+                  Wrap any function your agent calls. No framework assumptions.
+                </p>
+                <div className="flex items-center gap-2 bg-[#0a0a0a] rounded border border-[#1a1a1a] px-3 py-2 font-mono text-xs text-[#888888] w-fit">
+                  pip install statis-ai
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="flex gap-5">
+              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
+                <span className="text-[11px] font-bold text-[#888888]">3</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white mb-1">Gate your first function</p>
+                <p className="text-xs text-[#444444] mb-3">
+                  One decorator. Your agent asks permission before it executes.
+                </p>
+                <div className="bg-[#0a0a0a] rounded border border-[#1a1a1a] px-4 py-3 font-mono text-xs text-[#888888] leading-relaxed">
+                  <span className="text-[#444444]">from</span> statis <span className="text-[#444444]">import</span> gate
+                  <br /><br />
+                  <span className="text-[#b8442e]">@gate</span>(<span className="text-[#d4d4d4]">&quot;send_money&quot;</span>)
+                  <br />
+                  <span className="text-[#444444]">def</span> send_money(amount, recipient):
+                  <br />
+                  <span className="ml-4">...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-[#1a1a1a] flex items-center gap-4">
+            <a
+              href="https://docs.statis.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#444444] hover:text-[#888888] transition-colors"
+            >
+              Docs →
+            </a>
+            <a
+              href="https://statis.dev/blog/gate-decorator-launch"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#444444] hover:text-[#888888] transition-colors"
+            >
+              How it works →
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const recentActions = actions.slice(0, 10);
   const recentEvents = events.slice(0, 5);
 

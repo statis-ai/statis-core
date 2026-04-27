@@ -236,7 +236,7 @@ export default function AuthPage() {
           >
             <div className="w-full max-w-lg px-6">
               <div className="flex items-center gap-2 mb-8">
-                <StatisMark size={26} bladeColor="#1C1410" gapColor="#f7f7f5" />
+                <StatisMark size={26} barColor="#1a1a1a" accentColor="#b8442e" />
                 <span className="font-semibold text-[17px] tracking-tight text-[#0a0a0a] leading-none">
                   statis
                 </span>
@@ -301,7 +301,7 @@ export default function AuthPage() {
         <div>
           {/* Logo */}
           <div className="flex items-center gap-2 mb-14">
-            <StatisMark size={32} bladeColor="#1C1410" gapColor="#f7f7f5" />
+            <StatisMark size={32} barColor="#1a1a1a" accentColor="#b8442e" />
             <span className="text-[20px] font-semibold tracking-tight text-[#0a0a0a] leading-none">
               statis
             </span>
@@ -359,7 +359,7 @@ export default function AuthPage() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 relative z-10">
         {/* Mobile logo */}
         <div className="flex lg:hidden items-center gap-2 mb-10">
-          <StatisMark size={28} bladeColor="#F0EDE8" gapColor="#0a0a0a" />
+          <StatisMark size={28} barColor="#e8e4de" accentColor="#b8442e" />
           <span className="text-[18px] font-semibold tracking-tight text-white leading-none">
             statis
           </span>
