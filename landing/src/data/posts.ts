@@ -10,6 +10,15 @@ export interface BlogPost {
 
 export const posts: BlogPost[] = [
   {
+    slug: "gate-decorator-launch",
+    title: "One decorator. Your agent asks permission before it touches production.",
+    description:
+      "An AI agent deleted our production Snowflake tables. We built @statis.gate so it can't happen again — to us or anyone else. Four lines of Python. Every destructive action gated, receipted, and graduated to policy.",
+    date: "2026-04-27",
+    readTime: "5 min read",
+    tag: "Launch",
+  },
+  {
     slug: "statis-on-statis",
     title: "We run Statis on Statis: 100+ governed actions, 0 incidents",
     description:

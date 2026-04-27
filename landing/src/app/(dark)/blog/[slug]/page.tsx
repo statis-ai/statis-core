@@ -491,7 +491,210 @@ STATIS_API_KEY=st_... ./dogfood/bootstrap.sh`}
   );
 }
 
+function GateLaunchContent() {
+  return (
+    <>
+      <p className="text-base font-medium leading-relaxed" style={{ color: "#ccc" }}>
+        An AI agent deleted our production Snowflake tables. We built{" "}
+        <code>@statis.gate</code> so it can&rsquo;t happen again — to us or
+        anyone else.
+      </p>
+
+      <p>
+        It was a Thursday. Our data engineering on-call agent had full write
+        access to our production Snowflake warehouse — the same access a senior
+        engineer would have. It hallucinated a cleanup query. It ran{" "}
+        <code>DROP TABLE</code>. The tables were gone.
+      </p>
+
+      <p>
+        We recovered. But the pattern didn&rsquo;t go away. The same week, our
+        Sales and CSM teams were running production agent tools with the same
+        level of access and no governance layer. Every one of those agents was
+        one bad prompt away from the same incident.
+      </p>
+
+      <p>
+        We looked at how other engineering teams were handling this. The answers
+        were: a hand-rolled Slack webhook that breaks in week three, a
+        framework-native interrupt that doesn&rsquo;t produce an audit trail, or
+        nothing at all. None of them scale. None of them compose across
+        frameworks. None of them give you a cryptographic receipt you can show
+        an auditor.
+      </p>
+
+      <p>So we built the thing we wanted.</p>
+
+      <SectionHeading>Four lines</SectionHeading>
+
+      <div
+        className="rounded-xl p-5 my-6 font-mono text-[12px] leading-relaxed overflow-x-auto"
+        style={{ background: "#0E0E10", border: "1px solid rgba(255,255,255,0.06)", color: "#E4E4E7" }}
+      >
+        <pre className="text-white">
+{`pip install statis-ai
+
+from statis import gate
+
+@gate("warehouse.execute_sql")
+def execute_sql(query: str) -> dict:
+    # runs against your actual warehouse
+    return snowflake_client.execute(query)`}
+        </pre>
+      </div>
+
+      <p>
+        That&rsquo;s the whole install. From this point forward, every call to{" "}
+        <code>execute_sql</code> goes through Statis before it executes.
+      </p>
+
+      <SectionHeading>What happens on the first call</SectionHeading>
+
+      <ol className="my-6 list-none space-y-4 pl-0">
+        {[
+          {
+            n: "1",
+            label: "The agent proposes",
+            desc: 'execute_sql("DROP TABLE customers") fires. The decorator catches it before it reaches Snowflake.',
+          },
+          {
+            n: "2",
+            label: "A signed approval URL is generated",
+            desc: "The terminal prints a single-use link. The function blocks. No Slack bot required — the link is the UI.",
+          },
+          {
+            n: "3",
+            label: "A human reviews and decides",
+            desc: 'The approval page shows the exact query. "DROP TABLE customers" — one look and you click Deny. The function raises ActionDeniedError. The table survives.',
+          },
+          {
+            n: "4",
+            label: "A receipt is written",
+            desc: "Whether you approve or deny, a tamper-evident receipt is written immediately — SHA-256 hash-chained, tenant-scoped, from action one.",
+          },
+        ].map(({ n, label, desc }) => (
+          <li key={n} className="flex gap-3">
+            <span
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
+              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+            >
+              {n}
+            </span>
+            <span>
+              <strong style={{ color: "#ccc" }}>{label}</strong> &mdash; {desc}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <SectionHeading>The part that stops the paging</SectionHeading>
+
+      <p>
+        The first approval is manual. The second is manual. The third time your
+        agent runs the same <code>SELECT count(*)</code> query with the same
+        argument shape, Statis notices. It auto-drafts a policy rule and shows
+        it to you on the approval page:
+      </p>
+
+      <div
+        className="rounded-xl p-5 my-6 font-mono text-[12px] leading-relaxed overflow-x-auto"
+        style={{ background: "#0E0E10", border: "1px solid rgba(255,255,255,0.06)", color: "#E4E4E7" }}
+      >
+        <pre className="text-white">
+{`# Auto-drafted after 3 identical approvals
+rule_id: graduated_warehouse.execute_sql_a3f1b9_v1
+action_type: warehouse.execute_sql
+decision: APPROVED
+conditions:
+  canonical_args_hash: a3f1b9c2d4e5...`}
+        </pre>
+      </div>
+
+      <p>
+        Save it. The fourth call with that query shape auto-approves. No human
+        in the loop. You didn&rsquo;t write a policy — you approved an action
+        three times and the policy wrote itself.
+      </p>
+
+      <p>
+        Destructive actions keep escalating. Routine, approved patterns graduate
+        to auto-approve. The humans stay in the loop for exactly the decisions
+        that need them.
+      </p>
+
+      <SectionHeading>What ships with it</SectionHeading>
+
+      <ol className="my-6 list-none space-y-3 pl-0">
+        {[
+          { n: "1", label: "Sync + async", desc: "mode='auto' inspects your function. async def gets an awaitable. sync def blocks up to timeout_s." },
+          { n: "2", label: "Fail-closed by default", desc: "API unreachable → decorator raises. on_error='fail_open' available for non-destructive reads." },
+          { n: "3", label: "STATIS_DISABLED=1", desc: "Env var pass-through. Remove Statis from any environment in one line, no code changes." },
+          { n: "4", label: "Hash-chained receipts from action one", desc: "Every decision writes a SHA-256 receipt. The chain starts the moment you install the decorator." },
+          { n: "5", label: "statis.advanced", desc: "If you were using propose()/execute() directly, it still works. Nothing broke." },
+        ].map(({ n, label, desc }) => (
+          <li key={n} className="flex gap-3">
+            <span
+              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
+              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+            >
+              {n}
+            </span>
+            <span>
+              <strong style={{ color: "#ccc" }}>{label}</strong> &mdash; {desc}
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <SectionHeading>Who this is for</SectionHeading>
+
+      <p>
+        If you&rsquo;re giving an AI agent write access to a production system —
+        a database, a CRM, a payment processor, a deployment pipeline — and you
+        don&rsquo;t have a governance layer, this is for you.
+      </p>
+
+      <p>
+        Python-native stacks running LangGraph, CrewAI, or direct Anthropic/OpenAI
+        agents. Post-seed to Series A. Someone on your team is either post-incident
+        or quietly nervous about the one that hasn&rsquo;t happened yet.
+      </p>
+
+      <p>
+        We built it after our own incident. We&rsquo;ve run 104+ of our own governed
+        actions through it with zero incidents. We think you should have it too.
+      </p>
+
+      <div
+        className="rounded-xl p-5 my-8 font-mono text-[12px] leading-relaxed overflow-x-auto"
+        style={{ background: "#0E0E10", border: "1px solid rgba(0,212,255,0.15)", color: "#E4E4E7" }}
+      >
+        <pre className="text-white">
+{`pip install statis-ai
+export STATIS_API_KEY=st_...
+
+@gate("warehouse.execute_sql")
+def execute_sql(query: str) -> dict:
+    ...`}
+        </pre>
+      </div>
+
+      <hr className="my-10" style={{ borderColor: "#1a1a1a" }} />
+
+      <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
+        Running agents in production? Want to talk about how you handle governance
+        today, or did something like this already happen to you? Reach us at{" "}
+        <a href="mailto:founders@statis.dev" style={{ color: "#00D4FF" }}>
+          founders@statis.dev
+        </a>
+        .
+      </p>
+    </>
+  );
+}
+
 const CONTENT_MAP: Record<string, () => React.ReactNode> = {
+  "gate-decorator-launch": GateLaunchContent,
   "stale-state-problem": StaleStateContent,
   "why-we-open-sourced-the-compressor": CompressorLaunchContent,
   "statis-on-statis": StatisOnStatisContent,
