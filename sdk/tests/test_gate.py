@@ -174,19 +174,37 @@ def test_denied_raises_action_denied_error() -> None:
 
 
 @respx.mock
-def test_escalated_raises_immediately_no_polling() -> None:
-    """STEP_UP / ESCALATED should NOT block the agent — raise immediately."""
+def test_escalated_enters_polling_then_approved(monkeypatch: pytest.MonkeyPatch) -> None:
+    """STEP_UP / ESCALATED enters the polling loop — blocks until human approves."""
+    monkeypatch.setattr("statis.decorator.time.sleep", lambda _s: None)
+
     respx.post(f"{BASE}/actions").mock(return_value=Response(201, json=_action()))
     respx.post(f"{BASE}/actions/act-1/evaluate").mock(
-        return_value=Response(200, json={"decision": "STEP_UP"})
+        return_value=Response(200, json={
+            "decision": "STEP_UP",
+            "approval_url": "https://statis.dev/a/act-1?sig=x",
+            "action_type": "x",
+        })
+    )
+    poll = respx.get(f"{BASE}/actions/act-1").mock(
+        side_effect=[
+            Response(200, json={"status": "ESCALATED"}),
+            Response(200, json={"status": "APPROVED"}),
+        ]
+    )
+    respx.patch(f"{BASE}/actions/act-1/complete").mock(
+        return_value=Response(200, json=_receipt())
+    )
+    respx.get(f"{BASE}/receipts/act-1").mock(
+        return_value=Response(200, json=_receipt())
     )
 
     @gate(action_name="x", api_key="k")
     def fn() -> int:
         return 99
 
-    with pytest.raises(ActionEscalatedError):
-        fn()
+    assert fn() == 99
+    assert poll.call_count == 2
 
 
 # ---------------------------------------------------------------------------

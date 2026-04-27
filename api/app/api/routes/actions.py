@@ -32,6 +32,7 @@ from app.services.approval import (
     DecisionRace,
     approve_action,
 )
+from app.services.graduation import maybe_graduate
 from app.models.context_log import ContextLogEntry
 from app.schemas.context_log import ContextLogEntryOut, ContextLogVerifyOut
 from app.security.context_log import verify_chain, write_context_log
@@ -58,6 +59,40 @@ router = APIRouter(tags=["actions"])
 _threat_detector = ThreatDetector()
 _pii_masker = PIIMasker()
 _slack = SlackNotifier()
+
+
+def _graduate_on_approve(db: Session):
+    """Build an `on_decision` callback that auto-drafts a graduated rule on APPROVE.
+
+    Used by both the operator approve path (here) and the public token-decision
+    path (routes/approval.py) so the same 3rd-approval graduation fires no
+    matter which surface the human used.
+
+    TODO(post-Week-1): hoist this off the request thread. Inline-sync today
+    means the graduation lookup + rule INSERT show up in the operator's
+    approve POST latency (acceptable at design-partner volume; not at scale).
+    The right shape is a queued background job — payload is just
+    (tenant_id, action_id) and the worker re-loads the contract before the
+    count query, so no consistency issues.
+    """
+
+    def _cb(contract: "ActionContract", decision: str) -> None:
+        if decision != "APPROVED":
+            return
+        try:
+            maybe_graduate(db, contract)
+        except Exception:
+            # services.approval already swallows callback failures, but
+            # keep an explicit guard so a graduation regression never
+            # silently breaks an unrelated approve path.
+            import logging
+            logging.getLogger(__name__).warning(
+                "graduation callback failed action_id=%s",
+                contract.action_id,
+                exc_info=True,
+            )
+
+    return _cb
 
 
 def _fire_escalation_webhooks(db: Session, contract: "ActionContract") -> None:
@@ -321,14 +356,44 @@ class SimilarActionOut(BaseModel):
     decided_by: str | None = None  # reviewer id, NULL on policy-engine decisions
 
 
-@router.get("/actions/{action_id}/similar", response_model=list[SimilarActionOut])
+class GraduatedRuleRef(BaseModel):
+    """Reference to a graduated policy rule covering this action's shape.
+
+    Populated when `services/graduation.maybe_graduate` has already drafted
+    a rule for (tenant, action_type, canonical_args_hash). The console's
+    AuditPanel surfaces this as a "Rule auto-drafted" inline line below
+    the prior-approvals list so the operator can trace the receipt → rule
+    promotion in one frame.
+    """
+
+    rule_id: str
+    graduated_from_action_id: str | None = None
+    created_at: datetime
+
+
+class SimilarApprovalsResponse(BaseModel):
+    """Wrapped response for `GET /actions/{id}/similar`.
+
+    Lane 3 (console AuditPanel + graduation overlay) consumes this shape;
+    the wrapper carries `count` + `window_seconds` so the UI can render
+    "N prior approvals in last 48h" without recomputing. Mirrors the
+    TypeScript `SimilarApprovalsResponse` in console/src/lib/approval-types.ts.
+    """
+
+    count: int
+    window_seconds: int
+    approvals: list[SimilarActionOut]
+    graduated_rule: GraduatedRuleRef | None = None
+
+
+@router.get("/actions/{action_id}/similar", response_model=SimilarApprovalsResponse)
 def list_similar_actions(
     action_id: str,
     window: str = Query(default="48h"),
     limit: int = Query(default=3, ge=1, le=20),
     db: Session = Depends(get_db),
     auth: AuthContext = Depends(get_auth_context),
-) -> list[SimilarActionOut]:
+) -> SimilarApprovalsResponse:
     """A2 — graduation lookup. Returns the N most-recent identical decisions.
 
     "Identical" = same tenant, same action_type, same canonical_args_hash.
@@ -351,11 +416,39 @@ def list_similar_actions(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Action '{action_id}' not found",
         )
-    if not target.canonical_args_hash:
-        # Legacy row predating migration 0040. Nothing to compare against.
-        return []
 
     hours = _parse_window_hours(window)
+    window_seconds = hours * 3600
+
+    if not target.canonical_args_hash:
+        # Legacy row predating migration 0040. Nothing to compare against.
+        return SimilarApprovalsResponse(
+            count=0, window_seconds=window_seconds, approvals=[]
+        )
+
+    # Has a graduated rule already been drafted for this shape? The
+    # AuditPanel uses this to render "Rule auto-drafted: <id>" inline.
+    from app.models.policy_rule import PolicyRule  # avoid top-level cycle
+    graduated = (
+        db.query(PolicyRule)
+        .filter(
+            PolicyRule.tenant_id == auth.tenant_id,
+            PolicyRule.action_type == target.action_type,
+            PolicyRule.canonical_args_hash == target.canonical_args_hash,
+            PolicyRule.source == "graduated",
+        )
+        .first()
+    )
+    graduated_ref = (
+        GraduatedRuleRef(
+            rule_id=graduated.rule_id,
+            graduated_from_action_id=graduated.graduated_from_action_id,
+            created_at=graduated.created_at,
+        )
+        if graduated is not None
+        else None
+    )
+
     since = datetime.now(timezone.utc) - timedelta(hours=hours)
     rows = (
         db.query(ActionContract, EscalationReview)
@@ -373,7 +466,7 @@ def list_similar_actions(
         .limit(limit)
         .all()
     )
-    return [
+    approvals = [
         SimilarActionOut(
             action_id=c.action_id,
             decision=c.status,
@@ -382,6 +475,12 @@ def list_similar_actions(
         )
         for c, r in rows
     ]
+    return SimilarApprovalsResponse(
+        count=len(approvals),
+        window_seconds=window_seconds,
+        approvals=approvals,
+        graduated_rule=graduated_ref,
+    )
 
 
 def _parse_window_hours(window: str) -> int:
@@ -771,6 +870,7 @@ def evaluate_action(
 
     # Fire escalation notifications after commit — Slack + outbound webhooks.
     # STEP_UP is the AARM-canonical form of the legacy ESCALATED decision.
+    approval_url = None
     if effective_decision in ("ESCALATED", "STEP_UP"):
         _slack.notify_escalation(
             action_id=action_id,
@@ -780,6 +880,26 @@ def evaluate_action(
         )
         _fire_escalation_webhooks(db, contract)
 
+        # Generate signed approval URL for the decorator's polling output.
+        try:
+            from app.crypto.hmac_tokens import sign as hmac_sign
+            from app.models.tenant_signing_key import TenantSigningKey
+            import os
+
+            tsk = db.query(TenantSigningKey).filter(
+                TenantSigningKey.tenant_id == auth.tenant_id,
+            ).first()
+            if tsk:
+                token = hmac_sign(
+                    action_id=action_id,
+                    tenant_id=auth.tenant_id,
+                    signing_key=tsk.signing_key,
+                )
+                frontend_url = os.environ.get("FRONTEND_URL", "https://statis.dev")
+                approval_url = f"{frontend_url}/a/{action_id}?sig={token}"
+        except Exception:
+            pass
+
     return EvaluateResponse(
         action_id=action_id,
         receipt_id=receipt_id,
@@ -787,6 +907,8 @@ def evaluate_action(
         rule_id=decision.rule_id,
         rule_version=decision.rule_version,
         reason=effective_reason,
+        approval_url=approval_url,
+        action_type=contract.action_type,
     )
 
 
@@ -945,6 +1067,7 @@ def _handle_escalation_review(
                 note=review_in.note,
                 token=None,  # operator path — no token
             ),
+            on_decision=_graduate_on_approve(db),
         )
     except ServiceActionNotFound:
         raise HTTPException(

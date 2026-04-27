@@ -8,3 +8,5 @@ class EvaluateResponse(BaseModel):
     rule_id: str | None
     rule_version: str | None
     reason: str
+    approval_url: str | None = None
+    action_type: str | None = None

@@ -292,8 +292,15 @@ def _gate_call(
         receipt = client.get_receipt(action_id)
         raise ActionDeniedError(reason="Action denied by policy", receipt=receipt)
     if decision in ("ESCALATED", "STEP_UP"):
-        # Don't block — surface to operator immediately.
-        raise ActionEscalatedError(action_id=action_id)
+        return _poll_then_execute(
+            client=client,
+            action_id=action_id,
+            timeout_s=timeout_s,
+            evaluate_response_json=evaluate_resp.json() or {},
+            fn=fn,
+            args=args,
+            kwargs=kwargs,
+        )
     if decision == "DEFERRED":
         raise ActionDeferredError(
             action_id=action_id, reason=(evaluate_resp.json() or {}).get("reason")
@@ -332,33 +339,54 @@ def _poll_then_execute(
     args: tuple[Any, ...],
     kwargs: dict[str, Any],
 ) -> Any:
-    """Poll with capped exponential backoff (D15) until terminal or timeout."""
+    """Poll with capped exponential backoff (D15) until terminal or timeout.
+
+    Prints the DX-OV-4 stdout state machine so the developer knows what's
+    happening while the decorator blocks.
+    """
+    import sys
+
     deadline = time.monotonic() + timeout_s
     backoff = backoff_curve()
     resume_url = evaluate_response_json.get("approval_url") or evaluate_response_json.get(
         "resume_url", ""
     )
 
+    is_tty = hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
+    action_name = evaluate_response_json.get("action_type", "action")
+    remaining_m = int(timeout_s // 60)
+    remaining_s = int(timeout_s % 60)
+    print(f"[statis] action_kind '{action_name}' pending approval.")
+    if resume_url:
+        print(f"[statis] approval URL: {resume_url}")
+    print(f"[statis] expires in {remaining_m}:{remaining_s:02d} — waiting...")
+
+    poll_count = 0
     while True:
-        # Sleep first wait BEFORE polling, so a fast human decision still gets caught
-        # by the next loop without burning an extra poll on the millisecond after propose.
         wait_s = next(backoff)
         remaining = deadline - time.monotonic()
         if remaining <= 0:
+            print("[statis] timeout — action still pending.")
             raise ActionPending(action_id=action_id, resume_url=resume_url)
         time.sleep(min(wait_s, remaining))
 
         status_str = client.get_action_status(action_id)
         if status_str == "APPROVED":
-            return _execute_and_complete(client, action_id, fn, args, kwargs)
+            approved_msg = f"[statis] approved. Executing..."
+            print(approved_msg)
+            result = _execute_and_complete(client, action_id, fn, args, kwargs)
+            print(f"[statis] done.")
+            return result
         if status_str == "DENIED":
+            print("[statis] denied.")
             receipt = client.get_receipt(action_id)
             raise ActionDeniedError(reason="Action denied during approval", receipt=receipt)
-        if status_str in ("ESCALATED", "STEP_UP"):
-            raise ActionEscalatedError(action_id=action_id)
         if status_str == "DEFERRED":
             raise ActionDeferredError(action_id=action_id)
-        # PROPOSED / EVALUATING / anything-else → keep polling
+        # PROPOSED / ESCALATED / STEP_UP / EVALUATING → keep polling
+        poll_count += 1
+        if is_tty and poll_count % 2 == 0:
+            print("[statis] ..", end=" ", flush=True)
 
 
 def _execute_and_complete(
