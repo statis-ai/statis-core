@@ -303,15 +303,19 @@ def test_statis_disabled_runs_function_with_no_api_call(
     monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
     monkeypatch.setenv("STATIS_DISABLED", "1")
+    # The rate-limit cache is module-global; reset so this test stands alone
+    # regardless of other tests in the same run that reuse the same key.
+    from statis.decorator import _last_disabled_warn
+
+    _last_disabled_warn.clear()
     # No mock at all — if the SDK called the API the test would error out.
 
     @gate(action_name="something_dangerous")
     def dangerous() -> str:
         return "ran-anyway"
 
-    with caplog.at_level("WARNING"):
-        assert dangerous() == "ran-anyway"
-    # At least one STATIS_DISABLED warning emitted.
+    caplog.set_level("WARNING")
+    assert dangerous() == "ran-anyway"
     assert any("STATIS_DISABLED" in r.getMessage() for r in caplog.records)
 
 
@@ -320,15 +324,18 @@ def test_statis_disabled_warning_is_rate_limited(
 ) -> None:
     """P7 — second call within 60s of the same gate must NOT re-warn."""
     monkeypatch.setenv("STATIS_DISABLED", "1")
+    from statis.decorator import _last_disabled_warn
+
+    _last_disabled_warn.clear()
 
     @gate(action_name="quiet_action")
     def fn() -> int:
         return 0
 
-    with caplog.at_level("WARNING"):
-        fn()
-        fn()
-        fn()
+    caplog.set_level("WARNING")
+    fn()
+    fn()
+    fn()
 
     matching = [
         r for r in caplog.records if "quiet_action" in r.getMessage()

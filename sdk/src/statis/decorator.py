@@ -78,7 +78,7 @@ _last_disabled_warn: dict[str, float] = {}
 
 def _warn_disabled_once_per_minute(action_name: str) -> None:
     now = time.monotonic()
-    last = _last_disabled_warn.get(action_name, 0.0)
+    last = _last_disabled_warn.get(action_name, float("-inf"))
     if now - last >= _DISABLED_WARN_INTERVAL_S:
         _last_disabled_warn[action_name] = now
         _log.warning(
