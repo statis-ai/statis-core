@@ -1,7 +1,7 @@
 """aarm r6: 4-layer identity binding columns
 
 Revision ID: 0036
-Revises: 0035
+Revises: 0035_aarm_signed_receipts
 Create Date: 2026-04-19
 
 Adds nullable columns for AARM R6 identity binding:
@@ -20,7 +20,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = "0036"
-down_revision = "0035"
+down_revision = "0035_aarm_signed_receipts"
 branch_labels = None
 depends_on = None
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./jsondiffpatch.css";
+import "@/styles/components.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
 const jetbrainsMono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });

@@ -328,8 +328,11 @@ class StatisClient:
     def _parse_receipt(data: dict[str, Any]) -> Receipt:
         from datetime import datetime
 
+        def _iso(v: str) -> str:
+            return v.replace("Z", "+00:00") if v.endswith("Z") else v
+
         def _dt(v: Optional[str]) -> Optional[datetime]:
-            return datetime.fromisoformat(v) if v else None
+            return datetime.fromisoformat(_iso(v)) if v else None
 
         return Receipt(
             receipt_id=data["receipt_id"],
@@ -342,7 +345,7 @@ class StatisClient:
             execution_result=data.get("execution_result"),
             executed_at=_dt(data.get("executed_at")),
             hash=data["hash"],
-            created_at=datetime.fromisoformat(data["created_at"]),
+            created_at=_dt(data["created_at"]),
             signature=data.get("signature"),
             signature_alg=data.get("signature_alg"),
             public_key_id=data.get("public_key_id"),

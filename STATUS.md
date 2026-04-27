@@ -2,21 +2,24 @@
 
 > **Keep this file current.** Update it whenever a feature ships, a section changes, or a milestone closes.
 >
-> Last updated: 2026-03-13
+> Last updated: 2026-04-24
 
 ---
 
 ## What Statis Is
 
-Agent execution infrastructure. The layer between AI agents and production systems.
+**One decorator. Your agent asks permission before it touches production.**
 
-**Core promise:** Shared state in. Governed, receipted action out.
+`@statis.gate` wraps any Python function an agent calls. First run blocks for a human approval via a signed single-use URL; after the third identical approval, a YAML rule is auto-drafted so the action graduates into policy and stops paging humans. Every action — approved, denied, executed — gets a hash-chained SHA-256 receipt from action one.
 
-**Four primitives:**
-1. **Action Contract** — Agents propose before they execute
-2. **Policy Engine** — Deterministic rules evaluate proposals
-3. **Execution Guarantee** — Distributed lock ensures exactly-once execution
-4. **Ledger (Receipt)** — SHA-256 tamper-evident receipt written at execution
+The decorator is the developer surface. Underneath it sits the four-primitive engine that has shipped in `api/` since Q1:
+
+1. **Action Contract** — agent proposes before it executes
+2. **Policy Engine** — deterministic rules evaluate the proposal
+3. **Execution Guarantee** — distributed lock enforces exactly-once
+4. **Ledger** — tamper-evident receipt written at execution
+
+The decorator wedge (locked 2026-04-24) is the marketing position; the primitives are the contract everything compiles down to.
 
 ---
 
@@ -293,25 +296,30 @@ Deploy: connect `statis-ai/statis-core` to mintlify.com → set docs dir to `doc
 
 ## Landing Page — `landing/`
 
-### Status: ✅ Complete — merged to `main`
+### Status: ✅ V6 (decorator wedge) shipped 2026-04-24 — merged to `main`
 
-**Tech:** Next.js 15 / React 19 / Tailwind CSS / Framer Motion
+**Tech:** Next.js 16 (Turbopack) / React 19 / TypeScript / scoped CSS
 
-**Page structure (in order):**
+**Component:** `landing/src/components/landing/v6/LandingV6.tsx` (+ `landing-v6.css`).
+V5 lives at `v5/LandingV5.tsx`; one-line swap in `src/app/page.tsx` reverts.
 
-| Section | Component | Description |
-|---|---|---|
-| Navbar | `NavbarV2` | Logo + nav links incl. Primitives |
-| Hero | `HeroV2` | Particle network BG, badge, H1 with gradient span, pill chain, CTAs |
-| The Problem | `BentoFeaturesSection` | Two-card grid: Read Problem + Write Problem with incident logs |
-| Bridge | `ProblemBridgeSection` | Kinetic zoom animation: "You wouldn't deploy code without CI/CD. You shouldn't deploy agents without Statis." |
-| The Solution | `IntroducingStatisSection` | 5-step bento grid — State → Propose → Evaluate → Execute → Receipt |
-| Core Primitives | `BeforeAfterSection` | 2×2 grid of P1–P4 with pastel cards and code detail blocks |
-| Demo Scenario | `UseCasesSection` | Split layout: entity state + rule panels (light) + dark terminal |
-| Architecture | `AIStackSection` | 3-row stack: Agents ↕ Statis (highlighted) ↕ Production |
-| The Distinction | `MemoryVsRealitySection` | "Not X" cards + Memory vs Reality / Logs vs Receipts comparisons |
-| FAQ + CTA | `FAQSection` | Animated accordion FAQ (light) + dark CTA block |
-| Footer | `FooterV2` | Logo, tagline, GitHub link |
+**Section order (top → bottom):**
+
+| Section | Description |
+|---|---|
+| Topbar | Wordmark · v0.2 · beta tag · Demo / Blog / GitHub / Docs / Sign in |
+| Hero | Two-column: copy + dual CTAs · code block (`@statis.gate("stripe.refund")`) + 4-frame animated terminal |
+| How It Works | 4-step grid — Decorate → Approve once → Receipts from action one → Graduate to policy |
+| Graduation | Approval card + auto-drafted YAML rule (3rd identical approval mechanic) |
+| Comparison | 5-row table — `@statis.gate` vs Slack approval bots vs LangGraph interrupts |
+| Dogfood | Stat trio: 104 gates / 0 incidents / 100% receipts |
+| Receipt | Single hash-chained receipt card with SHA-256 chain anchor |
+| CTA | `pip install statis-ai` install command + beta email form (POST `/api/subscribe`, source `v6-cta`) |
+| Footer | 3-col — Product / Developers / Company · Privacy + Terms · trust seal |
+
+**Positioning lock:** the page leads with the decorator wedge per the 2026-04-24 office-hours design doc — no four-pillars / three-tiers framing. Primitives engine is documented in this file and at `docs.statis.dev`, not on the marketing surface.
+
+**Build config note:** `next.config.ts` sets `turbopack.root` to the parent of `landing/` so Turbopack can follow the `statis-kit` symlink (`file:../kit-ts`) used by `/debug`.
 
 ---
 

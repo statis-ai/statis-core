@@ -165,6 +165,14 @@ export interface PolicyRule {
   active: boolean;
   description: string | null;
   created_at: string;
+  // Graduation (migration 0045). 'manual' for human-authored rules,
+  // 'graduated' for rules auto-drafted by services/graduation.py after
+  // 3 approvals of the same canonical_args_hash. graduated rules also
+  // expose graduated_from_action_id so the operator can trace the
+  // triggering decision.
+  source?: "manual" | "graduated";
+  canonical_args_hash?: string | null;
+  graduated_from_action_id?: string | null;
 }
 
 export interface PolicyRuleCreate {

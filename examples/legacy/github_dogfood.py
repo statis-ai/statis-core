@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# LEGACY (v0.1.x reference) — uses the propose/execute API from statis.advanced.
+# v0.4.0 prefers @statis.gate. See ../discount_demo.py for the new pattern,
+# or MIGRATION.md (repo root) for the full upgrade guide.
 """Statis GitHub Dogfood Demo -- audit-only policy evaluation for GitHub actions.
 
 Demonstrates Phase 1 of the GitHub Dogfood initiative: proposing GitHub
@@ -11,7 +14,7 @@ via raw event POST so that the policy evaluator has the fields it needs
 (ci_status, approvals, environment, opened_by_agent).
 
 Usage:
-    STATIS_API_KEY=<key> STATIS_BASE_URL=<url> python examples/github_dogfood.py
+    STATIS_API_KEY=<key> STATIS_BASE_URL=<url> python examples/legacy/github_dogfood.py
 
 Prerequisites:
     pip install statis-ai   (or run from repo root to use local SDK source)
@@ -26,12 +29,12 @@ from datetime import datetime, timezone
 import httpx
 
 try:
-    import statis
+    from statis.advanced import StatisClient
 except ImportError:
     # Allow running from the repo root with the local SDK source.
-    _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    _ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     sys.path.insert(0, os.path.join(_ROOT, "sdk", "src"))
-    import statis
+    from statis.advanced import StatisClient
 
 BASE_URL = os.getenv("STATIS_BASE_URL", "http://localhost:8000")
 API_KEY = os.getenv("STATIS_API_KEY", "")
@@ -128,7 +131,7 @@ def main() -> None:
     http.close()
 
     # -- Actions via SDK ---------------------------------------------------
-    with statis.StatisClient(api_key=API_KEY, base_url=BASE_URL) as client:
+    with StatisClient(api_key=API_KEY, base_url=BASE_URL) as client:
 
         # -- 1. Merge PR (ci=passed, approvals=2) -> expect APPROVED -------
         _sep("1. github_merge_pr -> expect APPROVED")

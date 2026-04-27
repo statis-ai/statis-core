@@ -25,6 +25,14 @@ from app.policy.evaluator import PolicyEvaluator, RuleSpec
 from app.schemas.actions import ActionAccepted, ActionCompleteIn, ActionIn, ActionOut, ActionStatus
 from app.schemas.escalation import EscalatedActionOut, EscalationReviewIn, EscalationReviewOut
 from app.schemas.policy import EvaluateResponse
+from app.services.approval import (
+    ActionNotFound as ServiceActionNotFound,
+    DecisionConflict,
+    DecisionInput,
+    DecisionRace,
+    approve_action,
+)
+from app.services.graduation import maybe_graduate
 from app.models.context_log import ContextLogEntry
 from app.schemas.context_log import ContextLogEntryOut, ContextLogVerifyOut
 from app.security.context_log import verify_chain, write_context_log
@@ -51,6 +59,40 @@ router = APIRouter(tags=["actions"])
 _threat_detector = ThreatDetector()
 _pii_masker = PIIMasker()
 _slack = SlackNotifier()
+
+
+def _graduate_on_approve(db: Session):
+    """Build an `on_decision` callback that auto-drafts a graduated rule on APPROVE.
+
+    Used by both the operator approve path (here) and the public token-decision
+    path (routes/approval.py) so the same 3rd-approval graduation fires no
+    matter which surface the human used.
+
+    TODO(post-Week-1): hoist this off the request thread. Inline-sync today
+    means the graduation lookup + rule INSERT show up in the operator's
+    approve POST latency (acceptable at design-partner volume; not at scale).
+    The right shape is a queued background job — payload is just
+    (tenant_id, action_id) and the worker re-loads the contract before the
+    count query, so no consistency issues.
+    """
+
+    def _cb(contract: "ActionContract", decision: str) -> None:
+        if decision != "APPROVED":
+            return
+        try:
+            maybe_graduate(db, contract)
+        except Exception:
+            # services.approval already swallows callback failures, but
+            # keep an explicit guard so a graduation regression never
+            # silently breaks an unrelated approve path.
+            import logging
+            logging.getLogger(__name__).warning(
+                "graduation callback failed action_id=%s",
+                contract.action_id,
+                exc_info=True,
+            )
+
+    return _cb
 
 
 def _fire_escalation_webhooks(db: Session, contract: "ActionContract") -> None:
@@ -197,6 +239,51 @@ def propose_action(
     resolved_agent_class = registered_agent.agent_class if registered_agent else None
     resolved_org_unit = registered_agent.org_unit if registered_agent else None
 
+    # A6 — canonical_args_hash powers the graduation 3-prior-approvals lookup
+    # in `GET /actions/{id}/similar`. Hash decision-sensitive fields only:
+    # action_type + masked parameters. Target entity is captured in
+    # parameters via the policy layer when relevant.
+    args_hash = canonical_state_hash(
+        {"action_type": action_in.action_type, "parameters": masked_parameters}
+    )
+
+    # OV-T2 — freeze agent identity at propose time so a forwarded approval
+    # link still shows the original handle/lineage even after the agent is
+    # renamed, retired, or its trust source changes. NULL on legacy rows.
+    identity_snapshot: dict[str, Any] = {
+        "handle": action_in.proposed_by,
+        "actions_today": 0,
+        "denied_today": 0,
+        "agent_class": resolved_agent_class,
+        "org_unit": resolved_org_unit,
+        "trust_source": auth.trust_source,
+    }
+    if registered_agent is not None:
+        identity_snapshot["version"] = None
+        identity_snapshot["spawned_by"] = None
+        # Populate decision counters at the moment of proposal — the approval
+        # page renders these as "14 actions today / 0 denied" without re-joining.
+        since = datetime.now(timezone.utc) - timedelta(hours=24)
+        identity_snapshot["actions_today"] = (
+            db.query(ActionContract)
+            .filter(
+                ActionContract.tenant_id == auth.tenant_id,
+                ActionContract.proposed_by == action_in.proposed_by,
+                ActionContract.decided_at >= since,
+            )
+            .count()
+        )
+        identity_snapshot["denied_today"] = (
+            db.query(ActionContract)
+            .filter(
+                ActionContract.tenant_id == auth.tenant_id,
+                ActionContract.proposed_by == action_in.proposed_by,
+                ActionContract.decided_at >= since,
+                ActionContract.status == ActionStatus.DENIED,
+            )
+            .count()
+        )
+
     contract = ActionContract(
         action_id=action_in.action_id,
         tenant_id=auth.tenant_id,
@@ -211,6 +298,8 @@ def propose_action(
         agent_class=resolved_agent_class,
         org_unit=resolved_org_unit,
         trust_source=auth.trust_source,
+        canonical_args_hash=args_hash,
+        agent_identity_snapshot=identity_snapshot,
     )
     db.add(contract)
     try:
@@ -256,6 +345,164 @@ def list_actions(
         q = q.filter(ActionContract.status == status)
     contracts = q.order_by(ActionContract.created_at.desc()).limit(limit).all()
     return [ActionOut.model_validate(c) for c in contracts]
+
+
+class SimilarActionOut(BaseModel):
+    """Sibling action that shares (action_type, canonical_args_hash) with the lookup target."""
+
+    action_id: str
+    decision: str  # APPROVED | DENIED — only terminal decisions are "similar"
+    decided_at: datetime
+    decided_by: str | None = None  # reviewer id, NULL on policy-engine decisions
+
+
+class GraduatedRuleRef(BaseModel):
+    """Reference to a graduated policy rule covering this action's shape.
+
+    Populated when `services/graduation.maybe_graduate` has already drafted
+    a rule for (tenant, action_type, canonical_args_hash). The console's
+    AuditPanel surfaces this as a "Rule auto-drafted" inline line below
+    the prior-approvals list so the operator can trace the receipt → rule
+    promotion in one frame.
+    """
+
+    rule_id: str
+    graduated_from_action_id: str | None = None
+    created_at: datetime
+
+
+class SimilarApprovalsResponse(BaseModel):
+    """Wrapped response for `GET /actions/{id}/similar`.
+
+    Lane 3 (console AuditPanel + graduation overlay) consumes this shape;
+    the wrapper carries `count` + `window_seconds` so the UI can render
+    "N prior approvals in last 48h" without recomputing. Mirrors the
+    TypeScript `SimilarApprovalsResponse` in console/src/lib/approval-types.ts.
+    """
+
+    count: int
+    window_seconds: int
+    approvals: list[SimilarActionOut]
+    graduated_rule: GraduatedRuleRef | None = None
+
+
+@router.get("/actions/{action_id}/similar", response_model=SimilarApprovalsResponse)
+def list_similar_actions(
+    action_id: str,
+    window: str = Query(default="48h"),
+    limit: int = Query(default=3, ge=1, le=20),
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> SimilarApprovalsResponse:
+    """A2 — graduation lookup. Returns the N most-recent identical decisions.
+
+    "Identical" = same tenant, same action_type, same canonical_args_hash.
+    Used by the Trojan-horse policy graduation mechanic: if the operator has
+    APPROVED the same shape three times in a 48h window, the console offers
+    to graduate it to a policy rule.
+
+    Walks `ix_action_contracts_graduation_lookup` (migration 0040).
+    """
+    target = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.action_id == action_id,
+            ActionContract.tenant_id == auth.tenant_id,
+        )
+        .first()
+    )
+    if target is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Action '{action_id}' not found",
+        )
+
+    hours = _parse_window_hours(window)
+    window_seconds = hours * 3600
+
+    if not target.canonical_args_hash:
+        # Legacy row predating migration 0040. Nothing to compare against.
+        return SimilarApprovalsResponse(
+            count=0, window_seconds=window_seconds, approvals=[]
+        )
+
+    # Has a graduated rule already been drafted for this shape? The
+    # AuditPanel uses this to render "Rule auto-drafted: <id>" inline.
+    from app.models.policy_rule import PolicyRule  # avoid top-level cycle
+    graduated = (
+        db.query(PolicyRule)
+        .filter(
+            PolicyRule.tenant_id == auth.tenant_id,
+            PolicyRule.action_type == target.action_type,
+            PolicyRule.canonical_args_hash == target.canonical_args_hash,
+            PolicyRule.source == "graduated",
+        )
+        .first()
+    )
+    graduated_ref = (
+        GraduatedRuleRef(
+            rule_id=graduated.rule_id,
+            graduated_from_action_id=graduated.graduated_from_action_id,
+            created_at=graduated.created_at,
+        )
+        if graduated is not None
+        else None
+    )
+
+    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    rows = (
+        db.query(ActionContract, EscalationReview)
+        .outerjoin(EscalationReview, EscalationReview.action_id == ActionContract.action_id)
+        .filter(
+            ActionContract.tenant_id == auth.tenant_id,
+            ActionContract.action_type == target.action_type,
+            ActionContract.canonical_args_hash == target.canonical_args_hash,
+            ActionContract.action_id != action_id,
+            ActionContract.status.in_([ActionStatus.APPROVED, ActionStatus.DENIED]),
+            ActionContract.decided_at.isnot(None),
+            ActionContract.decided_at >= since,
+        )
+        .order_by(ActionContract.decided_at.desc())
+        .limit(limit)
+        .all()
+    )
+    approvals = [
+        SimilarActionOut(
+            action_id=c.action_id,
+            decision=c.status,
+            decided_at=c.decided_at,
+            decided_by=(r.reviewer_id if r is not None else None),
+        )
+        for c, r in rows
+    ]
+    return SimilarApprovalsResponse(
+        count=len(approvals),
+        window_seconds=window_seconds,
+        approvals=approvals,
+        graduated_rule=graduated_ref,
+    )
+
+
+def _parse_window_hours(window: str) -> int:
+    """Parse strings like '48h', '7d', or a bare integer (interpreted as hours)."""
+    s = window.strip().lower()
+    if not s:
+        raise HTTPException(status_code=400, detail="window may not be empty")
+    if s.endswith("h"):
+        s = s[:-1]
+        multiplier = 1
+    elif s.endswith("d"):
+        s = s[:-1]
+        multiplier = 24
+    else:
+        multiplier = 1
+    try:
+        n = int(s)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"invalid window: {window}")
+    if n <= 0 or n * multiplier > 24 * 30:
+        raise HTTPException(status_code=400, detail=f"window out of range: {window}")
+    return n * multiplier
 
 
 @router.get("/actions/{action_id}", response_model=ActionOut)
@@ -623,6 +870,7 @@ def evaluate_action(
 
     # Fire escalation notifications after commit — Slack + outbound webhooks.
     # STEP_UP is the AARM-canonical form of the legacy ESCALATED decision.
+    approval_url = None
     if effective_decision in ("ESCALATED", "STEP_UP"):
         _slack.notify_escalation(
             action_id=action_id,
@@ -632,6 +880,26 @@ def evaluate_action(
         )
         _fire_escalation_webhooks(db, contract)
 
+        # Generate signed approval URL for the decorator's polling output.
+        try:
+            from app.crypto.hmac_tokens import sign as hmac_sign
+            from app.models.tenant_signing_key import TenantSigningKey
+            import os
+
+            tsk = db.query(TenantSigningKey).filter(
+                TenantSigningKey.tenant_id == auth.tenant_id,
+            ).first()
+            if tsk:
+                token = hmac_sign(
+                    action_id=action_id,
+                    tenant_id=auth.tenant_id,
+                    signing_key=tsk.signing_key,
+                )
+                frontend_url = os.environ.get("FRONTEND_URL", "https://statis.dev")
+                approval_url = f"{frontend_url}/a/{action_id}?sig={token}"
+        except Exception:
+            pass
+
     return EvaluateResponse(
         action_id=action_id,
         receipt_id=receipt_id,
@@ -639,6 +907,8 @@ def evaluate_action(
         rule_id=decision.rule_id,
         rule_version=decision.rule_version,
         reason=effective_reason,
+        approval_url=approval_url,
+        action_type=contract.action_type,
     )
 
 
@@ -735,6 +1005,18 @@ def complete_action(
     receipt.execution_result = body.execution_result
     if receipt.executed_at is None:
         receipt.executed_at = now
+    # Recompute hash after updating execution fields so /verify stays valid.
+    receipt.hash = canonical_state_hash({
+        "receipt_id": receipt.receipt_id,
+        "action_id": receipt.action_id,
+        "decision": receipt.decision,
+        "rule_id": receipt.rule_id,
+        "rule_version": receipt.rule_version,
+        "approved_by": receipt.approved_by,
+        "executed_at": receipt.executed_at.isoformat() if receipt.executed_at else None,
+        "execution_result": receipt.execution_result,
+        "created_at": receipt.created_at.isoformat(),
+    })
     contract.status = ActionStatus.COMPLETED
     contract.updated_at = now
     db.commit()
@@ -776,46 +1058,49 @@ def _handle_escalation_review(
     db: Session,
     auth: AuthContext,
 ) -> ActionOut:
-    contract = (
-        db.query(ActionContract)
-        .filter(
-            ActionContract.action_id == action_id,
-            ActionContract.tenant_id == auth.tenant_id,
+    """Q1 — operator path now routes through `services.approval.approve_action()`.
+
+    Both the public-token surface (`POST /a/{id}/decision`) and the operator
+    console surface (here) MUST commit decisions through the same service so
+    the two paths cannot drift again. The shared service:
+      * writes the EscalationReview audit row
+      * runs the atomic CAS that enforces single-use against any token
+      * raises typed exceptions we map to the legacy operator HTTP shapes.
+    """
+    decision: str = "APPROVED" if reviewer_decision == "APPROVED" else "DENIED"
+    try:
+        contract = approve_action(
+            db,
+            DecisionInput(
+                action_id=action_id,
+                tenant_id=auth.tenant_id,
+                decision=decision,
+                decided_by=review_in.reviewer_id,
+                note=review_in.note,
+                token=None,  # operator path — no token
+            ),
+            on_decision=_graduate_on_approve(db),
         )
-        .first()
-    )
-    if contract is None:
+    except ServiceActionNotFound:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Action '{action_id}' not found",
         )
-    if contract.status not in (ActionStatus.ESCALATED, ActionStatus.STEP_UP):
+    except DecisionConflict as exc:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=(
-                f"Action '{action_id}' is in status '{contract.status}', "
+                f"Action '{action_id}' is in status '{exc.current_status}', "
                 "expected ESCALATED or STEP_UP"
             ),
         )
-
-    # Write the audit record
-    review = EscalationReview(
-        review_id=str(uuid.uuid4()),
-        action_id=action_id,
-        reviewer_id=review_in.reviewer_id,
-        reviewer_decision=reviewer_decision,
-        reviewer_note=review_in.note,
-        reviewed_at=datetime.now(timezone.utc),
-    )
-    db.add(review)
-
-    # Transition: REJECTED → DENIED, APPROVED → APPROVED (worker picks up)
-    new_status = ActionStatus.APPROVED if reviewer_decision == "APPROVED" else ActionStatus.DENIED
-    contract.status = new_status
-    contract.updated_at = datetime.now(timezone.utc)
-
-    db.commit()
-    db.refresh(contract)
+    except DecisionRace:
+        # The token surface (or another operator) committed first. Surface
+        # 410 so the console knows to refresh and show the receipt link.
+        raise HTTPException(
+            status_code=status.HTTP_410_GONE,
+            detail=f"Action '{action_id}' was already decided",
+        )
     return ActionOut.model_validate(contract)
 
 

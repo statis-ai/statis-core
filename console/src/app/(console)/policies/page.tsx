@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   CircleAlert,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -97,12 +98,15 @@ function PolicyCard({
   onTest: () => void;
 }) {
   const pLabel = priorityLabel(rule.priority);
+  const isGraduated = rule.source === "graduated";
   return (
     <div
       className="rounded-xl p-6 transition-colors"
       style={{
         background: "var(--bg-surface)",
-        border: "1px solid var(--border)",
+        border: isGraduated
+          ? "1px solid rgba(139,92,246,0.35)"
+          : "1px solid var(--border)",
       }}
     >
       <div className="flex items-start justify-between mb-4">
@@ -110,12 +114,16 @@ function PolicyCard({
           <div
             className="w-9 h-9 rounded-lg flex items-center justify-center"
             style={{
-              background: "color-mix(in srgb, var(--text) 5%, transparent)",
-              border: "1px solid var(--border)",
-              color: "var(--text-2)",
+              background: isGraduated
+                ? "rgba(139,92,246,0.12)"
+                : "color-mix(in srgb, var(--text) 5%, transparent)",
+              border: isGraduated
+                ? "1px solid rgba(139,92,246,0.30)"
+                : "1px solid var(--border)",
+              color: isGraduated ? "#a78bfa" : "var(--text-2)",
             }}
           >
-            <Shield size={15} />
+            {isGraduated ? <Sparkles size={15} /> : <Shield size={15} />}
           </div>
           <div>
             <h3 className="font-mono text-sm font-semibold text-white">
@@ -127,6 +135,23 @@ function PolicyCard({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {isGraduated && (
+            <span
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full border uppercase tracking-wide"
+              style={{
+                background: "rgba(139,92,246,0.12)",
+                color: "#a78bfa",
+                borderColor: "rgba(139,92,246,0.30)",
+              }}
+              title={
+                rule.graduated_from_action_id
+                  ? `Auto-drafted from ${rule.graduated_from_action_id}`
+                  : "Auto-drafted from 3 prior approvals"
+              }
+            >
+              Graduated
+            </span>
+          )}
           <span
             className={cn(
               "text-[10px] font-semibold px-2 py-0.5 rounded-full border uppercase tracking-wide",
@@ -154,6 +179,18 @@ function PolicyCard({
 
       {rule.description && (
         <p className="text-xs text-[#888888] mb-3">{rule.description}</p>
+      )}
+
+      {isGraduated && rule.graduated_from_action_id && (
+        <p className="text-[11px] font-mono text-[#666666] mb-3">
+          auto-drafted from{" "}
+          <a
+            href={`/inspector?action_id=${rule.graduated_from_action_id}`}
+            className="text-[#a78bfa] hover:text-[#c4b5fd] transition-colors"
+          >
+            {rule.graduated_from_action_id}
+          </a>
+        </p>
       )}
 
       <div className="bg-[#0a0a0a] rounded p-4 font-mono text-xs space-y-1.5 border border-[#1a1a1a]">
@@ -217,6 +254,7 @@ export default function PoliciesPage() {
   const [testResult, setTestResult] = useState<SimulateResult | null>(null);
   const [testError, setTestError] = useState<string | null>(null);
   const [testLoading, setTestLoading] = useState(false);
+  const [graduatedOnly, setGraduatedOnly] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -349,8 +387,14 @@ export default function PoliciesPage() {
     const approveRules = rules.filter((r) => r.decision === "APPROVED").length;
     const denyRules = rules.filter((r) => r.decision === "DENIED").length;
     const escalateRules = rules.filter((r) => r.decision === "ESCALATED").length;
-    return { total, active, approveRules, denyRules, escalateRules };
+    const graduatedRules = rules.filter((r) => r.source === "graduated").length;
+    return { total, active, approveRules, denyRules, escalateRules, graduatedRules };
   }, [rules]);
+
+  const displayedRules = useMemo(
+    () => (graduatedOnly ? rules.filter((r) => r.source === "graduated") : rules),
+    [rules, graduatedOnly]
+  );
 
   return (
     <div className="p-6 lg:p-8 w-full">
@@ -368,6 +412,26 @@ export default function PoliciesPage() {
         }
         actions={
           <>
+            {stats.graduatedRules > 0 && (
+              <button
+                type="button"
+                onClick={() => setGraduatedOnly((v) => !v)}
+                className="inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full font-medium transition-colors"
+                style={{
+                  color: graduatedOnly ? "#a78bfa" : "var(--text-2)",
+                  background: graduatedOnly
+                    ? "rgba(139,92,246,0.12)"
+                    : "color-mix(in srgb, var(--text) 4%, transparent)",
+                  border: graduatedOnly
+                    ? "1px solid rgba(139,92,246,0.30)"
+                    : "1px solid var(--border)",
+                }}
+                title="Show only auto-graduated rules"
+              >
+                <Sparkles size={12} />
+                Graduated{graduatedOnly ? ` (${stats.graduatedRules})` : ""}
+              </button>
+            )}
             <button
               type="button"
               onClick={load}
@@ -526,7 +590,7 @@ export default function PoliciesPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {rules.map((rule) => (
+          {displayedRules.map((rule) => (
             <PolicyCard
               key={rule.rule_id + rule.rule_version}
               rule={rule}

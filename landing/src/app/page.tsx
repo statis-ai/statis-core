@@ -1,23 +1,23 @@
-import LandingV5 from "@/components/landing/v5/LandingV5";
+import LandingV6 from "@/components/landing/v6/LandingV6";
 
 const JSONLD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Statis",
   "applicationCategory": "DeveloperApplication",
-  "description": "The trust layer for agent runtimes. Every context evaluated, every action authorized, every execution receipted.",
+  "description":
+    "One decorator. Your agent asks permission before it touches production. @statis.gate wraps any Python function an agent calls — first run blocks for a human, receipts are hash-chained from action one, repeat approvals graduate into policy.",
   "operatingSystem": "Any",
   "url": "https://statis.dev",
-  "softwareVersion": "0.1.0",
+  "softwareVersion": "0.2.0",
   "author": { "@type": "Organization", "name": "Statis Inc.", "url": "https://statis.dev" },
   "featureList": [
-    "Context Kit — open-source compressor, cost meter, pattern guard",
-    "Developer Cloud — policy editor, execution history, semantic guard, cost dashboard",
-    "Enterprise — admission engine, hash-chain receipts, approval flows, SSO, SOC2/HIPAA/SEC exports",
-    "Adapters — GitHub, Linear, Slack, MCP, Airflow, HubSpot, Salesforce, Zendesk",
-    "SDKs — Python (PyPI: statis-kit) and TypeScript",
-    "MCP — route Claude and Cursor tool calls through governance",
-    "Self-hosted and VPC deployment for enterprise",
+    "@statis.gate — Python decorator for human-in-the-loop agent actions",
+    "Signed single-use approval URLs — no Slack required",
+    "Policy graduation — auto-generated YAML from approved action patterns",
+    "Hash-chained receipts from action one — verifiable offline",
+    "Exactly-once gate semantics — idempotency, retries, cross-agent coordination",
+    "Works with LangGraph, CrewAI, Anthropic SDK, OpenAI SDK",
   ],
 };
 
@@ -28,7 +28,7 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(JSONLD) }}
       />
-      <LandingV5 />
+      <LandingV6 />
     </>
   );
 }

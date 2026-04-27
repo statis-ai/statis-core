@@ -1,7 +1,7 @@
 """aarm r4: expand decision vocabulary to STEP_UP, DEFERRED, MODIFIED
 
 Revision ID: 0034_aarm_decision_values
-Revises: 0033_create_connectors_table
+Revises: 0032_merge_kill_switch_branch
 Create Date: 2026-04-19 00:00:00.000000
 
 PR-AARM-01 — Decision Enum Expansion.
@@ -28,7 +28,7 @@ The migration exists to:
 """
 
 revision = "0034_aarm_decision_values"
-down_revision = "0033_create_connectors_table"
+down_revision = "0032_merge_kill_switch_branch"
 branch_labels = None
 depends_on = None
 

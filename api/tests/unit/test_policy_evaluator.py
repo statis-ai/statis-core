@@ -261,3 +261,91 @@ class TestOperatorApprovedCondition:
         )
         assert decision.decision == "DENIED"
         assert decision.rule_id is None
+
+
+class TestCanonicalArgsHashCondition:
+    """Graduation auto-drafted rules pin a canonical_args_hash and approve
+    on literal match. Source: action.canonical_args_hash (populated at
+    propose time per spine commit e736831)."""
+
+    GRADUATED_RULE = RuleSpec(
+        rule_id="graduated_warehouse_execute_sql_abc123def456_v1",
+        rule_version="1",
+        action_type="warehouse.execute_sql",
+        conditions={"canonical_args_hash": "abc123def456"},
+        decision="APPROVED",
+        priority=100,
+    )
+
+    def _action(self, hash_val: str | None) -> SimpleNamespace:
+        a = SimpleNamespace()
+        a.action_type = "warehouse.execute_sql"
+        a.canonical_args_hash = hash_val
+        return a
+
+    def test_approved_on_exact_hash_match(self) -> None:
+        decision = evaluator.evaluate(
+            action=self._action("abc123def456"),
+            entity_state={},
+            event_history=[],
+            rules=[self.GRADUATED_RULE],
+        )
+        assert decision.decision == "APPROVED"
+        assert decision.rule_id == self.GRADUATED_RULE.rule_id
+
+    def test_denied_on_hash_mismatch(self) -> None:
+        decision = evaluator.evaluate(
+            action=self._action("ffffffffffff"),
+            entity_state={},
+            event_history=[],
+            rules=[self.GRADUATED_RULE],
+        )
+        assert decision.decision == "DENIED"
+        assert decision.rule_id is None
+
+    def test_denied_when_action_has_no_hash(self) -> None:
+        """Legacy action predating canonical_args_hash — graduated rule cannot fire."""
+        decision = evaluator.evaluate(
+            action=self._action(None),
+            entity_state={},
+            event_history=[],
+            rules=[self.GRADUATED_RULE],
+        )
+        assert decision.decision == "DENIED"
+
+    def test_dict_action_with_hash_key_works(self) -> None:
+        """Evaluator must accept dict-shaped actions, not just attr objects."""
+        decision = evaluator.evaluate(
+            action={
+                "action_type": "warehouse.execute_sql",
+                "canonical_args_hash": "abc123def456",
+            },
+            entity_state={},
+            event_history=[],
+            rules=[self.GRADUATED_RULE],
+        )
+        assert decision.decision == "APPROVED"
+
+    def test_graduated_rule_outranks_manual_default(self) -> None:
+        """Graduated rules ship with priority 100; manual seeds default to 0.
+        When both could match, graduated wins (higher priority). Here the manual
+        rule's conditions don't match anyway, but the priority assertion holds
+        independently — this test verifies sort + match interaction."""
+        manual_default = RuleSpec(
+            rule_id="manual_default_v1",
+            rule_version="1",
+            action_type="warehouse.execute_sql",
+            conditions={"operator_approved": True},
+            decision="ESCALATED",
+            priority=0,
+        )
+        action = self._action("abc123def456")
+        action.context = {"operator_approved": False}
+        decision = evaluator.evaluate(
+            action=action,
+            entity_state={},
+            event_history=[],
+            rules=[manual_default, self.GRADUATED_RULE],
+        )
+        assert decision.decision == "APPROVED"
+        assert decision.rule_id == self.GRADUATED_RULE.rule_id

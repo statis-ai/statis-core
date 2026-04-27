@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions (recommended for questions)
+    url: https://github.com/statis-ai/statis-core/discussions
+    about: Questions about how to use Statis, integration help, design discussion. Faster than issues, indexed for the next person who asks.
+  - name: Documentation
+    url: https://docs.statis.dev
+    about: SDK reference, error code index, integration guides.
+  - name: Error code lookup
+    url: https://statis.dev/errors
+    about: Look up an error code (E001-E012) you saw in your logs.
