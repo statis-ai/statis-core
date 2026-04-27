@@ -61,6 +61,11 @@ class ActionContract(Base):
     )
     # Spine — frozen agent identity at propose time (migration 0042, plan OV-T2)
     agent_identity_snapshot: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    # Lane 1 — operator-set "not now" timestamp on the graduation banner.
+    # Codex finding #13. NULL == not snoozed; populated by console action.
+    graduation_snoozed_at: Mapped[Optional[datetime]] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

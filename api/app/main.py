@@ -19,7 +19,8 @@ from app.api.routes.threat_logs import router as threat_logs_router
 from app.api.routes.auth_oidc import router as auth_oidc_router
 from app.api.routes.agents import router as agents_router
 from app.api.routes.analytics import router as analytics_router
-from app.api.routes.connectors import router as connectors_router
+from app.api.routes.approval import router as approval_router
+from app.api.routes.receipts_public import router as receipts_public_router
 from app.api.routes.well_known import router as well_known_router
 
 import os
@@ -84,7 +85,13 @@ app.include_router(threat_logs_router)
 app.include_router(auth_oidc_router)
 app.include_router(analytics_router)
 app.include_router(agents_router)
-app.include_router(connectors_router)
+# Public approval surface — `/a/{action_id}` (token-gated, no auth header).
+# Lane 3a renders this; Slack/Gmail/Proofpoint may prefetch the GET so it
+# stays render-only (OV5/F1 — single-use enforcement is on the POST).
+app.include_router(approval_router)
+# Public receipts page — `/r/{tenant_id}/{receipt_id}`. Receipt id is
+# unguessable; tenant in path is verified against the contract.
+app.include_router(receipts_public_router)
 # AARM R5 — public-key discovery. No auth, no prefix (path literally
 # starts with /.well-known/), no rate limit overrides.
 app.include_router(well_known_router)
