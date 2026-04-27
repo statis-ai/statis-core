@@ -41,6 +41,12 @@ def _make_rule(
     rule.defer_seconds = None
     rule.max_defer_attempts = None
     rule.modify_patch = None
+    # Graduation defaults — manual rules created via POST /policy-rules
+    # leave these NULL. Set explicitly so MagicMock doesn't return a sub-Mock
+    # that pydantic rejects as not-a-string.
+    rule.source = "manual"
+    rule.canonical_args_hash = None
+    rule.graduated_from_action_id = None
     rule.created_at = datetime(2026, 3, 25, tzinfo=timezone.utc)
     return rule
 

@@ -300,5 +300,20 @@ class PolicyEvaluator:
             # entity_state["opened_by_agent"] must match the expected bool.
             return bool(entity_state.get("opened_by_agent")) == bool(value)
 
+        if key == "canonical_args_hash":
+            # Graduation (migration 0045). The auto-drafted rule pins the
+            # exact canonical args shape that earned 3 prior approvals;
+            # the evaluator does a literal equality check against the
+            # incoming action's hash, populated at propose time per spine
+            # (commit e736831).
+            action_hash = None
+            if action is not None:
+                action_hash = (
+                    action.canonical_args_hash
+                    if hasattr(action, "canonical_args_hash")
+                    else action.get("canonical_args_hash")
+                )
+            return action_hash is not None and str(action_hash) == str(value)
+
         # Unknown condition key — fail closed (safe default).
         return False

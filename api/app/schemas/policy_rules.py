@@ -63,4 +63,9 @@ class PolicyRuleUpdate(BaseModel):
 
 class PolicyRuleOut(PolicyRuleIn):
     created_at: datetime
+    # Graduation (migration 0045). 'manual' for human-authored rules,
+    # 'graduated' for rules auto-drafted by services/graduation.py.
+    source: str = "manual"
+    canonical_args_hash: Optional[str] = None
+    graduated_from_action_id: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)

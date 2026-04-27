@@ -13,6 +13,12 @@ class PolicyRule(Base):
     __table_args__ = (
         Index("ix_policy_rules_action_type_active", "action_type", "active"),
         Index("ix_policy_rules_tenant_action_active", "tenant_id", "action_type", "active"),
+        Index(
+            "ix_policy_rules_graduation_lookup",
+            "tenant_id",
+            "action_type",
+            "canonical_args_hash",
+        ),
     )
 
     rule_id: Mapped[str] = mapped_column(String, primary_key=True)
@@ -29,6 +35,15 @@ class PolicyRule(Base):
     max_defer_attempts: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     # AARM R4 — MODIFY parameter patch (shallow-merged into action.parameters on MODIFIED decisions)
     modify_patch: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
+    # Graduation (migration 0045). For source='graduated' rules,
+    # canonical_args_hash holds the exact shape the rule auto-approves;
+    # graduated_from_action_id points back at the 3rd approval that
+    # triggered the draft. Manual rules leave both NULL.
+    canonical_args_hash: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    source: Mapped[str] = mapped_column(
+        String(16), nullable=False, server_default="manual", default="manual"
+    )
+    graduated_from_action_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()
     )

@@ -77,7 +77,10 @@ def test_similar_returns_empty_when_args_hash_missing(client_and_db) -> None:
 
     resp = client.get("/actions/act-x/similar", headers={"X-API-Key": "test"})
     assert resp.status_code == 200
-    assert resp.json() == []
+    body = resp.json()
+    assert body["count"] == 0
+    assert body["approvals"] == []
+    assert body["window_seconds"] == 48 * 3600
 
 
 def test_similar_404_on_unknown(client_and_db) -> None:
@@ -104,10 +107,20 @@ def test_similar_returns_recent_siblings(client_and_db) -> None:
         (sib1, None),
         (sib2, None),
     ]
+    # Graduated-rule lookup query — returns None for this test (no rule
+    # drafted yet; the pre-approval view).
+    graduated_q = MagicMock()
+    graduated_q.filter.return_value.first.return_value = None
+
+    from app.models.action_contract import ActionContract as _AC
+    from app.models.policy_rule import PolicyRule as _PR
 
     def _route_query(*classes):
         # First call: db.query(ActionContract) — target lookup.
         # Second call: db.query(ActionContract, EscalationReview) — siblings.
+        # Third call: db.query(PolicyRule) — graduated-rule lookup (lane-2).
+        if len(classes) == 1 and classes[0] is _PR:
+            return graduated_q
         if len(classes) == 1:
             return target_q
         return sib_q
@@ -120,9 +133,10 @@ def test_similar_returns_recent_siblings(client_and_db) -> None:
     )
     assert resp.status_code == 200
     body = resp.json()
-    assert len(body) == 2
-    assert body[0]["action_id"] == "act-1"
-    assert body[0]["decision"] == "APPROVED"
+    assert body["count"] == 2
+    assert body["window_seconds"] == 48 * 3600
+    assert body["approvals"][0]["action_id"] == "act-1"
+    assert body["approvals"][0]["decision"] == "APPROVED"
 
 
 def test_similar_rejects_invalid_window(client_and_db) -> None:

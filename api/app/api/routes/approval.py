@@ -55,6 +55,7 @@ from app.services.approval import (
     DecisionRace,
     approve_action,
 )
+from app.services.graduation import maybe_graduate
 
 router = APIRouter(tags=["approval"])
 _log = logging.getLogger(__name__)
@@ -240,6 +241,23 @@ def commit_decision(
         return _json(InvalidSigError(detail="CSRF token mismatch."))
 
     note: Optional[str] = body.deny_reason if body.decision == "DENIED" else None
+
+    # Inline-sync graduation hook. Mirrors the operator path's
+    # `_graduate_on_approve` — same callback shape, same TODO. Kept inline
+    # rather than imported because approval.py has no circular concerns
+    # with services/graduation, and a one-line lambda reads cleaner here.
+    def _on_decision(committed: ActionContract, decision: str) -> None:
+        if decision != "APPROVED":
+            return
+        try:
+            maybe_graduate(db, committed)
+        except Exception:
+            _log.warning(
+                "graduation callback failed action_id=%s",
+                committed.action_id,
+                exc_info=True,
+            )
+
     try:
         refreshed = approve_action(
             db,
@@ -251,6 +269,7 @@ def commit_decision(
                 note=note,
                 token=sig,
             ),
+            on_decision=_on_decision,
         )
     except ActionNotFound:
         # Should not happen — we just resolved the contract — but treat as
