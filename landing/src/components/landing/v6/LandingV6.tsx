@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import "./landing-v6.css";
 import { StatisMark } from "@/components/brand/StatisMark";
+import { BinaryField } from "@/components/ui/BinaryField";
+import ConsoleShowcase from "@/components/landing/v7/ConsoleShowcase";
+import PillarsGrid from "@/components/landing/v7/PillarsGrid";
+import InTheWild from "@/components/landing/v7/InTheWild";
+import BlogHighlights from "@/components/landing/v7/BlogHighlights";
 
 const INSTALL_CMD = "pip install statis-ai";
 
@@ -157,8 +162,32 @@ export default function LandingV6() {
       </div>
 
       {/* ============ HERO ============ */}
-      <main className="hero">
-        <section className="hero-copy">
+      <main className="hero" style={{ position: "relative" }}>
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: "none",
+            maskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 40%, transparent 0%, rgba(0,0,0,0.6) 60%, black 100%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 40%, transparent 0%, rgba(0,0,0,0.6) 60%, black 100%)",
+            opacity: 0.55,
+          }}
+        >
+          <BinaryField
+            cols={70}
+            rows={26}
+            color="var(--accent)"
+            litRatio={0.025}
+            flipRatio={0.012}
+            baseOpacity={[0.18, 0.42]}
+            style={{ width: "100%", height: "100%" }}
+          />
+        </div>
+        <section className="hero-copy" style={{ position: "relative", zIndex: 1 }}>
           <div className="eyebrow">
             <span className="ver">§ 01</span>
             <span>For teams shipping AI agents to production</span>
@@ -206,7 +235,7 @@ export default function LandingV6() {
           </div>
         </section>
 
-        <aside className="hero-demo" ref={demoRef}>
+        <aside className="hero-demo" ref={demoRef} style={{ position: "relative", zIndex: 1 }}>
           <div className="demo-code">
             <div className="editor-chrome">
               <span className="chrome-dot" />
@@ -268,6 +297,30 @@ export default function LandingV6() {
           </div>
         </aside>
       </main>
+
+      {/* ============ BINARY DIVIDER ============ */}
+      <div
+        aria-hidden="true"
+        style={{
+          width: "100%",
+          height: 140,
+          overflow: "hidden",
+          position: "relative",
+          borderTop: "1px solid var(--rule-soft)",
+          borderBottom: "1px solid var(--rule-soft)",
+        }}
+      >
+        <BinaryField
+          cols={120}
+          rows={10}
+          seed={0xc0de}
+          color="var(--accent)"
+          litRatio={0.04}
+          flipRatio={0.02}
+          baseOpacity={[0.22, 0.5]}
+          style={{ width: "100%", height: "100%" }}
+        />
+      </div>
 
       {/* ============ DEMO / HOW IT WORKS ============ */}
       <section className="how" id="demo">
@@ -335,12 +388,18 @@ export default function LandingV6() {
         </div>
       </section>
 
+      {/* ============ CONSOLE SHOWCASE ============ */}
+      <ConsoleShowcase />
+
+      {/* ============ PILLARS GRID ============ */}
+      <PillarsGrid />
+
       {/* ============ GRADUATION ============ */}
       <section className="grad">
         <div className="grad-inner">
           <header className="section-header">
             <div className="eyebrow">
-              <span className="ver">§ 03</span>
+              <span className="ver">§ 06</span>
               <span>The retention mechanic</span>
             </div>
             <h2 className="section-hed">
@@ -400,85 +459,12 @@ export default function LandingV6() {
         </div>
       </section>
 
-      {/* ============ COMPARISON ============ */}
-      <section className="compare">
-        <div className="compare-inner">
-          <header className="section-header">
-            <div className="eyebrow">
-              <span className="ver">§ 04</span>
-              <span>Why a decorator, not a gateway</span>
-            </div>
-            <h2 className="section-hed">
-              The other four paths.{" "}
-              <span>Each one breaks in a predictable way.</span>
-            </h2>
-          </header>
-
-          <div className="compare-table" role="table">
-            <div className="compare-row compare-head" role="row">
-              <div className="compare-cell approach">Approach</div>
-              <div className="compare-cell breaks">What breaks</div>
-              <div className="compare-cell when">When</div>
-            </div>
-
-            <div className="compare-row" role="row">
-              <div className="compare-cell approach">
-                <div className="approach-name">YOLO · full creds</div>
-                <div className="approach-desc">Ship the agent with production keys. Hope it doesn&rsquo;t hallucinate.</div>
-              </div>
-              <div className="compare-cell breaks">One hallucination. One incident. One table.</div>
-              <div className="compare-cell when">Week 1 — 6</div>
-            </div>
-
-            <div className="compare-row" role="row">
-              <div className="compare-cell approach">
-                <div className="approach-name">Hand-rolled Slack wrapper</div>
-                <div className="approach-desc">30–50 lines per tool. <code>requests.post</code> to a webhook, poll for the result.</div>
-              </div>
-              <div className="compare-cell breaks">Retries, cross-agent coordination, exactly-once, approved-then-failed states. One at a time, then all at once.</div>
-              <div className="compare-cell when">Week 2 — 8</div>
-            </div>
-
-            <div className="compare-row" role="row">
-              <div className="compare-cell approach">
-                <div className="approach-name">Framework-native hooks</div>
-                <div className="approach-desc">LangGraph interrupts, OpenAI inspect-before-execute, Anthropic pre-hooks.</div>
-              </div>
-              <div className="compare-cell breaks">Workflow primitives, not governance records. No audit trail. Does not compose across frameworks.</div>
-              <div className="compare-cell when">Framework lock-in</div>
-            </div>
-
-            <div className="compare-row" role="row">
-              <div className="compare-cell approach">
-                <div className="approach-name">Homegrown governance platform</div>
-                <div className="approach-desc">Build the propose / approve / receipt / policy engine internally.</div>
-              </div>
-              <div className="compare-cell breaks">3 — 6 engineer-months before the first receipt. The CFO notices before the platform ships.</div>
-              <div className="compare-cell when">Quarter 2+</div>
-            </div>
-
-            <div className="compare-row compare-us" role="row">
-              <div className="compare-cell approach">
-                <div className="approach-name">
-                  <code>@statis.gate</code>
-                </div>
-                <div className="approach-desc">One decorator, one import, one line per protected function.</div>
-              </div>
-              <div className="compare-cell breaks">
-                <span className="breaks-good">Nothing in your code. The state machine, receipts, and policy engine live server-side.</span>
-              </div>
-              <div className="compare-cell when">Today</div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ============ DOGFOOD ============ */}
       <section className="dogfood">
         <div className="dogfood-inner">
           <div className="dogfood-copy">
             <div className="eyebrow">
-              <span className="ver">§ 05</span>
+              <span className="ver">§ 07</span>
               <span>We run Statis on Statis</span>
             </div>
             <h2 className="section-hed">
@@ -520,7 +506,7 @@ export default function LandingV6() {
         <div className="receipt-inner">
           <header className="section-header">
             <div className="eyebrow">
-              <span className="ver">§ 06</span>
+              <span className="ver">§ 08</span>
               <span>Every decision, receipted</span>
             </div>
             <h2 className="section-hed">
@@ -591,12 +577,18 @@ export default function LandingV6() {
         </div>
       </section>
 
+      {/* ============ IN THE WILD ============ */}
+      <InTheWild />
+
+      {/* ============ BLOG HIGHLIGHTS ============ */}
+      <BlogHighlights />
+
       {/* ============ CLOSING CTA ============ */}
       <section className="cta-wrap" id="cta">
         <div className="cta-inner">
           <div className="cta-left">
             <div className="eyebrow">
-              <span className="ver">§ 07</span>
+              <span className="ver">§ 11</span>
               <span>Start in under a minute</span>
             </div>
             <h2 className="cta-hed">
@@ -680,60 +672,22 @@ export default function LandingV6() {
       </section>
 
       {/* ============ FOOTER ============ */}
-      <footer className="footer-wrap">
+      <footer className="footer-wrap footer-simple">
         <div className="footer-inner">
-          <div className="footer-top">
-            <div className="footer-brand">
-              <div className="brand">
-                <span className="brand-mark">
-                  <StatisMark size={22} accent="#fb923c" bar="#111111" />
-                </span>
-                Statis
-                <span className="brand-tag">v0.2 · beta</span>
-              </div>
-              <p className="footer-tag">
-                One decorator. Your agent asks permission before it touches production.
-              </p>
-            </div>
-
-            <div className="footer-cols">
-              <div className="footer-col">
-                <div className="footer-col-head">Product</div>
-                <a href="#demo">Demo</a>
-                <a href="https://docs.statis.dev" rel="noopener">Documentation</a>
-                <a href="/changelog">Changelog</a>
-                <a href="https://pypi.org/project/statis-ai/" rel="noopener">PyPI</a>
-              </div>
-              <div className="footer-col">
-                <div className="footer-col-head">Developers</div>
-                <a href="https://docs.statis.dev/gate" rel="noopener">Gate reference</a>
-                <a href="https://docs.statis.dev/policies" rel="noopener">Policy syntax</a>
-                <a href="https://docs.statis.dev/receipts" rel="noopener">Receipt schema</a>
-                <a href="https://github.com/statis-ai" rel="noopener">GitHub</a>
-              </div>
-              <div className="footer-col">
-                <div className="footer-col-head">Company</div>
-                <a href="/blog">Blog</a>
-                <a href="/about">About</a>
-                <a href="mailto:hello@statis.dev">Contact</a>
-                <a href="/security">Security</a>
-              </div>
-            </div>
-          </div>
-
-          <div className="footer-bottom">
-            <div className="footer-legal">
-              <span className="copyright">© 2026 Statis</span>
-              <a href="/privacy">Privacy</a>
-              <a href="/terms">Terms</a>
-            </div>
-            <div className="footer-seal">
-              <span className="seal-circle">
-                <StatisMark size={20} accent="#fb923c" bar="#fb923c" />
+          <div className="footer-row">
+            <div className="brand">
+              <span className="brand-mark">
+                <StatisMark size={22} accent="#fb923c" bar="#111111" />
               </span>
-              <span className="seal-text">Signed · Chained · Receipted</span>
+              Statis
             </div>
+            <nav className="footer-nav" aria-label="Footer">
+              <a href="/blog">Blog</a>
+              <a href="https://docs.statis.dev" rel="noopener">Docs</a>
+              <a href="mailto:hello@statis.dev">Contact</a>
+            </nav>
           </div>
+          <div className="footer-copy">© 2026 Statis Labs, Inc.</div>
         </div>
       </footer>
     </div>

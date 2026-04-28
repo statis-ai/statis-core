@@ -1109,6 +1109,39 @@ body:has(.landing-v6)::before {
 }
 .landing-v6 .seal-circle svg { width: 100%; height: 100%; }
 
+/* footer-simple — used on landing v7 */
+.landing-v6 .footer-simple {
+  padding: 36px 40px;
+}
+.landing-v6 .footer-simple .footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.landing-v6 .footer-simple .footer-nav {
+  display: flex;
+  gap: 28px;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+}
+.landing-v6 .footer-simple .footer-nav a {
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.landing-v6 .footer-simple .footer-nav a:hover { color: var(--accent); }
+.landing-v6 .footer-simple .footer-copy {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule-soft);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
 /* ============ RESPONSIVE ============ */
 
 @media (max-width: 960px) {
