@@ -1,0 +1,102 @@
+---
+title: "Anthropic SDK"
+description: "Using @statis.gate with Anthropic tool functions."
+---
+
+## Pattern
+
+Wrap any function you pass as a tool to the Anthropic SDK. The gate intercepts before
+the function runs — Claude's tool call becomes a gated action.
+
+```python
+import anthropic
+from statis_ai import gate, ActionEscalatedError
+
+client = anthropic.Anthropic()
+
+@gate(action_type="send_email", agent_id="claude-assistant")
+def send_email(to: str, subject: str, body: str) -> str:
+    """Send an email. Returns delivery status."""
+    return mailer.send(to=to, subject=subject, body=body)
+
+tools = [
+    {
+        "name": "send_email",
+        "description": "Send an email to a recipient.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "to": {"type": "string"},
+                "subject": {"type": "string"},
+                "body": {"type": "string"},
+            },
+            "required": ["to", "subject", "body"],
+        },
+    }
+]
+
+def handle_tool_call(tool_name: str, tool_input: dict) -> str:
+    if tool_name == "send_email":
+        try:
+            result = send_email(**tool_input)
+            return str(result)
+        except ActionEscalatedError as e:
+            # Surface approval URL back to Claude as a tool result
+            return f"Action requires human approval before proceeding. URL: {e.approval_url}"
+    raise ValueError(f"Unknown tool: {tool_name}")
+
+# Agent loop
+messages = [{"role": "user", "content": "Email the CEO about the Q1 results."}]
+
+while True:
+    response = client.messages.create(
+        model="claude-opus-4-20250514",
+        max_tokens=4096,
+        tools=tools,
+        messages=messages,
+    )
+
+    if response.stop_reason == "end_turn":
+        break
+
+    if response.stop_reason == "tool_use":
+        tool_results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                result = handle_tool_call(block.name, block.input)
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result,
+                })
+
+        messages.append({"role": "assistant", "content": response.content})
+        messages.append({"role": "user", "content": tool_results})
+```
+
+## When Claude gets the escalation result
+
+Claude will see the approval URL in the tool result and can relay it to the user:
+
+> "I tried to send the email but it needs human approval first. You can approve it here: https://approval.statis.dev/a/tok_..."
+
+On the next agent run (after the human approves), the gate returns the decision immediately
+and Claude proceeds to send the email.
+
+## Policy example
+
+```yaml
+rule: allow_internal_email
+when:
+  action_type: send_email
+  args.to:
+    ends_with: "@example.com"
+then: APPROVE
+
+rule: escalate_external_email
+when:
+  action_type: send_email
+then: ESCALATE
+```
+
+External emails require human approval; internal emails auto-approve.

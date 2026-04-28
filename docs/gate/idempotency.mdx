@@ -1,0 +1,82 @@
+---
+title: "Idempotency"
+description: "Caller-supplied keys, JCS canonical hash fallback, and framework-native probes."
+---
+
+## How idempotency works
+
+Every proposal the gate sends to Statis has an idempotency key. If the gate is called again
+with the same key before the action is COMPLETED or DENIED, Statis returns the existing
+decision — no duplicate policy evaluation, no duplicate receipt.
+
+This protects against:
+- Agent retries after a crash
+- Exactly-once execution at the infrastructure layer
+- Double-approval of the same escalation
+
+## Key derivation (in order)
+
+1. **Caller-supplied** — `idempotency_key` param on `@gate(...)` or set at call time
+2. **Framework-native probe** — if running under CrewAI, LangGraph, or Temporal, the gate
+   reads the framework's task/run ID
+3. **JCS hash fallback** — if neither is available, the gate computes a canonical JSON hash
+   (RFC 8785 JCS) of `action_type + args`
+
+## Caller-supplied keys
+
+```python
+@gate(action_type="charge_card", idempotency_key="order-{order_id}")
+def charge(order_id: str, amount: int) -> dict:
+    return stripe.charges.create(amount=amount, source="tok_visa")
+```
+
+Or set dynamically:
+
+```python
+from statis_ai import gate, GateContext
+
+@gate(action_type="charge_card")
+def charge(order_id: str, amount: int) -> dict:
+    GateContext.set_idempotency_key(f"order-{order_id}")
+    return stripe.charges.create(amount=amount, source="tok_visa")
+```
+
+Use caller-supplied keys when:
+- Your action arguments include non-deterministic fields (timestamps, UUIDs)
+- You have a natural business key (order ID, transaction ID)
+- You want to batch-approve multiple calls with the same key
+
+## JCS hash fallback
+
+When no explicit key is provided, the gate normalizes the arguments using
+[JCS (JSON Canonicalization Scheme, RFC 8785)](https://www.rfc-editor.org/rfc/rfc8785)
+and SHA-256 hashes the result:
+
+```
+idempotency_key = sha256(jcs({"action_type": ..., "args": {...}}))
+```
+
+This means two calls with identical arguments produce the same key — safe for pure functions.
+For functions with side effects or non-deterministic args, always supply an explicit key.
+
+## Framework-native probes
+
+| Framework | What the gate reads |
+|---|---|
+| **CrewAI** | `task.id` from the active task context |
+| **LangGraph** | `config["run_id"]` from the graph config |
+| **Temporal** | `workflow.info().workflow_id + ":" + activity.info().activity_id` |
+
+Framework probes are best-effort — if detection fails, the gate falls back to JCS hash.
+
+## Checking idempotency in tests
+
+```python
+from statis_ai.testing import MockGate
+
+with MockGate(mode="record") as mg:
+    charge(order_id="o_123", amount=5000)
+    charge(order_id="o_123", amount=5000)  # same key — one proposal
+
+assert mg.proposal_count == 1  # idempotent
+```

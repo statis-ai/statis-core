@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { StatisGlyph } from "./StatisLogo";
+import { StatisMark } from "@/components/brand/StatisMark";
 
 const LINKS = {
   Product: [
@@ -61,7 +61,7 @@ export function LandingFooter() {
         <div className="flex flex-col md:flex-row justify-between gap-8 mb-16 pb-14" style={{ borderBottom: "1px solid var(--border)" }}>
           <div>
             <div className="inline-flex items-center gap-3.5 text-white">
-              <StatisGlyph size={52} />
+              <StatisMark size={52} accent="#fb923c" bar="#fafafa" />
               <span className="text-[30px] font-bold tracking-tight">statis</span>
             </div>
             <p className="text-[13px] mt-5 max-w-sm leading-relaxed" style={{ color: "var(--text-muted)" }}>

@@ -1,0 +1,133 @@
+---
+title: "CrewAI"
+description: "Route CrewAI tool calls through Statis governance."
+---
+
+## Overview
+
+The `StatisActionTool` wraps any CrewAI tool call through the Statis governance pipeline. Every tool invocation becomes an action proposal: it is evaluated against policy rules, executed with exactly-once guarantees, and recorded with a tamper-evident receipt.
+
+## How it works
+
+```
+CrewAI Agent
+  │
+  ▼
+StatisActionTool
+  │
+  ▼
+POST /actions            ← propose
+  │
+  ▼
+POST /actions/{id}/evaluate  ← policy check
+  │
+  ▼
+Execution Worker         ← exactly-once
+  │
+  ▼
+Receipt                  ← audit trail
+```
+
+Instead of calling the target system directly, the CrewAI agent calls `StatisActionTool`. The tool translates the call into a Statis action, waits for the governance pipeline to complete, and returns the execution result to the agent.
+
+## Installation
+
+```bash
+pip install statis-ai crewai
+```
+
+## Usage
+
+```python
+from crewai import Agent, Task, Crew
+from statis import StatisClient
+
+client = StatisClient(api_key="st_...")
+
+# Define a governed tool
+def apply_discount(account_id: str, discount_pct: int) -> str:
+    """Apply a retention discount to an account."""
+    receipt = client.execute(
+        action_type="retention_offer",
+        target={"entity_type": "account", "entity_id": account_id},
+        parameters={"discount_pct": discount_pct},
+        agent_id="crewai-retention-agent",
+        target_system="stripe",
+    )
+    return f"Discount applied. Receipt hash: {receipt.hash}"
+
+# Create the agent with the governed tool
+retention_agent = Agent(
+    role="Customer Retention Specialist",
+    goal="Reduce churn by offering targeted discounts",
+    tools=[apply_discount],
+)
+
+task = Task(
+    description="Apply a 20% discount to account acct-42",
+    agent=retention_agent,
+)
+
+crew = Crew(agents=[retention_agent], tasks=[task])
+result = crew.kickoff()
+```
+
+## What you get
+
+Every tool call through `StatisActionTool` gives you:
+
+| Capability | Without Statis | With Statis |
+|-----------|---------------|-------------|
+| Policy check | None -- tool executes directly | Every call evaluated against rules |
+| Audit trail | Agent logs (if any) | Tamper-evident receipt with SHA-256 hash |
+| Human review | Not possible | Escalation queue for high-risk actions |
+| Exactly-once | No guarantee | Distributed lock prevents double-execution |
+| PII protection | None | Automatic masking of sensitive parameters |
+
+## Handling escalation
+
+When policy returns `ESCALATED`, the SDK raises `ActionEscalatedError`. Handle this in your tool to surface it to the agent:
+
+```python
+from statis import StatisClient, ActionDeniedError, ActionEscalatedError
+
+client = StatisClient(api_key="st_...")
+
+def apply_discount(account_id: str, discount_pct: int) -> str:
+    """Apply a retention discount to an account."""
+    try:
+        receipt = client.execute(
+            action_type="retention_offer",
+            target={"entity_type": "account", "entity_id": account_id},
+            parameters={"discount_pct": discount_pct},
+            agent_id="crewai-retention-agent",
+            target_system="stripe",
+        )
+        return f"Discount applied. Receipt hash: {receipt.hash}"
+
+    except ActionDeniedError as e:
+        return f"Policy denied this action: rule {e.receipt.rule_id}"
+
+    except ActionEscalatedError as e:
+        return f"Action {e.action_id} requires human approval. Check the Statis Console."
+```
+
+## Shadow mode for testing
+
+Run your CrewAI agents in shadow mode to observe what they would do without any production impact:
+
+```python
+receipt = client.execute(
+    action_type="retention_offer",
+    target={"entity_type": "account", "entity_id": "acct-42"},
+    parameters={"discount_pct": 20},
+    agent_id="crewai-retention-agent",
+    target_system="stripe",
+    shadow_mode=True,
+)
+# No adapter called -- receipt shows what would have happened
+```
+
+<Note>
+  Shadow mode is the recommended way to onboard a new CrewAI agent. Run it against real data with shadow mode enabled, review the receipts in the Console, then switch to live execution once you are confident in the policy rules.
+</Note>

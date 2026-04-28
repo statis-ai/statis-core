@@ -1,0 +1,128 @@
+---
+title: "Self-Hosting"
+description: "Deploy Statis in your own infrastructure with Docker Compose."
+---
+
+## Overview
+
+Statis can run entirely in your own infrastructure. The self-hosted deployment includes three components: the API server, the execution worker, and a PostgreSQL database.
+
+## Prerequisites
+
+- Docker and Docker Compose
+- PostgreSQL 15+ (or use the bundled container)
+- A domain or IP for the API and Console
+
+## Architecture
+
+```
+┌─────────────────────────────────────────┐
+│  Docker Compose                         │
+│                                         │
+│  ┌──────────┐  ┌──────────┐            │
+│  │  API      │  │  Worker  │            │
+│  │  :8000    │  │          │            │
+│  └────┬─────┘  └────┬─────┘            │
+│       │              │                  │
+│       └──────┬───────┘                  │
+│              │                          │
+│       ┌──────▼──────┐                   │
+│       │  PostgreSQL  │                   │
+│       │  :5432       │                   │
+│       └─────────────┘                   │
+└─────────────────────────────────────────┘
+```
+
+## Quick start
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/statis-ai/statis-core.git
+    cd statis-core
+    ```
+  </Step>
+  <Step title="Configure environment">
+    Copy the example env file and set your values:
+    ```bash
+    cp .env.example .env
+    ```
+
+    Required variables:
+    ```bash
+    DATABASE_URL=postgresql://statis:statis@db:5432/statis
+    API_KEY_SALT=your_random_salt_here
+    ```
+
+    See the [Docker Compose Reference](/guides/deployment/docker-compose) for the full variable list.
+  </Step>
+  <Step title="Start all services">
+    ```bash
+    docker compose up -d
+    ```
+
+    This starts the API on port 8000, the worker, and PostgreSQL on port 5432.
+  </Step>
+  <Step title="Run migrations">
+    ```bash
+    docker compose exec api alembic upgrade head
+    ```
+  </Step>
+  <Step title="Seed an API key">
+    ```bash
+    docker compose exec api python scripts/seed_admin.py
+    ```
+
+    Save the printed `st_...` key. You will use it in the `X-API-Key` header.
+  </Step>
+  <Step title="Verify">
+    ```bash
+    curl http://localhost:8000/health
+    ```
+
+    Expected response:
+    ```json
+    {"status": "ok"}
+    ```
+  </Step>
+</Steps>
+
+## Health check
+
+The API exposes `GET /health` which returns `200` when the service is running and connected to the database. Use this for load balancer health checks, container orchestration probes, or uptime monitoring.
+
+```bash
+curl http://localhost:8000/health
+# {"status": "ok"}
+```
+
+## Networking
+
+- The API listens on port **8000** by default.
+- The worker connects to the database directly -- it does not expose any ports.
+- PostgreSQL listens on port **5432**. In the Docker Compose setup, it is not exposed to the host by default. The API and worker connect via the internal Docker network.
+
+<Note>
+  If you use an external PostgreSQL instance (e.g., Neon, RDS, Cloud SQL), remove the `db` service from `docker-compose.yml` and set `DATABASE_URL` to your external connection string.
+</Note>
+
+## Upgrades
+
+To upgrade to a new version:
+
+```bash
+git pull origin main
+docker compose build
+docker compose exec api alembic upgrade head
+docker compose up -d
+```
+
+<Warning>
+  Always run migrations before restarting services. The API checks schema compatibility on startup and will fail if migrations are pending.
+</Warning>
+
+## Next steps
+
+- [Docker Compose Reference](/guides/deployment/docker-compose) -- Full configuration details
+- [PII Masking](/guides/security/pii-masking) -- Configure sensitive field masking
+- [SSO / OIDC](/guides/security/sso-oidc) -- Set up enterprise authentication

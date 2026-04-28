@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import "./landing-v6.css";
+import { StatisMark } from "@/components/brand/StatisMark";
 
 const INSTALL_CMD = "pip install statis-ai";
 
@@ -138,13 +139,8 @@ export default function LandingV6() {
       {/* ============ TOPBAR ============ */}
       <div className="topbar">
         <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-              <rect x="20" y="40" width="40" height="180" fill="#111111" />
-              <rect x="180" y="40" width="40" height="180" fill="#111111" />
-              <rect x="110" y="40" width="110" height="30" fill="#b8442e" />
-              <rect x="110" y="200" width="20" height="20" fill="#111111" />
-            </svg>
+          <span className="brand-mark">
+            <StatisMark size={22} accent="#fb923c" bar="#111111" />
           </span>
           Statis
           <span className="brand-tag">v0.2 · beta</span>
@@ -689,13 +685,8 @@ export default function LandingV6() {
           <div className="footer-top">
             <div className="footer-brand">
               <div className="brand">
-                <span className="brand-mark" aria-hidden="true">
-                  <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="20" y="40" width="40" height="180" fill="#111111" />
-                    <rect x="180" y="40" width="40" height="180" fill="#111111" />
-                    <rect x="110" y="40" width="110" height="30" fill="#b8442e" />
-                    <rect x="110" y="200" width="20" height="20" fill="#111111" />
-                  </svg>
+                <span className="brand-mark">
+                  <StatisMark size={22} accent="#fb923c" bar="#111111" />
                 </span>
                 Statis
                 <span className="brand-tag">v0.2 · beta</span>
@@ -737,13 +728,8 @@ export default function LandingV6() {
               <a href="/terms">Terms</a>
             </div>
             <div className="footer-seal">
-              <span className="seal-circle" aria-hidden="true">
-                <svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-                  <rect x="20" y="40" width="40" height="180" fill="#b8442e" />
-                  <rect x="180" y="40" width="40" height="180" fill="#b8442e" />
-                  <rect x="110" y="40" width="110" height="30" fill="#b8442e" />
-                  <rect x="110" y="200" width="20" height="20" fill="#b8442e" />
-                </svg>
+              <span className="seal-circle">
+                <StatisMark size={20} accent="#fb923c" bar="#fb923c" />
               </span>
               <span className="seal-text">Signed · Chained · Receipted</span>
             </div>

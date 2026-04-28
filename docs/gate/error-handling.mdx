@@ -1,0 +1,111 @@
+---
+title: "Error handling"
+description: "fail_closed, fail_open, and the STATIS_DISABLED uninstall path."
+---
+
+## The three behaviors
+
+When the Statis API is unreachable or returns an error, the gate has three options:
+
+| Mode | Behavior | When to use |
+|---|---|---|
+| `fail_closed` (default) | Raises `StatisError`. Nothing executes. | Production — prefer safety over availability |
+| `fail_open` | Logs the error, allows execution through. | Non-critical sidecars, analytics pipelines |
+| `queue` | Queues the proposal for later evaluation (Week 2). | High-throughput write paths |
+
+## fail_closed (default)
+
+```python
+@gate(action_type="delete_record", fail_closed=True)
+def delete_record(table: str, pk: int) -> bool:
+    return db.delete(table, pk)
+```
+
+If the Statis API is down, `delete_record()` raises `StatisError`. Nothing is deleted.
+
+```python
+try:
+    delete_record("users", user_id)
+except ActionDeniedError:
+    # policy said no
+    raise
+except ActionEscalatedError as e:
+    # human approval needed
+    notify_ops(e.approval_url)
+    raise
+except StatisError:
+    # statis unreachable — surface the error, don't silently proceed
+    raise
+```
+
+## fail_open
+
+```python
+@gate(action_type="log_event", fail_closed=False)
+def log_event(event: dict) -> None:
+    analytics.track(event)
+```
+
+If the Statis API is down, `log_event()` executes anyway and logs a warning. The receipt
+is written retroactively when the API recovers (best-effort).
+
+**Warning:** `fail_open` means the action runs without policy evaluation. Use only for
+truly non-critical paths where the downside of skipping approval is low.
+
+## STATIS_DISABLED uninstall path
+
+To remove Statis from the critical path without removing the decorator:
+
+```bash
+STATIS_DISABLED=1 python my_agent.py
+```
+
+Every `@gate` becomes a passthrough. No network calls, no policy evaluation, no receipts.
+The function runs as if the decorator were not there.
+
+Use cases:
+- Local development with live production data
+- Load testing where Statis latency skews benchmarks
+- Emergency bypass during a Statis outage (with `fail_closed`, not `fail_open`)
+
+### Selective disable
+
+Disable specific gates without disabling all:
+
+```python
+@gate(action_type="delete_record", disabled=os.getenv("SKIP_DELETE_GATE") == "1")
+def delete_record(...): ...
+```
+
+### Audit trail for bypasses
+
+When `STATIS_DISABLED=1`, the gate writes a local log entry to `~/.statis/bypass.log`:
+
+```
+2026-04-27T14:33:12Z  BYPASS  stripe_refund  charge_id=ch_abc123 cents=5000
+```
+
+This log is not sent to Statis — it's for your own audit trail.
+
+## Handling ActionEscalatedError
+
+`ActionEscalatedError` is not a failure — it's a checkpoint. The agent should:
+
+1. Surface the `approval_url` to a human
+2. **Stop execution** — don't retry until the human approves
+3. **Re-run after approval** — the approval is persisted; the next call proceeds immediately
+
+```python
+from statis_ai import gate, ActionEscalatedError
+
+@gate(action_type="deploy_to_prod")
+def deploy(version: str, target: str) -> str:
+    return k8s.rollout(version, target)
+
+try:
+    deploy(version="v1.42", target="prod-us-east")
+except ActionEscalatedError as e:
+    # Don't retry here. Surface the URL and stop.
+    slack.send(channel="#ops", text=f"Agent needs approval: {e.approval_url}")
+    return  # Agent task ends; human approves; agent re-runs next cycle
+```

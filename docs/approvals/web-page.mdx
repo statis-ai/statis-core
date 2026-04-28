@@ -1,0 +1,66 @@
+---
+title: "Web approval page"
+description: "Signed-URL approval page — single-use, 30-minute TTL, human decision from any device."
+---
+
+## How it works
+
+When `@gate` evaluates to ESCALATE, the gate:
+
+1. Creates a signed approval token (JWT, 30-minute TTL)
+2. Raises `ActionEscalatedError` with `.approval_url`
+3. Persists the pending action — it will not re-propose
+
+The human opens the URL, sees the action details, and clicks Approve or Deny.
+
+## The approval page
+
+The page renders:
+
+- **Action type** — e.g. `stripe_refund`
+- **Arguments** — full key-value display of the proposed args
+- **Arg diff** — if this is a retry, shows what changed vs the previous call
+- **Agent ID** — which agent proposed the action
+- **Proposed at** — timestamp
+
+One-click Approve or Deny. No login required (the signed URL is the credential).
+
+## Token security
+
+- Single-use — once approved or denied, the URL cannot be used again
+- 30-minute TTL — expired tokens return a clear error page
+- Signed with HMAC-SHA256 using a per-tenant secret — cannot be forged
+
+## After the human acts
+
+| Decision | What happens |
+|---|---|
+| **Approve** | Action status → APPROVED. Next gate call proceeds immediately. |
+| **Deny** | Action status → DENIED. Gate raises `ActionDeniedError` on next call. |
+
+The decision is persisted. The agent does not need to keep polling — it simply retries
+and the gate returns the stored decision.
+
+## Sending the URL to the right person
+
+The gate raises `ActionEscalatedError` — your agent code decides how to notify:
+
+```python
+from statis_ai import gate, ActionEscalatedError
+import smtplib
+
+@gate(action_type="delete_user_data")
+def delete_user(user_id: str) -> None:
+    db.delete("users", user_id)
+
+try:
+    delete_user(user_id="u_abc123")
+except ActionEscalatedError as e:
+    send_email(
+        to="admin@example.com",
+        subject="Agent action needs your approval",
+        body=f"Approve or deny: {e.approval_url}\nExpires in 30 minutes."
+    )
+```
+
+Or send to Slack (Teams tier): [Slack approvals →](/approvals/slack)

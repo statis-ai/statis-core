@@ -1,0 +1,88 @@
+---
+title: "Receipt schema"
+description: "Hash chain definition, per-tenant serialization, and verifying receipts offline."
+---
+
+## Overview
+
+Every action that flows through `@statis.gate` writes a tamper-evident receipt. Receipts are:
+
+- Written atomically with execution (single database transaction)
+- Hash-chained — each receipt includes the hash of the previous receipt for the tenant
+- Immutable — no UPDATE or DELETE ever runs on the receipts table
+- Verifiable offline with `statis verify`
+
+## Schema
+
+```typescript
+interface Receipt {
+  receipt_id: string;        // UUIDv7 — sortable by creation time
+  tenant_id: string;         // your account ID
+  action_type: string;       // e.g. "stripe_refund"
+  action_id: string;         // idempotency key used for this action
+  args_hash: string;         // sha256 of JCS-canonical args
+  outcome: "APPROVED" | "DENIED" | "ESCALATED" | "BYPASSED";
+  policy_rule: string | null; // name of the rule that matched, or null
+  approved_by: string | null; // email of human approver, if outcome=APPROVED via escalation
+  agent_id: string | null;    // from @gate(agent_id=...) or STATIS_AGENT_ID
+  executed_at: string;        // ISO-8601 UTC
+  chain_hash: string;         // sha256("prev_chain_hash:receipt_id:args_hash:outcome")
+  genesis: boolean;           // true for the first receipt in the chain
+}
+```
+
+## Hash chain
+
+Each receipt's `chain_hash` is computed as:
+
+```
+chain_hash = sha256(prev_chain_hash + ":" + receipt_id + ":" + args_hash + ":" + outcome)
+```
+
+The first receipt in a tenant's chain sets `genesis: true` and uses a fixed genesis hash:
+
+```
+genesis_hash = sha256("statis:genesis:v1:" + tenant_id)
+```
+
+This means:
+- Deleting or modifying any receipt breaks the chain — detectable immediately
+- Receipts can be verified in order without trusting the Statis API
+
+## Per-tenant serialization
+
+Statis uses PostgreSQL advisory locks to serialize receipt writes per tenant:
+
+```sql
+SELECT pg_advisory_xact_lock(hashtextextended(tenant_id, 0));
+INSERT INTO receipts (...) VALUES (...);
+```
+
+This ensures the hash chain is never forked — two concurrent executions for the same
+tenant will serialize at the DB level.
+
+## Verifying offline
+
+```bash
+statis verify rec_01hwx...
+# Verifying chain from genesis...
+# ✓ receipt_01hwx...  sha256:a3f8...  APPROVED
+# Chain intact. 47 receipts verified.
+```
+
+Or verify a local export:
+
+```bash
+statis receipts export --format jsonl > receipts.jsonl
+statis verify --from-file receipts.jsonl
+```
+
+The verifier recomputes the chain hash from scratch and confirms each receipt matches.
+It does not need to contact the Statis API.
+
+## UUIDv7 receipt IDs
+
+Receipt IDs use UUIDv7, which embeds a millisecond timestamp prefix. This means:
+- Receipts sort lexicographically by time
+- You can paginate with `receipt_id > last_seen_id` instead of `OFFSET`
+- The timestamp in the ID is the same as `executed_at`

@@ -1,0 +1,61 @@
+---
+title: "Slack approvals"
+description: "Approval notifications and one-click decisions in Slack. Ships with Teams tier."
+---
+
+<Note>
+  Slack approvals ship with the Teams tier. On Day 1, escalations surface as signed URLs —
+  you route them to Slack yourself. Teams wires the Slack integration automatically.
+</Note>
+
+## How it works
+
+When a gate escalates, Statis sends a Slack message to a configured channel:
+
+```
+🔔 Agent action needs approval
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Action:  stripe_refund
+Args:    charge_id=ch_abc123, cents=5000
+Agent:   billing-agent
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Approve]  [Deny]  [View details →]
+```
+
+The human clicks Approve or Deny directly in Slack. The decision is persisted — the agent
+retries and proceeds immediately.
+
+## Setup
+
+1. Go to **Console → Settings → Integrations → Slack**
+2. Click **Connect workspace**
+3. Select the channel to send escalations to
+4. (Optional) Configure per-action-type routing — send `stripe_refund` to `#finance-approvals`,
+   `deploy_to_prod` to `#ops`, etc.
+
+## Per-action routing
+
+```yaml
+# statis/slack-routing.yaml
+routing:
+  stripe_refund:  "#finance-approvals"
+  deploy_to_prod: "#ops"
+  delete_user:    "#compliance"
+  default:        "#agent-approvals"
+```
+
+```bash
+statis apply statis/slack-routing.yaml
+```
+
+## Approval TTL in Slack
+
+The Slack message includes an expiry timestamp. After the TTL (default 30 minutes), the
+buttons are disabled and the message shows "Expired — resubmit the agent action."
+
+You can set a custom TTL per action type:
+
+```python
+@gate(action_type="stripe_refund", approval_ttl_seconds=1800)
+def refund(...): ...
+```

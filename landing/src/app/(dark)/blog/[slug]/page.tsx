@@ -27,7 +27,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
     <h2
       className="mt-12 mb-4 pl-4 text-xl font-bold"
-      style={{ borderLeft: "2px solid #00D4FF", color: "var(--text)" }}
+      style={{ borderLeft: "2px solid var(--accent)", color: "var(--text)" }}
     >
       {children}
     </h2>
@@ -129,7 +129,7 @@ function StaleStateContent() {
 
       <p>
         This is why we built{" "}
-        <strong style={{ color: "#00D4FF" }}>Statis</strong> &mdash; a
+        <strong style={{ color: "var(--accent)" }}>Statis</strong> &mdash; a
         semantic event bus designed specifically for AI agents. Think of it as{" "}
         <em>Kafka for AI state</em>.
       </p>
@@ -177,7 +177,7 @@ function StaleStateContent() {
           <li key={n} className="flex gap-3">
             <span
               className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
-              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+              style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
             >
               {n}
             </span>
@@ -236,7 +236,7 @@ function CompressorLaunchContent() {
       </p>
 
       <p>
-        The next run: <strong style={{ color: "#00D4FF" }}>7,800 tokens collapsed to 3,200</strong>.
+        The next run: <strong style={{ color: "var(--accent)" }}>7,800 tokens collapsed to 3,200</strong>.
         Same answer, same latency, $0.018 less per call. At the volume our staging agent was
         running, that was four figures a month off the bill. So we kept building: a cost meter,
         a pattern guard, a diff viewer so we could see what was pinned versus pruned.
@@ -283,7 +283,7 @@ print(result.report.token_delta, result.report.cost_estimate)`}
           <li key={n} className="flex gap-3">
             <span
               className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
-              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+              style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
             >
               {n}
             </span>
@@ -299,7 +299,7 @@ print(result.report.token_delta, result.report.cost_estimate)`}
       <p>
         Because this is the <em>context in</em> pillar of the Statis trust layer &mdash; and
         we want every agent on the planet to ship with it, not just the ones who are ready to
-        buy. The <a href="/pricing" style={{ color: "#00D4FF" }}>paid tiers</a> are what you
+        buy. The <a href="/pricing" style={{ color: "var(--accent)" }}>paid tiers</a> are what you
         graduate into when you need a hosted policy editor, execution history, approvals, or a
         hash-chain audit ledger that passes a SOC2 review.
       </p>
@@ -358,7 +358,7 @@ function StatisOnStatisContent() {
           <li key={n} className="flex gap-3">
             <span
               className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
-              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+              style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
             >
               {n}
             </span>
@@ -420,7 +420,7 @@ function StatisOnStatisContent() {
           <li key={n} className="flex gap-3">
             <span
               className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
-              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+              style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
             >
               {n}
             </span>
@@ -576,7 +576,7 @@ def execute_sql(query: str) -> dict:
           <li key={n} className="flex gap-3">
             <span
               className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
-              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+              style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
             >
               {n}
             </span>
@@ -635,7 +635,7 @@ conditions:
           <li key={n} className="flex gap-3">
             <span
               className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold"
-              style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+              style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
             >
               {n}
             </span>
@@ -684,7 +684,7 @@ def execute_sql(query: str) -> dict:
       <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
         Running agents in production? Want to talk about how you handle governance
         today, or did something like this already happen to you? Reach us at{" "}
-        <a href="mailto:founders@statis.dev" style={{ color: "#00D4FF" }}>
+        <a href="mailto:founders@statis.dev" style={{ color: "var(--accent)" }}>
           founders@statis.dev
         </a>
         .
@@ -725,15 +725,15 @@ export default async function BlogPostPage({ params }: Props) {
         <div className="mb-4 flex flex-wrap items-center gap-3">
           <span
             className="inline-block rounded px-2 py-0.5 text-[9px] uppercase tracking-wider"
-            style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+            style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
           >
             {post.tag}
           </span>
-          <span className="text-[10px]" style={{ color: "#444" }}>
+          <span className="text-[10px]" style={{ color: "var(--text-subtle)" }}>
             {new Date(post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
           </span>
           <span style={{ color: "#333" }}>&middot;</span>
-          <span className="text-[10px]" style={{ color: "#444" }}>{post.readTime}</span>
+          <span className="text-[10px]" style={{ color: "var(--text-subtle)" }}>{post.readTime}</span>
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.15]" style={{ color: "var(--text)" }}>

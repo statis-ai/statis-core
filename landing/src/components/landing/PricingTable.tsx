@@ -206,7 +206,7 @@ function TierCard({ tier, index }: { tier: Tier; index: number }) {
         <h3 className="text-[22px] font-bold tracking-tight mb-1" style={{ color: "var(--text)" }}>
           {tier.name}
         </h3>
-        <p className="text-[13px] mb-6" style={{ color: isAccent ? "#00D4FF" : "var(--text-2)" }}>
+        <p className="text-[13px] mb-6" style={{ color: isAccent ? "var(--accent)" : "var(--text-2)" }}>
           {tier.subtitle}
         </p>
 
@@ -236,9 +236,9 @@ function TierCard({ tier, index }: { tier: Tier; index: number }) {
           <span
             className="inline-flex items-center px-3 py-1.5 rounded-lg text-[12px] font-medium"
             style={{
-              background: isAccent ? "rgba(0,212,255,0.08)" : "rgba(255,255,255,0.03)",
-              border: `1px solid ${isAccent ? "rgba(0,212,255,0.18)" : "rgba(255,255,255,0.06)"}`,
-              color: isAccent ? "#00D4FF" : "var(--text-2)",
+              background: isAccent ? "var(--accent-bg)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${isAccent ? "var(--accent-border)" : "rgba(255,255,255,0.06)"}`,
+              color: isAccent ? "var(--accent)" : "var(--text-2)",
             }}
           >
             {tier.persona}
@@ -250,7 +250,7 @@ function TierCard({ tier, index }: { tier: Tier; index: number }) {
           {tier.features.map((f) => (
             <div key={f.title} className="flex gap-3">
               <span className="mt-0.5 flex-shrink-0">
-                <Check size={16} style={{ color: "#00D4FF" }} />
+                <Check size={16} style={{ color: "var(--accent)" }} />
               </span>
               <div>
                 <div className="text-[14px] font-semibold" style={{ color: "var(--text)" }}>

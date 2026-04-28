@@ -1,5 +1,4 @@
-import { Nav } from "@/components/landing/Nav";
-import { LandingFooter } from "@/components/landing/Footer";
+import { TopbarV6, FooterV6 } from "@/components/v6/PageV6Shell";
 
 export default function BlogLayout({
   children,
@@ -8,11 +7,11 @@ export default function BlogLayout({
 }) {
   return (
     <>
-      <Nav />
-      <main className="relative z-10 min-h-screen pt-32 pb-16" style={{ background: "var(--bg)" }}>
+      <TopbarV6 currentRoute="/blog" />
+      <main className="relative z-10 min-h-screen pt-8 pb-16" style={{ background: "var(--bg-body)" }}>
         {children}
       </main>
-      <LandingFooter />
+      <FooterV6 />
     </>
   );
 }

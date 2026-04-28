@@ -1,0 +1,82 @@
+---
+title: "@statis.gate reference"
+description: "Full signature, parameters, return types, and exceptions."
+---
+
+## Signature
+
+```python
+from statis_ai import gate
+
+@gate(
+    action_type: str,
+    *,
+    idempotency_key: str | None = None,
+    mode: Literal["auto", "sync", "async"] = "auto",
+    fail_closed: bool = True,
+    agent_id: str | None = None,
+    timeout: float = 30.0,
+)
+```
+
+## Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `action_type` | `str` | required | Name used in policy rules and receipts. Use snake_case. |
+| `idempotency_key` | `str \| None` | `None` | Explicit idempotency key. If `None`, derived from canonical args hash. |
+| `mode` | `"auto" \| "sync" \| "async"` | `"auto"` | Dispatch mode. `"auto"` detects whether caller is async. |
+| `fail_closed` | `bool` | `True` | If `True`, network errors raise `StatisError`. If `False`, allow execution through. |
+| `agent_id` | `str \| None` | `None` | Agent identifier recorded in the receipt. Falls back to `STATIS_AGENT_ID` env var. |
+| `timeout` | `float` | `30.0` | Seconds to wait for policy evaluation before raising `StatisError`. |
+
+## Return value
+
+The gate is transparent — it returns exactly what the wrapped function returns.
+
+## Exceptions
+
+| Exception | When |
+|---|---|
+| `ActionEscalatedError` | Policy evaluated to ESCALATE. `.approval_url` contains the signed URL. |
+| `ActionDeniedError` | Policy evaluated to DENY. `.reason` contains the rule name that matched. |
+| `StatisError` | Network/API error during evaluation. Behavior controlled by `fail_closed`. |
+
+## Environment variables
+
+| Variable | Description |
+|---|---|
+| `STATIS_API_KEY` | Required. Your API key from `statis init` or the console. |
+| `STATIS_AGENT_ID` | Default `agent_id` for all gates in this process. |
+| `STATIS_DISABLED` | Set to `1` to bypass the gate entirely (local dev / test). |
+| `STATIS_BASE_URL` | Override API base URL (self-hosted deployments). |
+
+## Minimal example
+
+```python
+import os
+from statis_ai import gate, ActionEscalatedError, ActionDeniedError
+
+@gate(action_type="send_email", agent_id="marketing-agent")
+def send_email(to: str, subject: str, body: str) -> bool:
+    # Only runs after gate approval
+    return mailer.send(to=to, subject=subject, body=body)
+
+try:
+    send_email(to="ceo@example.com", subject="Q1 results", body="...")
+except ActionEscalatedError as e:
+    print(f"Pending approval at: {e.approval_url}")
+except ActionDeniedError as e:
+    print(f"Denied by policy: {e.reason}")
+```
+
+## STATIS_DISABLED uninstall path
+
+To remove Statis from critical path in production without removing the decorator:
+
+```bash
+STATIS_DISABLED=1 python my_agent.py
+```
+
+The `@gate` decorator becomes a passthrough — no network calls, no policy evaluation.
+Use this for load testing or emergency bypass. Every call is logged locally as BYPASSED.

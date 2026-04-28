@@ -1,0 +1,122 @@
+---
+title: "SIEM Export"
+description: "Stream receipt events to Datadog and Splunk for SOC monitoring."
+---
+
+## Overview
+
+The SIEMExporter streams receipt events to your existing SIEM platform in real time. Every receipt -- approved, denied, escalated, failed -- is forwarded as a structured event. Your SOC team sees agent actions alongside your existing security telemetry.
+
+Supported platforms: **Datadog** and **Splunk** (via HTTP Event Collector).
+
+## How it works
+
+```
+Receipt written
+  │
+  ▼
+SIEMExporter
+  │
+  ├─ Datadog HEC  → POST to intake API
+  └─ Splunk HEC   → POST to /services/collector
+```
+
+The exporter is fire-and-forget. It runs asynchronously after the receipt is written and **never blocks execution**. If the SIEM endpoint is down, the export fails silently -- the receipt is still written to the Statis database.
+
+<Note>
+  SIEM export is a best-effort delivery mechanism. Statis receipts in PostgreSQL are the source of truth. SIEM events are a convenience layer for SOC monitoring and alerting.
+</Note>
+
+## Configuration
+
+### Datadog
+
+```bash
+SIEM_PROVIDER=datadog
+DATADOG_API_KEY=your_datadog_api_key
+DATADOG_SITE=datadoghq.com          # or datadoghq.eu, us5.datadoghq.com, etc.
+DATADOG_SOURCE=statis
+DATADOG_SERVICE=statis-api
+```
+
+### Splunk
+
+```bash
+SIEM_PROVIDER=splunk
+SPLUNK_HEC_URL=https://splunk.example.com:8088/services/collector
+SPLUNK_HEC_TOKEN=your_hec_token
+SPLUNK_INDEX=main                    # optional, defaults to Splunk's default index
+SPLUNK_SOURCE=statis
+```
+
+## Event format
+
+Events are sent as structured JSON. Both Datadog and Splunk receive the same payload shape:
+
+```json
+{
+  "event_type": "statis.receipt",
+  "timestamp": "2025-01-15T10:30:00Z",
+  "tenant_id": "tenant_abc123",
+  "action_id": "act_def456",
+  "action_type": "retention_offer",
+  "target": {
+    "entity_type": "account",
+    "entity_id": "acct-42"
+  },
+  "decision": "APPROVED",
+  "status": "COMPLETED",
+  "agent_id": "csm-agent-v2",
+  "target_system": "stripe",
+  "receipt_hash": "sha256:a1b2c3...",
+  "shadow": false,
+  "rule_id": "churn_retention_v1",
+  "rule_version": 1
+}
+```
+
+For threat detection events, additional fields are included:
+
+```json
+{
+  "event_type": "statis.threat",
+  "threat_type": "sql_injection",
+  "severity": "HIGH",
+  "matched_pattern": "' OR 1=1 --",
+  "parameter_path": "parameters.query.filter"
+}
+```
+
+## Alerting examples
+
+### Datadog
+
+Create a monitor on:
+
+```
+source:statis event_type:statis.receipt decision:DENIED
+```
+
+Alert when denied action volume exceeds a threshold -- this may indicate a misconfigured agent or policy conflict.
+
+### Splunk
+
+Create a saved search:
+
+```
+index=main source=statis event_type="statis.threat" severity="CRITICAL"
+```
+
+Alert on critical threat detections for immediate SOC response.
+
+## Compliance and audit
+
+SIEM export supports compliance workflows:
+
+- **SOC 2** -- Agent action telemetry flows into your existing SOC monitoring. Auditors can verify coverage without accessing the Statis Console directly.
+- **Incident response** -- Correlate agent actions with infrastructure events during an incident. See what agents did before, during, and after an outage.
+- **Retention** -- SIEM retention policies apply to exported events. Statis receipts in PostgreSQL have their own retention, giving you two independent copies.
+
+<Warning>
+  SIEM export sends receipt data -- including action types, entity IDs, and agent IDs -- to your SIEM platform. Ensure your SIEM access controls are appropriate for the sensitivity of this data. PII in parameters is already masked before export (see [PII Masking](/guides/security/pii-masking)).
+</Warning>

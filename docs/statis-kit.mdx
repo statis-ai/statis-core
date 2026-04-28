@@ -1,0 +1,78 @@
+---
+title: "statis-kit"
+description: "Offline pre-call hygiene for LLM message arrays. A separate package from @statis.gate."
+---
+
+<Note>
+  statis-kit is a **different product** from the `@statis.gate` decorator you see in the rest of
+  these docs. It's free, in-process, requires no network and no API key.
+</Note>
+
+## What is statis-kit?
+
+`statis-kit` is an offline, in-process library for pre-call hygiene on LLM message arrays.
+Three capabilities, zero network, zero auth:
+
+| Capability | What it does |
+|---|---|
+| **Guard** | Pattern-based prompt-injection detection |
+| **Compressor** | Three-pass classify/summarize/prune to stay under token limits |
+| **Meter** | Token counts + per-turn USD cost across GPT-4o, Claude 4, Gemini 2.5 |
+
+It is not a governance layer. It does not propose actions, evaluate policies, or write receipts.
+If that's what you need, stay in these docs and use `@statis.gate`.
+
+## Install
+
+<CodeGroup>
+```bash Python
+pip install statis-kit
+```
+
+```bash Node
+npm install statis-kit
+```
+</CodeGroup>
+
+## Quick example
+
+```python
+from statis_kit import process, KitConfig, GuardConfig, CompressorConfig, MeterConfig
+
+clean = process(messages, KitConfig(
+    guard=GuardConfig(on_detect="strip"),
+    compressor=CompressorConfig(pin_top=1, recent_turns=4),
+    meter=MeterConfig(model="claude-opus-4"),
+))
+
+print(f"Tokens: {clean.meter.total_tokens} → {clean.meter.estimated_cost_usd:.4f} USD")
+# Call your LLM with clean.messages
+```
+
+## When to use statis-kit vs @statis.gate
+
+| | statis-kit | @statis.gate |
+|---|---|---|
+| **Works offline** | ✓ | requires network |
+| **No API key** | ✓ | requires STATIS_API_KEY |
+| **Pre-call context hygiene** | ✓ | not its job |
+| **Policy-gated execution** | ✗ | ✓ |
+| **Human-in-the-loop approval** | ✗ | ✓ |
+| **Tamper-evident receipts** | ✗ | ✓ |
+
+## Links
+
+<CardGroup cols={2}>
+  <Card title="PyPI" icon="python" href="https://pypi.org/project/statis-kit/">
+    pip install statis-kit
+  </Card>
+  <Card title="npm" icon="npm" href="https://www.npmjs.com/package/statis-kit">
+    npm install statis-kit
+  </Card>
+  <Card title="GitHub" icon="github" href="https://github.com/statis-ai/statis-core/tree/main/kit">
+    Source code and examples
+  </Card>
+  <Card title="Playground" icon="browser" href="https://statis.dev/debug">
+    Try the context debugger in your browser — no install needed
+  </Card>
+</CardGroup>

@@ -1,0 +1,89 @@
+---
+title: "Sync vs async"
+description: "mode='auto' dispatch, asyncio pitfalls, and how to use @statis.gate in async agents."
+---
+
+## mode="auto" (default)
+
+By default, `@gate` detects whether the decorated function is a coroutine and dispatches accordingly:
+
+- **Sync function** → gate runs synchronously via `httpx` blocking call
+- **Async function** → gate runs asynchronously via `httpx.AsyncClient`
+
+```python
+# Sync — works as expected
+@gate(action_type="send_email")
+def send_email(to: str, body: str) -> bool:
+    return mailer.send(to, body)
+
+# Async — also works as expected
+@gate(action_type="send_email")
+async def send_email(to: str, body: str) -> bool:
+    return await mailer.async_send(to, body)
+```
+
+## Async agent pitfall
+
+If your agent framework runs in a synchronous context (no active event loop) but your gated
+function is `async`, or vice versa, you may encounter:
+
+```
+RuntimeError: This event loop is already running.
+```
+
+This happens with frameworks that mix sync and async code (some LangGraph configs, Celery workers).
+
+### Workaround: asyncio.to_thread
+
+For sync gate calls inside an async context:
+
+```python
+import asyncio
+from statis_ai import gate
+
+@gate(action_type="sync_db_write", mode="sync")
+def write_record(table: str, data: dict) -> str:
+    return db.insert(table, data)
+
+async def agent_step():
+    # run blocking gate call without blocking the event loop
+    result = await asyncio.to_thread(write_record, "events", {"key": "val"})
+    return result
+```
+
+**Caveats with `asyncio.to_thread`:**
+
+1. **Cancellation** — if the calling task is cancelled while `to_thread` is running, the
+   underlying thread continues until the gate returns. The `ActionEscalatedError` may be
+   raised in the thread and not propagate correctly. Wrap with `asyncio.wait_for` and a timeout.
+
+2. **Timeout** — set `timeout` on the gate to match your `wait_for` deadline:
+   ```python
+   @gate(action_type="write_record", mode="sync", timeout=25.0)
+   def write_record(...): ...
+
+   result = await asyncio.wait_for(
+       asyncio.to_thread(write_record, ...),
+       timeout=30.0
+   )
+   ```
+
+3. **Idempotency** — if the thread is abandoned after escalation, the agent must re-raise
+   the escalation on retry. Supply an explicit `idempotency_key` so the gate doesn't
+   re-propose:
+   ```python
+   @gate(action_type="write_record", idempotency_key=f"run-{run_id}-step-{step_n}")
+   def write_record(...): ...
+   ```
+
+## mode="sync" and mode="async"
+
+Override auto-detection when your runtime is unusual:
+
+```python
+@gate(action_type="my_action", mode="sync")   # always sync
+@gate(action_type="my_action", mode="async")  # always async (must be called with await)
+```
+
+Use `mode="sync"` in Celery tasks and background workers. Use `mode="async"` when you're
+building a pure-async agent and want to guarantee no blocking.

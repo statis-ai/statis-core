@@ -93,12 +93,12 @@ export function ContextPlayground() {
           style={{
             background: "rgba(0,212,255,0.08)",
             border: "1px solid rgba(0,212,255,0.28)",
-            color: "#00D4FF",
+            color: "var(--accent)",
           }}
         >
           <span
             className="w-1.5 h-1.5 rounded-full"
-            style={{ background: "#00D4FF", boxShadow: "0 0 8px #00D4FF" }}
+            style={{ background: "var(--accent)", boxShadow: "0 0 8px var(--accent)" }}
           />
           Live — Context Kit
         </span>
@@ -174,7 +174,7 @@ export function ContextPlayground() {
                 type="checkbox"
                 checked={compress}
                 onChange={(e) => setCompress(e.target.checked)}
-                className="accent-[#00D4FF]"
+                className="accent-[var(--accent)]"
               />
               <span className="uppercase tracking-[0.18em] font-semibold" style={{ color: "var(--text-3)" }}>
                 Compress
@@ -259,7 +259,7 @@ function ResultPanel({ state }: { state: RunState }) {
           label="Est. cost"
           value={`$${report.cost_estimate?.total_cost_usd.toFixed(6) ?? "0.000000"}`}
           sub={report.cost_estimate?.model ?? "—"}
-          accent="#00D4FF"
+          accent="var(--accent)"
         />
         <Stat
           icon={<Layers size={14} />}
@@ -311,7 +311,7 @@ function ResultPanel({ state }: { state: RunState }) {
         )}
       </Section>
 
-      <Section title="Per-turn tokens" icon={<Sparkles size={14} style={{ color: "#00D4FF" }} />}>
+      <Section title="Per-turn tokens" icon={<Sparkles size={14} style={{ color: "var(--accent)" }} />}>
         <div className="flex items-end gap-1 h-20">
           {report.per_turn_costs.map((t) => {
             const max = Math.max(...report.per_turn_costs.map((c) => c.tokens), 1);
@@ -345,7 +345,7 @@ function ResultPanel({ state }: { state: RunState }) {
       </Section>
 
       {report.compressed_ranges.length > 0 && (
-        <Section title="Compressed ranges" icon={<Layers size={14} style={{ color: "#00D4FF" }} />}>
+        <Section title="Compressed ranges" icon={<Layers size={14} style={{ color: "var(--accent)" }} />}>
           <div className="space-y-1 text-[11px] font-mono" style={{ color: "var(--text-2)" }}>
             {report.compressed_ranges.map(([start, end], i) => (
               <div key={i}>

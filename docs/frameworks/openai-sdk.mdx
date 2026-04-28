@@ -1,0 +1,118 @@
+---
+title: "OpenAI SDK"
+description: "Using @statis.gate with OpenAI function calling."
+---
+
+## Pattern
+
+Wrap any function you register as a tool with the OpenAI SDK. The decorator intercepts
+the call before execution — GPT's function call becomes a gated action.
+
+```python
+import json
+from openai import OpenAI
+from statis_ai import gate, ActionEscalatedError
+
+client = OpenAI()
+
+@gate(action_type="run_sql_query", agent_id="data-analyst-agent")
+def run_sql(query: str, database: str) -> list[dict]:
+    """Execute a read-only SQL query and return rows."""
+    return db.execute(query, database)
+
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "run_sql",
+            "description": "Execute a SQL query against a database.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "query":    {"type": "string", "description": "SQL query to run"},
+                    "database": {"type": "string", "description": "Target database name"},
+                },
+                "required": ["query", "database"],
+            },
+        },
+    }
+]
+
+def handle_tool_call(name: str, args: dict) -> str:
+    if name == "run_sql":
+        try:
+            rows = run_sql(**args)
+            return json.dumps(rows)
+        except ActionEscalatedError as e:
+            return f"Pending human approval. URL: {e.approval_url}"
+    raise ValueError(f"Unknown function: {name}")
+
+messages = [{"role": "user", "content": "Show me the top 10 users by revenue."}]
+
+while True:
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=messages,
+        tools=tools,
+    )
+    message = response.choices[0].message
+
+    if message.tool_calls is None:
+        print(message.content)
+        break
+
+    messages.append(message)
+
+    for tc in message.tool_calls:
+        args = json.loads(tc.function.arguments)
+        result = handle_tool_call(tc.function.name, args)
+        messages.append({
+            "role": "tool",
+            "tool_call_id": tc.id,
+            "content": result,
+        })
+```
+
+## TypeScript / Node.js
+
+```typescript
+import OpenAI from "openai";
+import { gate, ActionEscalatedError } from "statis-ai";
+
+const runSql = gate(
+  { actionType: "run_sql_query", agentId: "data-analyst" },
+  async (query: string, database: string): Promise<object[]> => {
+    return db.execute(query, database);
+  }
+);
+
+async function handleToolCall(name: string, args: Record<string, string>) {
+  if (name === "run_sql") {
+    try {
+      return JSON.stringify(await runSql(args.query, args.database));
+    } catch (e) {
+      if (e instanceof ActionEscalatedError) {
+        return `Pending approval: ${e.approvalUrl}`;
+      }
+      throw e;
+    }
+  }
+  throw new Error(`Unknown function: ${name}`);
+}
+```
+
+## Policy example
+
+```yaml
+rule: allow_readonly_sql
+when:
+  action_type: run_sql_query
+  args.query:
+    matches: "^SELECT"
+then: APPROVE
+
+rule: escalate_write_sql
+when:
+  action_type: run_sql_query
+then: ESCALATE
+```

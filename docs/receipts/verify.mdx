@@ -1,0 +1,73 @@
+---
+title: "Verify receipts"
+description: "Verify the receipt chain via CLI or API — with or without network access."
+---
+
+## CLI verification
+
+```bash
+statis verify rec_01hwx...
+
+# Output:
+# Fetching receipt rec_01hwx...
+# action_type:  stripe_refund
+# outcome:      APPROVED
+# approved_by:  alice@example.com
+# executed_at:  2026-04-27T14:33:12Z
+# args_hash:    sha256:a3f8...
+# chain_hash:   sha256:b7c2...
+#
+# Verifying chain from genesis...
+# ✓ 47 receipts verified. Chain intact.
+```
+
+## API verification
+
+```http
+GET /receipts/{receipt_id}/verify
+Authorization: X-API-Key: sk-...
+```
+
+Response:
+
+```json
+{
+  "receipt_id": "rec_01hwx...",
+  "valid": true,
+  "chain_position": 47,
+  "chain_hash": "sha256:b7c2...",
+  "args_hash": "sha256:a3f8...",
+  "computed_hash_matches": true
+}
+```
+
+## Offline verification
+
+Export the full receipt chain and verify without contacting the Statis API:
+
+```bash
+# Export
+statis receipts export --format jsonl > receipts.jsonl
+
+# Verify from local file
+statis verify --from-file receipts.jsonl
+
+# Output:
+# Verifying 1,247 receipts from file...
+# ✓ Chain intact. Genesis hash matches. No gaps detected.
+```
+
+The verifier recomputes every `chain_hash` from scratch using the public hash algorithm
+([schema →](/receipts/schema)). It does not trust the stored `chain_hash` values — it
+recomputes them and compares.
+
+## What verification catches
+
+| Tampering attempt | Detected? |
+|---|---|
+| Modified `outcome` field | ✓ chain_hash mismatch |
+| Deleted receipt | ✓ chain gap |
+| Inserted receipt | ✓ chain sequence mismatch |
+| Modified `args_hash` | ✓ chain_hash mismatch |
+| Reordered receipts | ✓ UUIDv7 ordering violated |
+| Genesis hash forgery | ✓ genesis string mismatch |

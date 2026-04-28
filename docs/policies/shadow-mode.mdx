@@ -1,0 +1,123 @@
+---
+title: "Shadow Mode"
+description: "Zero-risk onramp. Observe agent actions without executing them."
+---
+
+## What is shadow mode?
+
+Shadow mode lets you observe what your agents **would** do without executing anything against production systems. Actions are proposed, evaluated against policies, and a receipt is generated -- but no adapter is called. Nothing changes in the real world.
+
+This is the recommended way to onboard new agents, test new policy rules, or run compliance audits.
+
+## How it works
+
+```
+Agent proposes action
+  │
+  ▼
+Policy Engine evaluates     ← rules run normally
+  │
+  ▼
+Receipt generated           ← records what WOULD have happened
+  │
+  ✕ No adapter call         ← execution is skipped
+```
+
+The receipt includes the full policy decision, entity state snapshot, and a `shadow: true` flag. You get the complete audit trail without any production side effects.
+
+## Enabling shadow mode
+
+Set `shadow_mode: true` in the action context when proposing an action:
+
+<CodeGroup>
+```python Python
+from statis import StatisClient
+
+with StatisClient(api_key="st_...") as client:
+    receipt = client.execute(
+        action_type="retention_offer",
+        target={"entity_type": "account", "entity_id": "acct-42"},
+        parameters={"discount_pct": 20},
+        agent_id="csm-agent-v2",
+        target_system="stripe",
+        shadow_mode=True,
+    )
+    print(f"Shadow receipt — decision: {receipt.decision}")
+    print(f"Would have executed: {receipt.action_type}")
+```
+```typescript TypeScript
+import { StatisClient } from "statis-ai";
+
+const client = new StatisClient({ api_key: "st_..." });
+
+const receipt = await client.execute({
+  action_type: "retention_offer",
+  target: { entity_type: "account", entity_id: "acct-42" },
+  parameters: { discount_pct: 20 },
+  agent_id: "csm-agent-v2",
+  target_system: "stripe",
+  shadow_mode: true,
+});
+
+console.log(`Shadow receipt — decision: ${receipt.decision}`);
+console.log(`Would have executed: ${receipt.action_type}`);
+```
+</CodeGroup>
+
+Or pass it directly in the API call:
+
+```bash
+POST /actions
+X-API-Key: st_...
+
+{
+  "action_type": "retention_offer",
+  "target": {"entity_type": "account", "entity_id": "acct-42"},
+  "parameters": {"discount_pct": 20},
+  "agent_id": "csm-agent-v2",
+  "target_system": "stripe",
+  "shadow_mode": true
+}
+```
+
+## What the receipt contains
+
+Shadow receipts are identical to normal receipts except:
+
+- `shadow: true` flag is set
+- `execution_result` is `null` (no adapter was called)
+- The SHA-256 hash still covers the full action contract and policy decision
+
+This means you can query receipts, filter by `shadow = true`, and see exactly what your agents attempted and how policy responded.
+
+## Use cases
+
+<CardGroup cols={2}>
+  <Card title="Design partner evaluation">
+    Let a prospect's agents run in shadow mode against your governance layer. They see the full flow without any production risk.
+  </Card>
+  <Card title="Policy testing">
+    Deploy new policy rules and observe how they evaluate against real agent traffic before switching to live execution.
+  </Card>
+  <Card title="Compliance audit">
+    Generate a full audit trail of agent intent without executing anything. Useful for SOC 2 and internal compliance reviews.
+  </Card>
+  <Card title="Agent development">
+    Build and test agents locally. Shadow mode validates the full propose-evaluate-receipt pipeline without needing adapter configuration.
+  </Card>
+</CardGroup>
+
+<Note>
+  Shadow mode is also the default onramp for MCP integrations. See the [MCP guide](/integrations/mcp) for details on wrapping MCP tool calls through Statis governance with zero production risk.
+</Note>
+
+## Filtering shadow receipts
+
+Query the receipts API with the `shadow` parameter:
+
+```bash
+GET /receipts?shadow=true
+X-API-Key: st_...
+```
+
+The Console also supports filtering by shadow mode in the receipt explorer.

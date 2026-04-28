@@ -1,5 +1,5 @@
-import { PageShell } from "@/components/PageShell";
 import type { Metadata } from "next";
+import { PageV6Shell, HeroV6 } from "@/components/v6/PageV6Shell";
 
 export const metadata: Metadata = {
   title: "Changelog — Statis",
@@ -22,7 +22,7 @@ const RELEASES: Release[] = [
   {
     version: "0.4.0",
     date: "April 6, 2026",
-    title: "MCP Connectors — governance-first MCP integration",
+    title: "MCP Connectors — @statis.gate for any MCP server",
     changes: [
       { type: "feature", text: "Tenant-scoped Connector registry with CRUD API (/connectors)" },
       { type: "feature", text: "MCP adapter resolves connectors by name and injects auth headers (bearer, basic, api_key)" },
@@ -34,7 +34,7 @@ const RELEASES: Release[] = [
   {
     version: "0.3.0",
     date: "April 4, 2026",
-    title: "Agents, Policy-as-Code, and enterprise adapters",
+    title: "Agents, Policy-as-Code, and pre-built adapters",
     changes: [
       { type: "feature", text: "Agents Console page — register, observe, and govern per-agent" },
       { type: "feature", text: "Policy-as-Code CLI — statis apply, statis diff, statis simulate" },
@@ -46,7 +46,7 @@ const RELEASES: Release[] = [
   {
     version: "0.2.0",
     date: "March 28, 2026",
-    title: "Simulate, Analytics, and Slack escalations",
+    title: "Simulate, policy graduation, and Slack escalations",
     changes: [
       { type: "feature", text: "POST /actions/simulate — dry-run policy evaluation without DB writes" },
       { type: "feature", text: "Python and TypeScript SDK simulate() methods" },
@@ -58,82 +58,120 @@ const RELEASES: Release[] = [
   {
     version: "0.1.0",
     date: "March 15, 2026",
-    title: "Initial public release",
+    title: "Initial release — @statis.gate decorator + approval page",
     changes: [
-      { type: "feature", text: "Action Contract — agents propose typed intents before execution" },
-      { type: "feature", text: "Policy Engine — deterministic rule evaluation, versioned, no ML" },
-      { type: "feature", text: "Execution Lock — distributed exactly-once guarantee via action ID lock" },
-      { type: "feature", text: "Ledger Receipt — SHA-256 tamper-evident receipt written atomically" },
-      { type: "feature", text: "Console, Docs, Python SDK, and TypeScript SDK" },
+      { type: "feature", text: "@statis.gate decorator — agents propose before execution" },
+      { type: "feature", text: "Signed-URL approval page — human approves or denies from any device" },
+      { type: "feature", text: "Policy engine — deterministic rule evaluation, versioned, no ML" },
+      { type: "feature", text: "Execution lock — distributed exactly-once guarantee via action ID" },
+      { type: "feature", text: "Receipt ledger — SHA-256 tamper-evident receipt written atomically" },
+      { type: "feature", text: "Python SDK, TypeScript SDK, Console, and Docs" },
     ],
   },
 ];
 
 const TAG_STYLE: Record<Change["type"], { color: string; bg: string; border: string; label: string }> = {
-  feature:     { color: "#00D4FF", bg: "rgba(0,212,255,0.10)",   border: "rgba(0,212,255,0.28)",   label: "NEW" },
-  improvement: { color: "#60A5FA", bg: "rgba(96,165,250,0.10)",  border: "rgba(96,165,250,0.28)",  label: "IMPROVED" },
-  fix:         { color: "#FACC15", bg: "rgba(250,204,21,0.10)",  border: "rgba(250,204,21,0.28)",  label: "FIX" },
-  security:    { color: "#F87171", bg: "rgba(248,113,113,0.10)", border: "rgba(248,113,113,0.28)", label: "SECURITY" },
+  feature:     { color: "var(--accent)",    bg: "var(--accent-bg)",              border: "var(--accent-border)",             label: "NEW" },
+  improvement: { color: "var(--status-info)", bg: "rgba(96,165,250,0.08)",       border: "rgba(96,165,250,0.25)",            label: "IMPROVED" },
+  fix:         { color: "#facc15",          bg: "rgba(250,204,21,0.08)",         border: "rgba(250,204,21,0.25)",            label: "FIX" },
+  security:    { color: "var(--status-bad)", bg: "rgba(239,68,68,0.08)",         border: "rgba(239,68,68,0.25)",             label: "SECURITY" },
 };
 
 export default function ChangelogPage() {
   return (
-    <PageShell
-      eyebrow="Changelog"
-      title="Every release,"
-      titleAccent="shipped."
-      subtitle="Release notes, new features, and fixes. Statis ships every week."
-    >
-      <div className="space-y-16 mt-8">
-        {RELEASES.map((release) => (
-          <article key={release.version} className="relative pl-0 md:pl-8">
-            <div
-              className="hidden md:block absolute left-0 top-2 w-3 h-3 rounded-full"
-              style={{ background: "#00D4FF", boxShadow: "0 0 12px rgba(0,212,255,0.6)" }}
-            />
-            <div className="flex items-baseline gap-3 mb-3">
-              <span
-                className="text-[11px] font-mono font-bold px-2 py-1 rounded"
+    <PageV6Shell currentRoute="/changelog">
+      <HeroV6
+        eyebrowNum="§ 01"
+        eyebrowText="Changelog"
+        title="Every release,"
+        titleStrong="shipped."
+        subtitle="Release notes, new features, and fixes. Statis ships every week."
+      />
+
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 40px 80px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 56 }}>
+          {RELEASES.map((release) => (
+            <article key={release.version}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 12 }}>
+                <span
+                  style={{
+                    fontFamily: "var(--font)",
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.1em",
+                    padding: "3px 8px",
+                    color: "var(--accent)",
+                    background: "var(--accent-bg)",
+                    border: "1px solid var(--accent-border)",
+                    borderRadius: "var(--radius)",
+                  }}
+                >
+                  v{release.version}
+                </span>
+                <span
+                  style={{
+                    fontFamily: "var(--font)",
+                    fontSize: 11,
+                    color: "var(--text-subtle)",
+                  }}
+                >
+                  {release.date}
+                </span>
+              </div>
+
+              <h2
                 style={{
-                  color: "#00D4FF",
-                  background: "rgba(0,212,255,0.08)",
-                  border: "1px solid rgba(0,212,255,0.25)",
+                  fontFamily: "var(--font)",
+                  fontSize: "clamp(16px, 1.6vw, 20px)",
+                  fontWeight: 600,
+                  letterSpacing: "-0.015em",
+                  color: "var(--text)",
+                  marginBottom: 20,
                 }}
               >
-                v{release.version}
-              </span>
-              <span className="text-[11px]" style={{ color: "#71717A" }}>
-                {release.date}
-              </span>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-5 tracking-tight">
-              {release.title}
-            </h2>
-            <ul className="space-y-3">
-              {release.changes.map((change, i) => {
-                const style = TAG_STYLE[change.type];
-                return (
-                  <li key={i} className="flex items-start gap-3">
-                    <span
-                      className="text-[9px] font-bold px-1.5 py-0.5 rounded shrink-0 mt-0.5"
-                      style={{
-                        color: style.color,
-                        background: style.bg,
-                        border: `1px solid ${style.border}`,
-                      }}
-                    >
-                      {style.label}
-                    </span>
-                    <span className="text-sm leading-relaxed" style={{ color: "#D4D4D8" }}>
-                      {change.text}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </article>
-        ))}
+                {release.title}
+              </h2>
+
+              <ul style={{ display: "flex", flexDirection: "column", gap: 10, listStyle: "none", padding: 0 }}>
+                {release.changes.map((change, i) => {
+                  const style = TAG_STYLE[change.type];
+                  return (
+                    <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                      <span
+                        style={{
+                          fontFamily: "var(--font)",
+                          fontSize: 8,
+                          fontWeight: 700,
+                          letterSpacing: "0.12em",
+                          padding: "2px 6px",
+                          color: style.color,
+                          background: style.bg,
+                          border: `1px solid ${style.border}`,
+                          borderRadius: "2px",
+                          flexShrink: 0,
+                          marginTop: 2,
+                        }}
+                      >
+                        {style.label}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: "var(--font)",
+                          fontSize: 13,
+                          lineHeight: 1.6,
+                          color: "var(--text-2)",
+                        }}
+                      >
+                        {change.text}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </article>
+          ))}
+        </div>
       </div>
-    </PageShell>
+    </PageV6Shell>
   );
 }

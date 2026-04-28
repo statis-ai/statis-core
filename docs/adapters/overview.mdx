@@ -1,0 +1,88 @@
+---
+title: "Adapters"
+description: "Adapters connect the execution worker to external systems."
+---
+
+## What adapters do
+
+When the worker picks up an `APPROVED` action, it routes it to an adapter based on `target_system`. The adapter calls the external system and returns an `ExecutionResult` that gets written into the receipt.
+
+## Built-in adapters
+
+### MockStripeAdapter
+
+| Property | Value |
+|---|---|
+| `target_system` | `"stripe"` |
+| Handles | `retention_offer`, `apply_discount` |
+| Latency | 50ms simulated |
+| `execution_result` | `{"charge_id": "ch_mock_{action_id[:8]}"}` |
+
+For development and demo use. No real Stripe connection.
+
+### AirflowAdapter
+
+| Property | Value |
+|---|---|
+| `target_system` | `"airflow"` |
+| Handles | `airflow_dag_trigger` |
+| API | Airflow Stable REST API v1 |
+| Idempotency | `action_id` used as `dag_run_id` |
+
+```python
+# Config via environment variables
+AIRFLOW_BASE_URL=https://airflow.example.com
+AIRFLOW_USERNAME=airflow
+AIRFLOW_PASSWORD=...
+```
+
+Required parameter: `dag_id`. Optional: `conf`, `logical_date`.
+
+A 409 from Airflow (duplicate `dag_run_id`) is treated as success — the DAG was already triggered.
+
+`execution_result`:
+```json
+{
+  "dag_run_id": "statis-abc123",
+  "dag_id": "my_pipeline",
+  "state": "queued",
+  "logical_date": "2024-01-15T10:00:00+00:00"
+}
+```
+
+## Adding a custom adapter
+
+```python
+from app.adapters.base import BaseAdapter, ExecutionResult
+
+class MySalesforceAdapter(BaseAdapter):
+    def execute(self, action) -> ExecutionResult:
+        # Use action.action_id as your idempotency key
+        sf_id = self.sf_client.upsert(
+            object_type="Contact",
+            record=action.parameters,
+            idempotency_key=action.action_id,
+        )
+        return ExecutionResult(success=True, result={"sf_id": sf_id})
+```
+
+Register it in `worker/execute.py`:
+
+```python
+ADAPTERS = {
+    "stripe": MockStripeAdapter(),
+    "airflow": AirflowAdapter(),
+    "salesforce": MySalesforceAdapter(),
+}
+```
+
+## ExecutionResult
+
+```python
+@dataclass
+class ExecutionResult:
+    success: bool
+    result: dict          # stored verbatim in receipt.execution_result
+```
+
+If `success=False`, the action status moves to `FAILED`. The receipt is still written — failures are part of the audit trail.

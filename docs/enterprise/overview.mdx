@@ -1,0 +1,50 @@
+---
+title: "Enterprise overview"
+description: "What's in the Enterprise contract tier vs Day 1 / Teams."
+---
+
+## What Enterprise adds
+
+Enterprise is for organizations with compliance requirements, dedicated security teams,
+or production environments that cannot use shared infrastructure.
+
+| Feature | Day 1 | Teams | Enterprise |
+|---|---|---|---|
+| `@statis.gate` decorator | ✓ | ✓ | ✓ |
+| Signed approval pages | ✓ | ✓ | ✓ |
+| Receipt ledger | ✓ | ✓ | ✓ |
+| Policy engine | ✓ | ✓ | ✓ |
+| Slack approvals | — | ✓ | ✓ |
+| Pre-built adapters | — | ✓ | ✓ |
+| Operator dashboards | — | ✓ | ✓ |
+| VPC / on-prem deployment | — | — | ✓ |
+| SSO + SCIM | — | — | ✓ |
+| SOC2-export receipts | — | — | ✓ |
+| Offline-verifiable cryptographic proofs | — | — | ✓ |
+| Compliance bundle (HIPAA, GDPR, SOC2) | — | — | ✓ |
+| Dedicated CSM | — | — | ✓ |
+| SLA | — | — | ✓ |
+
+## How to get Enterprise
+
+Enterprise is contract-driven. We do a scoping call, confirm deployment requirements
+(VPC region, SSO provider, compliance scope), and issue a contract.
+
+<Card title="Talk to a founder" icon="phone" href="mailto:hello@statis.dev?subject=Enterprise">
+  Email hello@statis.dev with "Enterprise" in the subject. We reply same day.
+</Card>
+
+## Available now vs roadmap
+
+Most Enterprise features exist in the codebase today (~70%). A few are contract-driven
+only because they require dedicated infrastructure setup per customer:
+
+- **VPC deploy** — Kubernetes manifests ready; requires your cloud account access
+- **SCIM** — API implemented; requires your IdP's provisioning credentials
+- **SOC2-export receipts** — ledger export format spec in progress (Q3 2026 target)
+
+## Self-hosted alternative
+
+If you need full data sovereignty without an Enterprise contract, see the
+[self-hosting guide](/self-host/quick-deploy). The self-hosted distribution includes
+the full policy engine, receipt ledger, and approval page — without SSO or SCIM.

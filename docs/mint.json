@@ -1,17 +1,17 @@
 {
   "name": "Statis",
   "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
+    "dark": "/logo/statis-mark-dark.svg",
+    "light": "/logo/statis-mark-light.svg"
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#d4d4d4",
-    "light": "#ffffff",
-    "dark": "#888888",
+    "primary": "#fb923c",
+    "light": "#fdba74",
+    "dark": "#ea7c1f",
     "background": {
       "dark": "#0a0a0a",
-      "light": "#ffffff"
+      "light": "#fafafa"
     }
   },
   "font": {
@@ -22,11 +22,10 @@
     "default": "dark"
   },
   "layout": "sidenav",
-  "backgroundImage": "/background.png",
   "anchors": [],
   "rounded": "default",
   "topbarLinks": [
-    { "name": "GitHub", "url": "https://github.com/statis-ai/statis-sdk" },
+    { "name": "GitHub", "url": "https://github.com/statis-ai/statis-core" },
     { "name": "statis.dev", "url": "https://statis.dev" }
   ],
   "topbarCtaButton": {
@@ -34,11 +33,8 @@
     "url": "https://console.statis.dev"
   },
   "tabs": [
-    { "name": "Guides", "url": "guides" },
-    { "name": "Integrations", "url": "integrations" },
-    { "name": "SDKs", "url": "sdks" },
-    { "name": "API Reference", "url": "api-reference" },
-    { "name": "Use Cases", "url": "use-cases" }
+    { "name": "Docs", "url": "docs" },
+    { "name": "API Reference", "url": "api-reference" }
   ],
   "api": {
     "baseUrl": "https://api.statis.dev",
@@ -49,62 +45,53 @@
   },
   "navigation": [
     {
-      "group": "Getting Started",
+      "group": "Get Started",
       "pages": [
-        "guides/introduction",
-        "guides/quickstart",
-        "guides/architecture"
+        "docs/introduction",
+        "docs/quickstart",
+        "docs/concepts"
       ]
     },
     {
-      "group": "Core Primitives",
+      "group": "@statis.gate",
       "pages": [
-        "guides/primitives/action-contract",
-        "guides/primitives/policy-engine",
-        "guides/primitives/execution-guarantee",
-        "guides/primitives/receipt"
+        "gate/reference",
+        "gate/sync-vs-async",
+        "gate/idempotency",
+        "gate/error-handling",
+        "gate/policy-graduation"
       ]
     },
     {
-      "group": "Features",
+      "group": "Approval & Receipts",
       "pages": [
-        "guides/shadow-mode",
-        "guides/escalation",
-        "guides/kill-switch",
-        "guides/webhooks",
-        "guides/policy-rules",
-        "guides/adapters",
-        "guides/console"
+        "approvals/web-page",
+        "approvals/slack",
+        "receipts/schema",
+        "receipts/verify"
       ]
     },
     {
-      "group": "Security & Compliance",
+      "group": "Policies & Adapters",
       "pages": [
-        "guides/security/pii-masking",
-        "guides/security/threat-detection",
-        "guides/security/siem-export",
-        "guides/security/sso-oidc"
+        "policies/rules",
+        "policies/shadow-mode",
+        "policies/kill-switch",
+        "adapters/overview"
       ]
     },
     {
-      "group": "Deployment",
+      "group": "Frameworks",
       "pages": [
-        "guides/deployment/self-hosting",
-        "guides/deployment/docker-compose"
+        "frameworks/langgraph",
+        "frameworks/crewai",
+        "frameworks/anthropic-sdk",
+        "frameworks/openai-sdk",
+        "frameworks/mcp"
       ]
     },
     {
-      "group": "Integrations",
-      "pages": [
-        "integrations/crewai",
-        "integrations/langchain",
-        "integrations/mcp",
-        "integrations/python-sdk",
-        "integrations/node-sdk"
-      ]
-    },
-    {
-      "group": "SDKs",
+      "group": "SDK Reference",
       "pages": [
         "sdks/python",
         "sdks/typescript",
@@ -112,82 +99,83 @@
       ]
     },
     {
-      "group": "API Reference",
+      "group": "Self-Host",
       "pages": [
-        "api-reference/introduction"
+        "self-host/docker-compose",
+        "self-host/quick-deploy"
       ]
     },
     {
-      "group": "Actions",
+      "group": "Enterprise",
       "pages": [
+        "enterprise/overview",
+        "enterprise/sso",
+        "enterprise/scim",
+        "enterprise/vpc-deploy",
+        "enterprise/audit-export",
+        "enterprise/threat-detection",
+        "enterprise/pii-masking"
+      ]
+    },
+    {
+      "group": "statis-kit",
+      "pages": [
+        "statis-kit"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api-reference/introduction",
         "api-reference/endpoints/post-actions",
         "api-reference/endpoints/get-actions",
         "api-reference/endpoints/get-action",
         "api-reference/endpoints/post-evaluate",
         "api-reference/endpoints/post-approve",
         "api-reference/endpoints/post-reject",
-        "api-reference/endpoints/get-escalations"
-      ]
-    },
-    {
-      "group": "Policy Rules",
-      "pages": [
+        "api-reference/endpoints/get-escalations",
         "api-reference/endpoints/post-policy-rules",
         "api-reference/endpoints/get-policy-rules",
         "api-reference/endpoints/put-policy-rule",
-        "api-reference/endpoints/delete-policy-rule"
-      ]
-    },
-    {
-      "group": "Receipts",
-      "pages": [
+        "api-reference/endpoints/delete-policy-rule",
         "api-reference/endpoints/get-receipt",
-        "api-reference/endpoints/get-receipt-verify"
-      ]
-    },
-    {
-      "group": "Events & State",
-      "pages": [
-        "api-reference/endpoints/post-events",
-        "api-reference/endpoints/get-events",
-        "api-reference/endpoints/get-state",
-        "api-reference/endpoints/get-state-at"
-      ]
-    },
-    {
-      "group": "Webhooks",
-      "pages": [
-        "api-reference/endpoints/post-webhooks",
-        "api-reference/endpoints/get-webhooks",
-        "api-reference/endpoints/delete-webhook"
-      ]
-    },
-    {
-      "group": "Kill Switch",
-      "pages": [
-        "api-reference/endpoints/get-kill-switch",
-        "api-reference/endpoints/post-kill-switch-activate",
-        "api-reference/endpoints/post-kill-switch-deactivate"
-      ]
-    },
-    {
-      "group": "Admin",
-      "pages": [
+        "api-reference/endpoints/get-receipt-verify",
         "api-reference/endpoints/post-signup",
         "api-reference/endpoints/post-login",
         "api-reference/endpoints/get-me",
         "api-reference/endpoints/post-api-keys",
         "api-reference/endpoints/get-api-keys"
       ]
-    },
-    {
-      "group": "Use Cases",
-      "pages": [
-        "use-cases/double-spend-swarm",
-        "use-cases/black-box-autopsy",
-        "use-cases/tone-deaf-ai"
-      ]
     }
+  ],
+  "redirects": [
+    { "source": "/guides/introduction",  "destination": "/docs/introduction" },
+    { "source": "/guides/quickstart",    "destination": "/docs/quickstart" },
+    { "source": "/guides/architecture",  "destination": "/docs/concepts" },
+    { "source": "/guides/primitives/action-contract",      "destination": "/gate/reference" },
+    { "source": "/guides/primitives/policy-engine",        "destination": "/policies/rules" },
+    { "source": "/guides/primitives/execution-guarantee",  "destination": "/gate/idempotency" },
+    { "source": "/guides/primitives/receipt",              "destination": "/receipts/schema" },
+    { "source": "/guides/shadow-mode",   "destination": "/policies/shadow-mode" },
+    { "source": "/guides/escalation",    "destination": "/approvals/web-page" },
+    { "source": "/guides/kill-switch",   "destination": "/policies/kill-switch" },
+    { "source": "/guides/policy-rules",  "destination": "/policies/rules" },
+    { "source": "/guides/adapters",      "destination": "/adapters/overview" },
+    { "source": "/guides/console",       "destination": "/docs/introduction" },
+    { "source": "/guides/security/sso-oidc",       "destination": "/enterprise/sso" },
+    { "source": "/guides/security/siem-export",    "destination": "/enterprise/audit-export" },
+    { "source": "/guides/security/threat-detection", "destination": "/enterprise/threat-detection" },
+    { "source": "/guides/security/pii-masking",    "destination": "/enterprise/pii-masking" },
+    { "source": "/guides/deployment/self-hosting", "destination": "/self-host/quick-deploy" },
+    { "source": "/guides/deployment/docker-compose", "destination": "/self-host/docker-compose" },
+    { "source": "/integrations/langchain",  "destination": "/frameworks/langgraph" },
+    { "source": "/integrations/crewai",     "destination": "/frameworks/crewai" },
+    { "source": "/integrations/mcp",        "destination": "/frameworks/mcp" },
+    { "source": "/integrations/python-sdk", "destination": "/sdks/python" },
+    { "source": "/integrations/node-sdk",   "destination": "/sdks/typescript" },
+    { "source": "/overview/introduction",   "destination": "/docs/introduction" },
+    { "source": "/overview/quickstart",     "destination": "/docs/quickstart" },
+    { "source": "/overview/architecture",   "destination": "/docs/concepts" }
   ],
   "footerSocials": {
     "twitter": "https://x.com/statis_ai",

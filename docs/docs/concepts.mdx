@@ -1,0 +1,104 @@
+---
+title: "Concepts"
+description: "Four things happen in sequence every time a gated function is called."
+---
+
+## The four concepts
+
+Statis replaces the hand-rolled "check before you run" logic every production agent eventually needs.
+These four concepts describe what happens on every decorated call:
+
+---
+
+### 1. Propose
+
+The `@gate` decorator wraps your function. When the function is called, the gate captures:
+
+- **action_type** — the name you passed to `@gate(action_type=...)`
+- **args** — a canonical JSON representation of the arguments (deterministic, JCS-normalized)
+- **caller context** — agent ID, timestamp, idempotency key
+
+Nothing has run yet. The gate sends a proposal to the Statis API and waits for a decision.
+
+---
+
+### 2. Approve
+
+The policy engine evaluates your YAML rules against the proposal:
+
+| Outcome | What happens |
+|---|---|
+| **APPROVE** | The gate allows execution immediately |
+| **ESCALATE** | The gate raises `ActionEscalatedError` with a signed approval URL |
+| **DENY** | The gate raises `ActionDeniedError` before the function runs |
+
+Rules are evaluated in priority order. If no rule matches, the default is **DENY**
+(fail-closed). This is intentional — you should explicitly approve every action type
+your agent can take.
+
+```yaml
+rule: allow_small_refunds
+when:
+  action_type: stripe_refund
+  args.cents:
+    lte: 10000
+then: APPROVE
+```
+
+---
+
+### 3. Receipt
+
+After execution (approved + ran), or after a deny/escalation, the gate writes a receipt:
+
+```json
+{
+  "receipt_id": "01hwx...",
+  "action_type": "stripe_refund",
+  "outcome": "APPROVED",
+  "args_hash": "sha256:a3f8...",
+  "policy_rule": "allow_small_refunds",
+  "executed_at": "2026-04-27T14:33:12Z",
+  "chain_hash": "sha256:b7c2..."
+}
+```
+
+Receipts are:
+- Written atomically with execution (single database transaction)
+- Hash-chained — each receipt includes the hash of the previous receipt for the tenant
+- Immutable — no UPDATE or DELETE is possible after write
+- Verifiable offline with `statis verify <receipt_id>`
+
+---
+
+### 4. Graduation
+
+After **3 identical approvals** of the same action type + argument shape, Statis auto-generates
+a YAML policy rule suggestion:
+
+```
+Statis noticed you approved stripe_refund 3 times.
+Suggested rule:
+
+rule: stripe_refund_auto
+when:
+  action_type: stripe_refund
+then: APPROVE
+
+Run `statis apply` to activate, or edit before applying.
+```
+
+Graduation turns human approvals into policy rules — reducing noise without reducing oversight.
+You can configure the threshold, override the graduation key, or disable it per action type.
+
+[Policy graduation →](/gate/policy-graduation)
+
+---
+
+## Error classes
+
+| Exception | When raised |
+|---|---|
+| `ActionEscalatedError` | Policy says ESCALATE; approval URL in `.approval_url` |
+| `ActionDeniedError` | Policy says DENY; reason in `.reason` |
+| `StatisError` | Network or API error; re-raise or handle per `fail_closed` / `fail_open` config |

@@ -1,0 +1,46 @@
+---
+title: "VPC / on-prem deployment"
+description: "Deploy Statis entirely within your infrastructure. No data leaves your network."
+---
+
+<Note>
+  VPC and on-prem deployment is a contract-driven Enterprise feature. Kubernetes manifests
+  are ready; enabling requires access to your cloud account.
+  [Talk to a founder →](mailto:hello@statis.dev?subject=Enterprise)
+</Note>
+
+## What VPC deployment gives you
+
+- All Statis infrastructure runs in your cloud account (AWS, GCP, Azure)
+- No data leaves your network — receipts, proposals, and policies stay on-prem
+- You control the database, the encryption keys, and the backup policy
+- Statis provides managed updates via Helm chart
+
+## Architecture in VPC mode
+
+```
+Your VPC
+  ├── statis-api       (FastAPI, your container registry)
+  ├── statis-worker    (execution worker, your container registry)
+  ├── statis-postgres  (your RDS / Cloud SQL instance)
+  └── statis-console   (Next.js, your CDN or internal network)
+
+Your agents call statis-api at your private endpoint.
+Approval pages served from your domain.
+```
+
+## Setup
+
+VPC deployment is configured during Enterprise onboarding:
+
+1. We provide Helm charts and Terraform modules for your cloud provider
+2. You provide cloud account credentials and target region
+3. We deploy, validate, and hand off operational runbooks
+
+Contact us to start: [hello@statis.dev](mailto:hello@statis.dev?subject=Enterprise%20VPC)
+
+## Self-hosted alternative
+
+For teams that don't need the full VPC deployment package, see the
+[self-hosting guide](/self-host/quick-deploy) — Docker Compose or Kubernetes,
+your infrastructure, no contract required.

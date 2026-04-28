@@ -1,84 +1,88 @@
-import { PageShell, PageH2, PageProse } from "@/components/PageShell";
 import type { Metadata } from "next";
-import { IsoFoundation } from "@/components/ui/IsoIllustrations";
+import { PageV6Shell, HeroV6, SectionV6, PageProseV6, PageH2V6 } from "@/components/v6/PageV6Shell";
 
 export const metadata: Metadata = {
   title: "About — Statis",
-  description: "The story behind Statis and the team building the execution layer for production AI agents.",
+  description: "The story behind Statis and the team building @statis.gate — one decorator between your agent and production.",
 };
 
 export default function AboutPage() {
   return (
-    <PageShell
-      eyebrow="About"
-      title="Building the trust"
-      titleAccent="layer for agents."
-      subtitle="Statis is infrastructure for the teams running AI agents in production. We started it because watching agents do the wrong thing, twice, with no audit trail, was slowly losing its charm."
-      illustration={<IsoFoundation />}
-    >
-      <PageProse>
-        <PageH2>Why we exist</PageH2>
-        <p>
-          Every company running AI agents in production eventually hits the same wall: something
-          goes wrong, and there&apos;s no way to prove what happened. A payment fires twice. An
-          email goes to the wrong list. A deploy runs at 3am on a Sunday. And when someone asks
-          &quot;why did the agent do that?&quot; the answer is a shrug, a stack trace, and a
-          post-incident review.
-        </p>
-        <p>
-          We built Statis because this shouldn&apos;t be the state of the art. The mechanics of
-          trustworthy execution — idempotency, policy evaluation, audit trails — are solved
-          problems in finance, ops, and distributed systems. Agents just need a place where those
-          mechanics live.
-        </p>
+    <PageV6Shell currentRoute="/about">
+      <HeroV6
+        eyebrowNum="§ 01"
+        eyebrowText="About"
+        title="We got burned, so you don't have to."
+        subtitle="Statis started with a production agent that hallucinated its way through a Stripe charge — twice, with no audit trail. We built the decorator we wish we'd had."
+      />
 
-        <PageH2>What we believe</PageH2>
-        <ul className="list-disc pl-6 space-y-3">
-          <li>
-            <strong className="text-white">Determinism beats intelligence</strong> in the critical
-            path. Your governance layer should be as boring as a database.
-          </li>
-          <li>
-            <strong className="text-white">Audit is the product</strong>, not a feature. The
-            receipt ledger is the reason you buy this.
-          </li>
-          <li>
-            <strong className="text-white">Self-hostable by default.</strong> Trust infrastructure
-            should never require a vendor&apos;s permission.
-          </li>
-          <li>
-            <strong className="text-white">Reversible decisions.</strong> Every policy versioned,
-            every action undoable, every mistake recoverable.
-          </li>
-        </ul>
+      <SectionV6 number="§ 02" eyebrow="Why we exist">
+        <PageProseV6>
+          <p>
+            Every team shipping AI agents in production eventually hits the same wall: something
+            goes wrong, and there&apos;s no way to prove what happened. A payment fires twice. An
+            email goes to the wrong list. A deploy runs at 3am on a Sunday. And when someone asks
+            &quot;why did the agent do that?&quot; the answer is a shrug, a stack trace, and a
+            post-incident review.
+          </p>
+          <p>
+            The mechanics of trustworthy execution — idempotency, policy evaluation, audit trails —
+            are solved problems in finance, ops, and distributed systems. Agents just need a place
+            where those mechanics live. That&apos;s <code>@statis.gate</code>.
+          </p>
+        </PageProseV6>
+      </SectionV6>
 
-        <PageH2>The team</PageH2>
-        <p>
-          Statis is a small team based in San Francisco. We&apos;ve built infrastructure at
-          scale, shipped products people use every day, and made all the distributed systems
-          mistakes you can make. We&apos;re now making them at Statis, but with better audit
-          trails.
-        </p>
+      <SectionV6 number="§ 03" eyebrow="What we believe">
+        <PageProseV6>
+          <ul style={{ listStyle: "none", padding: 0, display: "flex", flexDirection: "column", gap: 16 }}>
+            <li>
+              <strong>Determinism beats intelligence</strong> in the critical path. Your governance
+              layer should be as boring as a database.
+            </li>
+            <li>
+              <strong>Audit is the product</strong>, not a feature. The receipt ledger is the reason
+              you buy this.
+            </li>
+            <li>
+              <strong>Self-hostable by default.</strong> Trust infrastructure should never require a
+              vendor&apos;s permission to inspect.
+            </li>
+            <li>
+              <strong>Reversible decisions.</strong> Every policy versioned, every action undoable,
+              every mistake recoverable.
+            </li>
+          </ul>
+        </PageProseV6>
+      </SectionV6>
 
-        <PageH2>Backed by</PageH2>
-        <p>
-          Statis is an independent company building in public. We share our roadmap, our
-          releases, and — occasionally — our incidents.
-        </p>
+      <SectionV6 number="§ 04" eyebrow="The team">
+        <PageProseV6>
+          <p>
+            Statis is a small team building in public. We&apos;ve built infrastructure at scale,
+            shipped products people use every day, and made all the distributed systems mistakes
+            you can make. We&apos;re now making them at Statis, but with better audit trails.
+          </p>
+          <p>
+            Questions, feedback, or feature requests? Email{" "}
+            <a href="mailto:hello@statis.dev">hello@statis.dev</a>. We reply to everyone.
+          </p>
+        </PageProseV6>
+      </SectionV6>
 
-        <PageH2>Get in touch</PageH2>
-        <p>
-          Questions, feedback, or feature requests? Email{" "}
-          <a href="mailto:hello@statis.dev" className="text-[#00D4FF] hover:underline">
-            hello@statis.dev
-          </a>
-          . Press inquiries:{" "}
-          <a href="mailto:press@statis.dev" className="text-[#00D4FF] hover:underline">
-            press@statis.dev
-          </a>
-          .
-        </p>
-      </PageProse>
-    </PageShell>
+      <div className="pv6-section" style={{ border: "none" }}>
+        <div className="pv6-cta-block">
+          <p className="pv6-cta-block-text">
+            One decorator. Five minutes to your first approval.
+          </p>
+          <div className="pv6-cta-block-links">
+            <a href="/quickstart" className="pv6-btn-primary">Try in 5 minutes →</a>
+            <a href="mailto:hello@statis.dev?subject=Talk%20to%20a%20founder" className="pv6-btn-ghost">
+              Talk to a founder
+            </a>
+          </div>
+        </div>
+      </div>
+    </PageV6Shell>
   );
 }

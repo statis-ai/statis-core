@@ -1,0 +1,68 @@
+---
+title: "Introduction"
+description: "One decorator. Your agent asks permission before it touches production."
+---
+
+## What is Statis?
+
+Statis is a decorator-based governance layer for production AI agents.
+
+```python
+from statis_ai import gate
+
+@gate(action_type="stripe_refund")
+def refund(charge_id: str, cents: int) -> dict:
+    return stripe.refunds.create(charge=charge_id, amount=cents)
+```
+
+That's it. When your agent calls `refund()`, Statis intercepts, evaluates your policy rules, and either:
+
+- **Approves** automatically (rule says it's safe), or
+- **Sends a signed URL** to a human for approval, or
+- **Denies** the action before it runs
+
+Every outcome — approved, denied, escalated — writes a tamper-evident receipt.
+
+## What you get on Day 1
+
+<CardGroup cols={2}>
+  <Card title="@statis.gate decorator" icon="code">
+    Wrap any Python function. The gate proposes, evaluates, and receipts every call.
+  </Card>
+  <Card title="Signed approval page" icon="browser">
+    A single-use URL with a 30-minute TTL. The human sees the function name, arguments,
+    and approves or denies from any device.
+  </Card>
+  <Card title="Policy engine" icon="shield">
+    Deterministic YAML rules. No ML, no drift. Fail-closed by default — no matching
+    rule means DENIED.
+  </Card>
+  <Card title="Receipt ledger" icon="receipt">
+    SHA-256 hash chain. Every action immutably recorded with its policy evaluation,
+    outcome, and timestamp.
+  </Card>
+</CardGroup>
+
+## The four concepts
+
+Statis does four things in sequence every time a gated function is called:
+
+1. **Propose** — the decorator captures the function name, arguments, and caller context
+2. **Approve** — your policy rules evaluate; a human approves if rules say ESCALATE
+3. **Receipt** — the outcome is written to the ledger atomically with execution
+4. **Graduation** — after 3 identical approvals, a YAML policy rule is auto-generated
+
+[Read the concepts page →](/docs/concepts)
+
+## What Statis is not
+
+Statis is not a prompt guard, a context compressor, or a token meter. If you need offline
+pre-call hygiene (no network, no auth), see [statis-kit](/statis-kit) — a separate package
+for exactly that.
+
+## Next step
+
+<Card title="Quickstart" icon="rocket" href="/docs/quickstart">
+  pip install statis-ai, decorate one function, hit the approval URL, see your first receipt.
+  Under 5 minutes cold.
+</Card>

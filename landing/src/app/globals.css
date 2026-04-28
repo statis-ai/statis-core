@@ -11,8 +11,8 @@
   --text: #EDEDED;
   --text-2: #888888;
   --text-muted: #555555;
-  --accent: #00D4FF;
-  --accent-glow: rgba(0,212,255,0.12);
+  --accent: #fb923c;
+  --accent-glow: rgba(251,146,60,0.12);
   --radius: 8px;
 }
 
@@ -26,7 +26,7 @@ body {
 }
 
 ::selection {
-  background: rgba(0,212,255,0.20);
+  background: rgba(251,146,60,0.20);
 }
 
 /* Marquee */

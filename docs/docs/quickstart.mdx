@@ -1,0 +1,115 @@
+---
+title: "Quickstart"
+description: "pip install statis-ai, decorate one function, see your first receipt. Under 5 minutes."
+---
+
+## 1. Install
+
+```bash
+pip install statis-ai
+```
+
+## 2. Get your API key
+
+```bash
+statis init
+```
+
+This runs the interactive signup flow. After completing it, your API key is written to
+`~/.statis/config.json` and exported as `STATIS_API_KEY`.
+
+Or set it manually:
+
+```bash
+export STATIS_API_KEY=sk-...
+```
+
+## 3. Decorate a function
+
+```python
+from statis_ai import gate
+
+@gate(action_type="stripe_refund")
+def refund(charge_id: str, cents: int) -> dict:
+    """Issue a refund via the Stripe API."""
+    import stripe
+    return stripe.refunds.create(charge=charge_id, amount=cents)
+```
+
+The `action_type` is the name that appears in your policy rules and receipt ledger.
+
+## 4. Call it
+
+```python
+result = refund(charge_id="ch_abc123", cents=5000)
+print(result)
+```
+
+On first call with no matching policy rule, the gate **escalates**:
+
+```
+ActionEscalatedError: Action stripe_refund is pending approval.
+  Approval URL: https://approval.statis.dev/a/tok_...
+  Expires: 2026-04-27T14:32:00Z
+```
+
+## 5. Approve from the URL
+
+Open the URL in any browser. You'll see:
+
+- Function: `stripe_refund`
+- Arguments: `charge_id=ch_abc123, cents=5000`
+- Approve / Deny buttons
+
+Click **Approve**.
+
+## 6. Re-run your agent
+
+The agent retries. This time the action is approved — it executes and writes a receipt:
+
+```python
+result = refund(charge_id="ch_abc123", cents=5000)
+# {"id": "re_abc123", "amount": 5000, "status": "succeeded"}
+```
+
+## 7. See your receipt
+
+```bash
+statis receipts list
+```
+
+```
+receipt_01hwx...  stripe_refund  APPROVED  2026-04-27T14:33:12Z
+  hash: sha256:a3f8...
+  policy: escalate_by_default
+  approved_by: hello@example.com
+```
+
+## What just happened
+
+1. **Propose** — the gate captured `stripe_refund(charge_id=ch_abc123, cents=5000)`
+2. **Approve** — no matching rule → ESCALATE → you approved at the URL
+3. **Execute** — the real `refund()` ran, returned the Stripe response
+4. **Receipt** — a tamper-evident record was written to the ledger
+
+## Next: write a policy rule
+
+After 3 identical approvals, Statis auto-generates a YAML rule suggestion. Or write one yourself:
+
+```yaml
+# statis/policies/stripe_refund.yaml
+rule: stripe_refund_small
+when:
+  action_type: stripe_refund
+  args.cents:
+    lte: 10000
+then: APPROVE
+```
+
+```bash
+statis apply statis/policies/stripe_refund.yaml
+```
+
+Now refunds under $100 are approved automatically.
+
+[Policy graduation →](/gate/policy-graduation) · [Full gate reference →](/gate/reference)

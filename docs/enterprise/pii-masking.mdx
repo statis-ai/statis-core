@@ -1,0 +1,109 @@
+---
+title: "PII Masking"
+description: "Automatic detection and masking of sensitive data in action parameters."
+---
+
+## Overview
+
+Statis automatically scans action parameters for personally identifiable information (PII) and masks sensitive values before they are persisted. This runs as middleware on `POST /actions` -- no SDK changes or agent modifications required.
+
+## How it works
+
+When an action is proposed, the PII masking layer:
+
+1. Recursively scans all keys and values in `parameters`
+2. Matches keys against a list of known sensitive field names
+3. Matches values against regex patterns (SSN, credit card, email)
+4. Replaces detected values with `[REDACTED]`
+
+The original values are never written to the database. Receipts, audit logs, and the Console all show the masked version.
+
+## Default sensitive fields
+
+The following 19 field names are masked by default (case-insensitive, matched anywhere in the key):
+
+| Fields |
+|--------|
+| `ssn`, `social_security`, `tax_id`, `national_id` |
+| `credit_card`, `card_number`, `cvv`, `expiry` |
+| `password`, `secret`, `token`, `api_key` |
+| `date_of_birth`, `dob` |
+| `bank_account`, `routing_number` |
+| `drivers_license`, `passport_number`, `phone` |
+
+## Pattern-based detection
+
+In addition to key matching, values are scanned with regex patterns:
+
+| Pattern | Example match |
+|---------|--------------|
+| SSN | `123-45-6789` |
+| Credit card | `4111-1111-1111-1111` |
+| Email | `user@example.com` |
+
+Pattern detection runs on all string values, regardless of the key name. A value like `"contact": "user@example.com"` will be masked even though `contact` is not in the sensitive fields list.
+
+## Recursive scanning
+
+Scanning is recursive. Nested objects and arrays are traversed to any depth:
+
+```json
+// Input
+{
+  "customer": {
+    "name": "Jane Doe",
+    "ssn": "123-45-6789",
+    "addresses": [
+      {"phone": "555-0100"}
+    ]
+  }
+}
+
+// Stored
+{
+  "customer": {
+    "name": "Jane Doe",
+    "ssn": "[REDACTED]",
+    "addresses": [
+      {"phone": "[REDACTED]"}
+    ]
+  }
+}
+```
+
+## Tenant-level configuration
+
+Add custom sensitive fields via the `MASKED_FIELDS` environment variable:
+
+```bash
+MASKED_FIELDS=employee_id,internal_code,medical_record_number
+```
+
+These are appended to the default 19 fields. You cannot remove default fields -- only add to them.
+
+<Note>
+  `MASKED_FIELDS` is a comma-separated list. Each entry is matched case-insensitively as a substring of the key name. Setting `MASKED_FIELDS=mrn` will mask any key containing `mrn`, such as `patient_mrn` or `mrn_value`.
+</Note>
+
+## Compliance
+
+PII masking supports compliance with:
+
+- **HIPAA** -- Protected Health Information (PHI) is masked before storage. Add healthcare-specific fields via `MASKED_FIELDS` (e.g., `medical_record_number`, `diagnosis_code`).
+- **GDPR** -- Personal data is not stored in plain text. Masking is irreversible, which simplifies data subject deletion requests.
+- **SOC 2** -- Sensitive data handling is enforced at the infrastructure layer, not left to individual agent implementations.
+
+<Warning>
+  PII masking is a defense-in-depth measure. It catches common patterns but is not a substitute for ensuring agents do not send sensitive data in the first place. Design your action contracts to avoid including PII in parameters when possible.
+</Warning>
+
+## Verifying masking
+
+Check that masking is working by inspecting the action in the Console or via the API:
+
+```bash
+GET /actions/{action_id}
+X-API-Key: st_...
+```
+
+Any masked fields will show `[REDACTED]` in the `parameters` object.

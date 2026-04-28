@@ -1,0 +1,182 @@
+---
+title: "Docker Compose Reference"
+description: "Full Docker Compose configuration for self-hosted Statis."
+---
+
+## docker-compose.yml
+
+```yaml
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: fastapi run app/main.py --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://statis:statis@db:5432/statis
+      - API_KEY_SALT=${API_KEY_SALT}
+      - THREAT_DETECTION_ENABLED=true
+      - THREAT_DETECTION_BLOCK=false
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m worker.execute
+    environment:
+      - DATABASE_URL=postgresql://statis:statis@db:5432/statis
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=statis
+      - POSTGRES_PASSWORD=statis
+      - POSTGRES_DB=statis
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U statis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+```
+
+## Dockerfile
+
+The API and worker share a single Dockerfile:
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY api/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY api/ ./app/
+COPY worker/ ./worker/
+
+EXPOSE 8000
+```
+
+## Services
+
+### API
+
+The FastAPI application. Handles all REST endpoints, middleware (PII masking, threat detection), and policy evaluation.
+
+| Setting | Value |
+|---------|-------|
+| Port | 8000 |
+| Health check | `GET /health` |
+| Restart policy | `unless-stopped` |
+| Depends on | `db` (healthy) |
+
+### Worker
+
+The execution worker. Polls for approved actions, acquires distributed locks, and calls adapters. Does not expose any ports.
+
+| Setting | Value |
+|---------|-------|
+| Port | None |
+| Restart policy | `unless-stopped` |
+| Depends on | `db` (healthy) |
+
+### PostgreSQL
+
+Stores all Statis data: actions, receipts, policy rules, entity state, webhooks.
+
+| Setting | Value |
+|---------|-------|
+| Image | `postgres:15-alpine` |
+| Port | 5432 (internal only) |
+| Volume | `pgdata` (persistent) |
+| Health check | `pg_isready` |
+
+## Environment Variables
+
+### Required
+
+| Variable | Service | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | API, Worker | PostgreSQL connection string |
+| `API_KEY_SALT` | API | Salt for API key hashing |
+
+### Optional -- Security
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `THREAT_DETECTION_ENABLED` | `true` | Enable threat scanning on action proposals |
+| `THREAT_DETECTION_BLOCK` | `false` | Deny actions with detected threats |
+| `MASKED_FIELDS` | (empty) | Additional PII field names, comma-separated |
+
+### Optional -- SIEM
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SIEM_PROVIDER` | (none) | `datadog` or `splunk` |
+| `DATADOG_API_KEY` | -- | Datadog API key |
+| `DATADOG_SITE` | `datadoghq.com` | Datadog site |
+| `SPLUNK_HEC_URL` | -- | Splunk HEC endpoint |
+| `SPLUNK_HEC_TOKEN` | -- | Splunk HEC token |
+
+### Optional -- SSO
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OIDC_ISSUER` | (none) | OIDC issuer URL |
+| `OIDC_CLIENT_ID` | -- | OIDC client ID |
+| `OIDC_CLIENT_SECRET` | -- | OIDC client secret |
+| `OIDC_POST_LOGIN_URL` | -- | Post-login redirect URL |
+
+### Optional -- Adapters
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AIRFLOW_BASE_URL` | -- | Airflow REST API base URL |
+| `AIRFLOW_USERNAME` | -- | Airflow basic auth username |
+| `AIRFLOW_PASSWORD` | -- | Airflow basic auth password |
+
+## Volumes
+
+| Volume | Mount | Purpose |
+|--------|-------|---------|
+| `pgdata` | `/var/lib/postgresql/data` | Persistent PostgreSQL data |
+
+<Warning>
+  The default `docker-compose.yml` uses `statis/statis` as the PostgreSQL credentials. Change these in production and set a strong `API_KEY_SALT`.
+</Warning>
+
+## Scaling
+
+To run multiple worker instances:
+
+```bash
+docker compose up -d --scale worker=3
+```
+
+The distributed lock ensures exactly-once execution even with multiple workers. Each worker acquires a PostgreSQL advisory lock before executing an action -- only one worker succeeds.
+
+<Note>
+  The API is stateless and can also be scaled horizontally behind a load balancer. Each instance needs access to the same PostgreSQL database.
+</Note>

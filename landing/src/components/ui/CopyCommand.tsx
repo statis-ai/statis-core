@@ -38,7 +38,7 @@ export function CopyCommand({
       <span>{command}</span>
       <span
         className="ml-1 text-[11px]"
-        style={{ color: copied ? "#00D4FF" : "var(--text-muted)" }}
+        style={{ color: copied ? "var(--accent)" : "var(--text-muted)" }}
       >
         {copied ? "Copied" : "Copy"}
       </span>

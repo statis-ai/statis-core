@@ -54,11 +54,11 @@ export default function BlogPage() {
                 <div className="mb-4 flex items-center gap-3">
                   <span
                     className="inline-block rounded px-2 py-0.5 text-[9px] uppercase tracking-wider"
-                    style={{ background: "rgba(0,212,255,0.1)", color: "#00D4FF", border: "1px solid rgba(0,212,255,0.2)" }}
+                    style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
                   >
                     {post.tag}
                   </span>
-                  <span className="text-[10px]" style={{ color: "#444" }}>
+                  <span className="text-[10px]" style={{ color: "var(--text-subtle)" }}>
                     {new Date(post.date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
                   </span>
                 </div>
@@ -73,10 +73,10 @@ export default function BlogPage() {
               </div>
 
               <div className="mt-6 flex items-center justify-between text-[10px]">
-                <span style={{ color: "#444" }}>{post.readTime}</span>
+                <span style={{ color: "var(--text-subtle)" }}>{post.readTime}</span>
                 <span
                   className="flex items-center gap-1.5 transition-colors"
-                  style={{ color: "#00D4FF" }}
+                  style={{ color: "var(--accent)" }}
                 >
                   {isExternal ? "Read on Medium" : "Read article"}
                   <ArrowIcon external={isExternal} />

@@ -1,10 +1,9 @@
-import { PageShell } from "@/components/PageShell";
+import { PageV6Shell, HeroV6 } from "@/components/v6/PageV6Shell";
 import type { Metadata } from "next";
-import { IsoIntegrationGrid } from "@/components/ui/IsoIllustrations";
 
 export const metadata: Metadata = {
   title: "Integrations — Statis",
-  description: "Adapters for every production system your agents touch. Same context guard, same policy engine, same receipt ledger — whichever integration you pick.",
+  description: "Pre-built adapters for Stripe, Airflow, Salesforce, Zendesk, HubSpot, GitHub, and more. Teams tier depth signal — wrap any tool in @statis.gate today.",
 };
 
 type Integration = {
@@ -19,7 +18,7 @@ const INTEGRATIONS: Integration[] = [
   { name: "Linear",        category: "Project Mgmt",  description: "Create and update issues via GraphQL with idempotency.",                status: "GA" },
   { name: "Slack",         category: "Communication", description: "Send and update messages with exactly-once semantics.",                 status: "GA" },
   { name: "Stripe",        category: "Payments",      description: "Charge, refund, subscribe — every action receipted.",                   status: "GA" },
-  { name: "MCP",           category: "Protocol",      description: "Route Claude and Cursor tool calls through policy evaluation.",         status: "GA" },
+  { name: "MCP",           category: "Protocol",      description: "Route Claude and Cursor tool calls through @statis.gate.",              status: "GA" },
   { name: "Airflow",       category: "Orchestration", description: "Trigger DAGs through the governance layer.",                            status: "GA" },
   { name: "HubSpot",       category: "CRM",           description: "Contact and deal mutations with audit trail.",                          status: "Beta" },
   { name: "Salesforce",    category: "CRM",           description: "Record updates, opportunity changes, flow triggers.",                   status: "Beta" },
@@ -30,70 +29,132 @@ const INTEGRATIONS: Integration[] = [
 ];
 
 const STATUS_STYLE: Record<Integration["status"], { color: string; bg: string; border: string }> = {
-  GA:            { color: "#00D4FF", bg: "rgba(0,212,255,0.10)",   border: "rgba(0,212,255,0.28)" },
-  Beta:          { color: "#FACC15", bg: "rgba(250,204,21,0.10)",  border: "rgba(250,204,21,0.28)" },
-  "Coming soon": { color: "#A1A1AA", bg: "rgba(255,255,255,0.04)", border: "rgba(255,255,255,0.10)" },
+  GA:            { color: "var(--accent)",    bg: "var(--accent-bg)",    border: "var(--accent-border)" },
+  Beta:          { color: "var(--status-info)", bg: "rgba(96,165,250,0.08)", border: "rgba(96,165,250,0.25)" },
+  "Coming soon": { color: "var(--text-subtle)", bg: "rgba(255,255,255,0.03)", border: "var(--border)" },
 };
 
 export default function IntegrationsPage() {
   return (
-    <PageShell
-      eyebrow="Integrations"
-      title="Every adapter,"
-      titleAccent="same trust layer."
-      subtitle="No featured integration. No preferred surface. Every adapter flows through the same three pillars — context checked, action authorized, execution receipted."
-      illustration={<IsoIntegrationGrid />}
-    >
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-8">
-        {INTEGRATIONS.map((i) => {
-          const style = STATUS_STYLE[i.status];
-          return (
-            <div
-              key={i.name}
-              className="rounded-lg p-5 transition-colors hover:bg-white/[0.03]"
-              style={{
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div>
-                  <h3 className="text-base font-bold text-white tracking-tight">{i.name}</h3>
-                  <p className="text-[10px] mt-0.5 uppercase tracking-wider font-semibold" style={{ color: "#71717A" }}>
-                    {i.category}
-                  </p>
-                </div>
-                <span
-                  className="text-[9px] font-bold px-2 py-0.5 rounded"
-                  style={{ color: style.color, background: style.bg, border: `1px solid ${style.border}` }}
-                >
-                  {i.status.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-xs leading-relaxed" style={{ color: "#A1A1AA" }}>
-                {i.description}
-              </p>
-            </div>
-          );
-        })}
-      </div>
+    <PageV6Shell currentRoute="/integrations">
+      <HeroV6
+        eyebrowNum="§ 01"
+        eyebrowText="Integrations"
+        title="Pre-built adapters."
+        titleStrong="All through the gate."
+        subtitle="Six adapters ship with Teams. Any function you can decorate with @statis.gate works on Day 1 — these are the ones we pre-wired so you don't have to."
+      />
 
-      <div
-        className="mt-12 p-6 rounded-xl text-center"
-        style={{
-          background: "rgba(0,212,255,0.04)",
-          border: "1px solid rgba(0,212,255,0.15)",
-        }}
-      >
-        <p className="text-sm font-semibold text-white mb-2">Need something custom?</p>
-        <p className="text-xs max-w-md mx-auto leading-relaxed" style={{ color: "#A1A1AA" }}>
-          Every adapter is a thin wrapper around a REST or GraphQL client. Build your own in under 50 lines, or{" "}
-          <a href="mailto:hello@statis.dev" className="text-[#00D4FF] hover:underline">
-            let us build it for you
-          </a>
-          .
-        </p>
+      <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 40px 80px" }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
+            gap: 12,
+            marginBottom: 40,
+          }}
+        >
+          {INTEGRATIONS.map((i) => {
+            const style = STATUS_STYLE[i.status];
+            return (
+              <div
+                key={i.name}
+                className="pv6-card"
+              >
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
+                  <div>
+                    <h3
+                      style={{
+                        fontFamily: "var(--font)",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "var(--text)",
+                        letterSpacing: "-0.01em",
+                      }}
+                    >
+                      {i.name}
+                    </h3>
+                    <p
+                      style={{
+                        fontFamily: "var(--font)",
+                        fontSize: 9,
+                        letterSpacing: "0.14em",
+                        textTransform: "uppercase",
+                        color: "var(--text-subtle)",
+                        marginTop: 2,
+                      }}
+                    >
+                      {i.category}
+                    </p>
+                  </div>
+                  <span
+                    style={{
+                      fontFamily: "var(--font)",
+                      fontSize: 8,
+                      fontWeight: 700,
+                      letterSpacing: "0.12em",
+                      padding: "2px 6px",
+                      color: style.color,
+                      background: style.bg,
+                      border: `1px solid ${style.border}`,
+                      borderRadius: "2px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {i.status.toUpperCase()}
+                  </span>
+                </div>
+                <p
+                  style={{
+                    fontFamily: "var(--font)",
+                    fontSize: 12,
+                    lineHeight: 1.6,
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {i.description}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        <div
+          style={{
+            background: "var(--accent-bg)",
+            border: "1px solid var(--accent-border)",
+            borderRadius: "var(--radius)",
+            padding: "24px 28px",
+          }}
+        >
+          <p
+            style={{
+              fontFamily: "var(--font)",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--text)",
+              marginBottom: 8,
+            }}
+          >
+            Don&apos;t see your tool?
+          </p>
+          <p
+            style={{
+              fontFamily: "var(--font)",
+              fontSize: 12,
+              lineHeight: 1.6,
+              color: "var(--text-muted)",
+            }}
+          >
+            Every adapter is a thin wrapper around a REST or GraphQL client. Wrap any function
+            with <code style={{ color: "var(--accent)" }}>@statis.gate</code> and you&apos;re
+            done — no adapter needed.{" "}
+            <a href="mailto:hello@statis.dev" style={{ color: "var(--accent)", textDecoration: "none" }}>
+              Let us know what you&apos;re integrating →
+            </a>
+          </p>
+        </div>
       </div>
-    </PageShell>
+    </PageV6Shell>
   );
 }
