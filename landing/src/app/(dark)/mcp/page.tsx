@@ -85,7 +85,7 @@ then:
             Five minutes to your first gated MCP tool call.
           </p>
           <div className="pv6-cta-block-links">
-            <a href="/quickstart" className="pv6-btn-primary">Try in 5 minutes →</a>
+            <a href="https://docs.statis.dev/docs/quickstart" className="pv6-btn-primary" rel="noopener">Try in 5 minutes →</a>
             <a
               href="mailto:hello@statis.dev?subject=Talk%20to%20a%20founder"
               className="pv6-btn-ghost"

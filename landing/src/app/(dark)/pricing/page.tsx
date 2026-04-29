@@ -33,7 +33,7 @@ const TIERS: Tier[] = [
       "Python SDK + TypeScript SDK",
       "statis init CLI",
     ],
-    cta: { label: "Try in 5 minutes →", href: "/quickstart", primary: true },
+    cta: { label: "Try in 5 minutes →", href: "https://docs.statis.dev/docs/quickstart", primary: true },
     accent: false,
   },
   {
@@ -182,6 +182,7 @@ export default function PricingPage() {
 
               <a
                 href={tier.cta.href}
+                rel={tier.cta.href.startsWith("http") ? "noopener" : undefined}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
@@ -193,10 +194,10 @@ export default function PricingPage() {
                   letterSpacing: "0.06em",
                   textTransform: "uppercase",
                   textDecoration: "none",
-                  borderRadius: "2px",
-                  transition: "opacity 0.15s",
-                  background: tier.accent ? "var(--accent)" : "transparent",
-                  color: tier.accent ? "#0a0a0a" : "var(--text)",
+                  borderRadius: "3px",
+                  transition: "background 0.15s",
+                  background: tier.accent ? "var(--ink, #1a1a1a)" : "transparent",
+                  color: tier.accent ? "var(--paper, #fbf8f1)" : "var(--text)",
                   border: tier.accent ? "none" : "1px solid var(--border-strong)",
                 }}
               >
