@@ -5,7 +5,6 @@ import { StatisMark } from "@/components/brand/StatisMark";
 export function TopbarV6({ currentRoute }: { currentRoute?: string }) {
   const links = [
     { href: "/blog", label: "Blog" },
-    { href: "https://github.com/statis-ai", label: "GitHub", external: true },
     { href: "https://docs.statis.dev", label: "Docs", external: true },
   ];
 
@@ -36,7 +35,11 @@ export function TopbarV6({ currentRoute }: { currentRoute?: string }) {
         <a href="https://console.statis.dev" className="pv6-signin" rel="noopener">
           Sign in
         </a>
-        <a href="/quickstart" className="pv6-cta-btn">
+        <a
+          href="https://docs.statis.dev/docs/quickstart"
+          className="pv6-cta-btn"
+          rel="noopener"
+        >
           Try in 5 min →
         </a>
       </div>
@@ -125,7 +128,12 @@ export function FooterV6() {
               One decorator. Your agent asks permission before it touches production.
             </p>
             <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-              <a href="/quickstart" className="pv6-btn-primary" style={{ fontSize: 10 }}>
+              <a
+                href="https://docs.statis.dev/docs/quickstart"
+                className="pv6-btn-primary"
+                style={{ fontSize: 10 }}
+                rel="noopener"
+              >
                 Try in 5 minutes →
               </a>
               <a

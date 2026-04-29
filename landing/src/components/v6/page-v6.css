@@ -16,10 +16,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(7, 7, 10, 0.80);
-  backdrop-filter: saturate(130%) blur(16px);
-  -webkit-backdrop-filter: saturate(130%) blur(16px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(243, 239, 231, 0.78);
+  backdrop-filter: saturate(140%) blur(16px);
+  -webkit-backdrop-filter: saturate(140%) blur(16px);
+  border-bottom: 1px solid rgba(60, 40, 20, 0.06);
 }
 
 .pv6-brand {
@@ -99,21 +99,21 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  background: var(--accent);
-  color: #0a0a0a;
+  padding: 9px 16px;
+  background: var(--ink, #1a1a1a);
+  color: var(--paper, #fbf8f1);
   font-family: var(--font);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-decoration: none;
-  border-radius: 2px;
-  transition: opacity 0.15s;
+  border-radius: 3px;
+  transition: background 0.15s;
 }
 
 .pv6-cta-btn:hover {
-  opacity: 0.88;
+  background: var(--accent-deep, #8a2f1f);
 }
 
 /* ===== HERO ===== */
@@ -429,20 +429,20 @@
   align-items: center;
   gap: 6px;
   padding: 10px 20px;
-  background: var(--accent);
-  color: #0a0a0a;
+  background: var(--ink, #1a1a1a);
+  color: var(--paper, #fbf8f1);
   font-family: var(--font);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   text-decoration: none;
-  border-radius: 2px;
-  transition: opacity 0.15s;
+  border-radius: 3px;
+  transition: background 0.15s;
 }
 
 .pv6-btn-primary:hover {
-  opacity: 0.88;
+  background: var(--accent-deep, #8a2f1f);
 }
 
 .pv6-btn-ghost {

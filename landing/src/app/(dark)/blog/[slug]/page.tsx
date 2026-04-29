@@ -24,20 +24,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
-  return (
-    <h2
-      className="mt-12 mb-4 pl-4 text-xl font-bold"
-      style={{ borderLeft: "2px solid var(--accent)", color: "var(--text)" }}
-    >
-      {children}
-    </h2>
-  );
+  return <h2 className="blog-prose-section-heading">{children}</h2>;
 }
 
 function StaleStateContent() {
   return (
     <>
-      <p className="text-base font-medium leading-relaxed" style={{ color: "#ccc" }}>
+      <p className="text-base font-medium leading-relaxed" style={{ color: "var(--ink)" }}>
         Why Your Multi-Agent Systems are Hallucinating (and It&rsquo;s Not the
         LLM&rsquo;s Fault)
       </p>
@@ -55,7 +48,7 @@ function StaleStateContent() {
         hallucination.&rdquo; But if you look under the hood of most
         multi-agent architectures, you&rsquo;ll find the culprit isn&rsquo;t
         the model &mdash; it&rsquo;s the data. Specifically, it&rsquo;s{" "}
-        <strong style={{ color: "#ccc" }}>stale state</strong>.
+        <strong style={{ color: "var(--ink)" }}>stale state</strong>.
       </p>
 
       <SectionHeading>The Coordination Crisis</SectionHeading>
@@ -79,7 +72,7 @@ function StaleStateContent() {
         routine. It looks at a cached state from five minutes ago, sees the
         customer is &ldquo;healthy,&rdquo; and fires off an automated, cheerful
         email:{" "}
-        <em style={{ color: "#666" }}>
+        <em style={{ color: "var(--ink-muted)" }}>
           &ldquo;Happy Friday! Are you ready to upgrade your plan?&rdquo;
         </em>
       </p>
@@ -113,7 +106,7 @@ function StaleStateContent() {
       <p>
         You don&rsquo;t want your agents &ldquo;retrieving&rdquo; dynamic
         state. You want them{" "}
-        <strong style={{ color: "#ccc" }}>reacting</strong> to it.
+        <strong style={{ color: "var(--ink)" }}>reacting</strong> to it.
       </p>
 
       <SectionHeading>
@@ -155,7 +148,7 @@ function StaleStateContent() {
 
       <p>
         The magic behind this real-time coordination is our{" "}
-        <strong style={{ color: "#ccc" }}>Materialize-on-Write</strong>{" "}
+        <strong style={{ color: "var(--ink)" }}>Materialize-on-Write</strong>{" "}
         architecture.
       </p>
 
@@ -182,7 +175,7 @@ function StaleStateContent() {
               {n}
             </span>
             <span>
-              <strong style={{ color: "#ccc" }}>{label}</strong>{" "}
+              <strong style={{ color: "var(--ink)" }}>{label}</strong>{" "}
               &mdash; {desc}
             </span>
           </li>
@@ -197,9 +190,9 @@ function StaleStateContent() {
         determinism.
       </p>
 
-      <hr className="my-10" style={{ borderColor: "#1a1a1a" }} />
+      <hr className="my-10" style={{ borderColor: "var(--rule)" }} />
 
-      <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
+      <p className="text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
         If we want to build autonomous AI systems that enterprises can actually
         trust, we have to stop asking our agents to constantly look over their
         shoulders to see what the other agents are doing. Give them a shared,
@@ -212,7 +205,7 @@ function StaleStateContent() {
 function CompressorLaunchContent() {
   return (
     <>
-      <p className="text-base font-medium leading-relaxed" style={{ color: "#ccc" }}>
+      <p className="text-base font-medium leading-relaxed" style={{ color: "var(--ink)" }}>
         We built Statis Context Kit for our own agents. Then we gave it away.
       </p>
 
@@ -222,7 +215,7 @@ function CompressorLaunchContent() {
         hallucination trail that turned out to be a stale tool response buried on turn 14, a
         prompt-injection report from a user who pasted something you never imagined. The model
         isn&rsquo;t the problem. The{" "}
-        <strong style={{ color: "#ccc" }}>context you hand the model</strong> is the problem.
+        <strong style={{ color: "var(--ink)" }}>context you hand the model</strong> is the problem.
       </p>
 
       <SectionHeading>The 7,800 &rarr; 3,200 token run</SectionHeading>
@@ -252,7 +245,7 @@ function CompressorLaunchContent() {
       </p>
 
       <p>
-        So <strong style={{ color: "#ccc" }}>Statis Context Kit</strong> is what we wanted:
+        So <strong style={{ color: "var(--ink)" }}>Statis Context Kit</strong> is what we wanted:
         five lines of Python, zero account, MIT license, runs entirely in-process. It&rsquo;s
         what we already use on our own agents. Now it&rsquo;s what you use on yours.
       </p>
@@ -288,7 +281,7 @@ print(result.report.token_delta, result.report.cost_estimate)`}
               {n}
             </span>
             <span>
-              <strong style={{ color: "#ccc" }}>{label}</strong> &mdash; {desc}
+              <strong style={{ color: "var(--ink)" }}>{label}</strong> &mdash; {desc}
             </span>
           </li>
         ))}
@@ -307,13 +300,13 @@ print(result.report.token_delta, result.report.cost_estimate)`}
       <p>
         Put differently: the Kit is the firewall. The cloud is the SIEM. The enterprise
         product is the compliance report. You need all three eventually. You need the first
-        one <strong style={{ color: "#ccc" }}>today</strong>, for free, without asking
+        one <strong style={{ color: "var(--ink)" }}>today</strong>, for free, without asking
         anyone&rsquo;s permission.
       </p>
 
-      <hr className="my-10" style={{ borderColor: "#1a1a1a" }} />
+      <hr className="my-10" style={{ borderColor: "var(--rule)" }} />
 
-      <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
+      <p className="text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
         <code>pip install statis-kit</code>. Five minutes from now you&rsquo;ll know what your
         context actually costs. And you&rsquo;ll stop paying for the turns you don&rsquo;t
         need.
@@ -325,7 +318,7 @@ print(result.report.token_delta, result.report.cost_estimate)`}
 function StatisOnStatisContent() {
   return (
     <>
-      <p className="text-base font-medium leading-relaxed" style={{ color: "#ccc" }}>
+      <p className="text-base font-medium leading-relaxed" style={{ color: "var(--ink)" }}>
         Every CI merge, deploy, release, Linear ticket, and Slack notification
         in this repo goes through our own policy engine. Twenty days in, here&rsquo;s
         the ledger.
@@ -363,7 +356,7 @@ function StatisOnStatisContent() {
               {n}
             </span>
             <span>
-              <strong style={{ color: "#ccc" }}>
+              <strong style={{ color: "var(--ink)" }}>
                 <code>{label}</code>
               </strong>{" "}
               &mdash; {desc}
@@ -425,7 +418,7 @@ function StatisOnStatisContent() {
               {n}
             </span>
             <span>
-              <strong style={{ color: "#ccc" }}>{label}</strong> &mdash; {desc}
+              <strong style={{ color: "var(--ink)" }}>{label}</strong> &mdash; {desc}
             </span>
           </li>
         ))}
@@ -480,9 +473,9 @@ STATIS_API_KEY=st_... ./dogfood/bootstrap.sh`}
         setup running against your GitHub inside of ten minutes.
       </p>
 
-      <hr className="my-10" style={{ borderColor: "#1a1a1a" }} />
+      <hr className="my-10" style={{ borderColor: "var(--rule)" }} />
 
-      <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
+      <p className="text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
         We&rsquo;ll publish this ledger monthly. When the number gets bigger
         and the incidents are still zero, we&rsquo;ll tell you. When something
         breaks, we&rsquo;ll tell you that too &mdash; with the receipt hash.
@@ -494,7 +487,7 @@ STATIS_API_KEY=st_... ./dogfood/bootstrap.sh`}
 function GateLaunchContent() {
   return (
     <>
-      <p className="text-base font-medium leading-relaxed" style={{ color: "#ccc" }}>
+      <p className="text-base font-medium leading-relaxed" style={{ color: "var(--ink)" }}>
         An AI agent deleted our production Snowflake tables. We built{" "}
         <code>@statis.gate</code> so it can&rsquo;t happen again — to us or
         anyone else.
@@ -581,7 +574,7 @@ def execute_sql(query: str) -> dict:
               {n}
             </span>
             <span>
-              <strong style={{ color: "#ccc" }}>{label}</strong> &mdash; {desc}
+              <strong style={{ color: "var(--ink)" }}>{label}</strong> &mdash; {desc}
             </span>
           </li>
         ))}
@@ -640,7 +633,7 @@ conditions:
               {n}
             </span>
             <span>
-              <strong style={{ color: "#ccc" }}>{label}</strong> &mdash; {desc}
+              <strong style={{ color: "var(--ink)" }}>{label}</strong> &mdash; {desc}
             </span>
           </li>
         ))}
@@ -679,9 +672,9 @@ def execute_sql(query: str) -> dict:
         </pre>
       </div>
 
-      <hr className="my-10" style={{ borderColor: "#1a1a1a" }} />
+      <hr className="my-10" style={{ borderColor: "var(--rule)" }} />
 
-      <p className="text-base leading-relaxed" style={{ color: "#aaa" }}>
+      <p className="text-base leading-relaxed" style={{ color: "var(--ink-soft)" }}>
         Running agents in production? Want to talk about how you handle governance
         today, or did something like this already happen to you? Reach us at{" "}
         <a href="mailto:founders@statis.dev" style={{ color: "var(--accent)" }}>
@@ -710,64 +703,34 @@ export default async function BlogPostPage({ params }: Props) {
   if (!ContentComponent) notFound();
 
   return (
-    <article className="mx-auto max-w-3xl px-6">
-      <Link
-        href="/blog"
-        className="group mb-12 inline-flex items-center gap-2 text-xs transition-colors mt-8 blog-back-link"
-      >
-        <svg className="h-3 w-3 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <article className="blog-post">
+      <Link href="/blog" className="blog-post-back">
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
         </svg>
         Back to Blog
       </Link>
 
-      <header className="mb-10">
-        <div className="mb-4 flex flex-wrap items-center gap-3">
-          <span
-            className="inline-block rounded px-2 py-0.5 text-[9px] uppercase tracking-wider"
-            style={{ background: "var(--accent-bg)", color: "var(--accent)", border: "1px solid var(--accent-border)" }}
-          >
-            {post.tag}
-          </span>
-          <span className="text-[10px]" style={{ color: "var(--text-subtle)" }}>
+      <header>
+        <div className="blog-post-meta">
+          <span className="blog-post-tag">{post.tag}</span>
+          <span>
             {new Date(post.date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
           </span>
-          <span style={{ color: "#333" }}>&middot;</span>
-          <span className="text-[10px]" style={{ color: "var(--text-subtle)" }}>{post.readTime}</span>
+          <span className="blog-post-dot" aria-hidden="true" />
+          <span>{post.readTime}</span>
         </div>
-
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight leading-[1.15]" style={{ color: "var(--text)" }}>
-          {post.title}
-        </h1>
+        <h1 className="blog-post-title">{post.title}</h1>
+        <p className="blog-post-lede">{post.description}</p>
       </header>
 
-      <div
-        className="space-y-6 text-sm leading-[1.9]"
-        style={{ color: "var(--text-2)" }}
-      >
-        <style>{`
-          article code {
-            background: #111;
-            border: 1px solid #222;
-            padding: 0.1em 0.4em;
-            border-radius: 3px;
-            font-size: 0.85em;
-            color: #aaa;
-          }
-        `}</style>
+      <div className="blog-prose">
         <ContentComponent />
       </div>
 
-      <div className="mt-20 pt-8 mb-24" style={{ borderTop: "1px solid #1a1a1a" }}>
-        <Link
-          href="/blog"
-          className="group inline-flex items-center gap-2 text-xs transition-colors blog-back-link"
-        >
-          <svg className="h-3 w-3 transition-transform group-hover:-translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-          </svg>
-          All posts
-        </Link>
+      <div className="blog-post-foot">
+        <Link href="/blog">← All posts</Link>
+        <a href="https://docs.statis.dev/docs/quickstart" rel="noopener">Try the gate in 5 min →</a>
       </div>
     </article>
   );

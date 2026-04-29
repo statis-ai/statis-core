@@ -9,6 +9,74 @@ import {
   type ConsoleRow,
 } from "@/data/consoleSeed";
 
+/**
+ * Tiny inline icon glyphs for the console sidebar items. Stroked, 14×14,
+ * uses currentColor so they pick up active/inactive state from the parent.
+ */
+const NAV_ICONS: Record<string, React.ReactNode> = {
+  Home: (
+    <path d="M3 7l5-4 5 4v6H3z M6.5 13V9.5h3V13" />
+  ),
+  Actions: (
+    <path d="M2.5 8h6 M5.5 5l3 3-3 3 M9.5 13.5h4M9.5 8h4" />
+  ),
+  Receipts: (
+    <path d="M3.5 2v12l2-1.5 2 1.5 2-1.5 2 1.5V2zM5 5h6 M5 8h6 M5 11h4" />
+  ),
+  Escalations: (
+    <path d="M8 2.5L1.5 13.5h13zM8 6.5v3.5 M8 12v0.5" />
+  ),
+  Policies: (
+    <path d="M8 1.5L3 3.5v4.2c0 3.2 2 5.6 5 6.8 3-1.2 5-3.6 5-6.8V3.5z M5.5 8l1.7 1.7L10.5 6.5" />
+  ),
+  "Threat logs": (
+    <path d="M8 1.5L2 4v3.5c0 3.5 2.5 6 6 7 3.5-1 6-3.5 6-7V4z M8 5.5v3.5 M8 11v0.5" />
+  ),
+  Events: (
+    <path d="M2.5 4h11M2.5 8h11M2.5 12h11 M5 4v8M11 4v8" />
+  ),
+  Agents: (
+    <path d="M5.5 6.5a2.5 2.5 0 1 1 5 0 2.5 2.5 0 0 1-5 0z M2.5 13.5c0-2.5 2.5-4 5.5-4s5.5 1.5 5.5 4" />
+  ),
+  Adapters: (
+    <path d="M3 5.5h2.5v5H3z M10.5 5.5H13v5h-2.5z M5.5 8h5 M7 4v1.5 M9 4v1.5 M7 10.5V12 M9 10.5V12" />
+  ),
+  Developers: (
+    <path d="M5.5 4L2.5 8l3 4 M10.5 4l3 4-3 4 M9.5 3.5l-3 9" />
+  ),
+  Entities: (
+    <path d="M3 4h4v4H3z M9 4h4v4H9z M3 9h4v4H3z M9 9h4v4H9z" />
+  ),
+  Webhooks: (
+    <path d="M5.5 9.5a2.5 2.5 0 1 1 4-2 M9 11l3-3 M11 14a2.5 2.5 0 1 1-2-4 M3 11a2.5 2.5 0 0 1 4-2L8 11" />
+  ),
+  "Kill-switch": (
+    <path d="M8 2v6 M4.5 4.5a5 5 0 1 0 7 0" />
+  ),
+  Settings: (
+    <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z M8 1v2 M8 13v2 M1 8h2 M13 8h2 M3 3l1.5 1.5 M11.5 11.5L13 13 M3 13l1.5-1.5 M11.5 4.5L13 3" />
+  ),
+};
+
+function NavIcon({ name }: { name: string }) {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 16 16"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      style={{ flexShrink: 0 }}
+    >
+      {NAV_ICONS[name] ?? <circle cx="8" cy="8" r="2" />}
+    </svg>
+  );
+}
+
 const PALETTES: Record<string, { color: string; bg: string; border: string }> = {
   COMPLETED: { color: "#34D399", bg: "rgba(52,211,153,0.10)", border: "rgba(52,211,153,0.28)" },
   ESCALATED: { color: "#FACC15", bg: "rgba(250,204,21,0.10)", border: "rgba(250,204,21,0.28)" },
@@ -90,37 +158,37 @@ function Row({ row, highlight }: { row: ConsoleRow; highlight?: boolean }) {
         gridTemplateColumns: "1.6fr 0.9fr 1fr 0.5fr 0.7fr",
         gap: 12,
         alignItems: "center",
-        padding: "10px 16px",
+        padding: "8px 14px",
         borderTop: "1px solid rgba(255,255,255,0.06)",
-        fontSize: 12,
+        fontSize: 11,
         color: "#d4d4d8",
         background: highlight ? "rgba(251,146,60,0.04)" : "transparent",
         transition: "background 400ms ease",
       }}
     >
       <div style={{ minWidth: 0 }}>
-        <div style={{ fontFamily: "var(--mono)", color: "#fafafa", fontWeight: 500 }}>
+        <div style={{ fontFamily: "var(--mono)", color: "#fafafa", fontWeight: 500, fontSize: 11 }}>
           {row.action}
         </div>
-        <div style={{ fontSize: 11, color: "#71717a", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ fontSize: 10, color: "#71717a", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {row.detail}
         </div>
       </div>
-      <div style={{ fontSize: 11, color: "#a1a1aa", fontFamily: "var(--mono)" }}>
+      <div style={{ fontSize: 10, color: "#a1a1aa", fontFamily: "var(--mono)" }}>
         {row.agent}
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
         <Pill status={row.decision} />
         {row.decisionDetail && (
-          <span style={{ fontSize: 10, color: "#71717a", fontFamily: "var(--mono)" }}>
+          <span style={{ fontSize: 9, color: "#71717a", fontFamily: "var(--mono)" }}>
             {row.decisionDetail}
           </span>
         )}
       </div>
-      <div style={{ fontSize: 11, color: "#a1a1aa", fontFamily: "var(--mono)" }}>
+      <div style={{ fontSize: 10, color: "#a1a1aa", fontFamily: "var(--mono)" }}>
         {row.latency}
       </div>
-      <div style={{ fontSize: 11, color: row.receipt === "—" ? "#52525b" : "#fb923c", fontFamily: "var(--mono)" }}>
+      <div style={{ fontSize: 10, color: row.receipt === "—" ? "#52525b" : "#fb923c", fontFamily: "var(--mono)" }}>
         {row.receipt}
       </div>
     </div>
@@ -129,7 +197,6 @@ function Row({ row, highlight }: { row: ConsoleRow; highlight?: boolean }) {
 
 export default function ConsoleShowcase() {
   const [liveRow, setLiveRow] = useState<ConsoleRow>(CONSOLE_ROWS[6]);
-  const [tilt, setTilt] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -159,14 +226,46 @@ export default function ConsoleShowcase() {
     <section
       style={{
         position: "relative",
-        padding: "120px 24px 140px",
-        background: "radial-gradient(ellipse at 50% 0%, rgba(184,68,46,0.10) 0%, transparent 55%)",
+        padding: "96px 24px 112px",
         overflow: "hidden",
+        isolation: "isolate",
       }}
     >
-      <div style={{ maxWidth: 1320, margin: "0 auto" }}>
-        <header style={{ maxWidth: 780, marginBottom: 48 }}>
-          <div className="eyebrow">
+      {/* Linear-style backlight: layered radial gradients behind the console */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: -1,
+          pointerEvents: "none",
+          background: [
+            "radial-gradient(ellipse 80% 60% at 50% 38%, rgba(251,146,60,0.18) 0%, transparent 55%)",
+            "radial-gradient(ellipse 60% 45% at 50% 60%, rgba(184,68,46,0.14) 0%, transparent 60%)",
+            "radial-gradient(ellipse 100% 70% at 50% 100%, rgba(20,12,8,0.45) 0%, transparent 70%)",
+          ].join(", "),
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: "20%",
+          transform: "translate(-50%, 0)",
+          width: "min(880px, 90vw)",
+          height: 240,
+          zIndex: -1,
+          pointerEvents: "none",
+          background:
+            "radial-gradient(ellipse 50% 100% at 50% 50%, rgba(251,146,60,0.32) 0%, transparent 65%)",
+          filter: "blur(36px)",
+        }}
+      />
+
+      <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+        <header style={{ maxWidth: 720, margin: "0 auto 44px", textAlign: "center" }}>
+          <div className="eyebrow" style={{ justifyContent: "center" }}>
             <span className="ver">§ 04</span>
             <span>The console</span>
           </div>
@@ -174,29 +273,22 @@ export default function ConsoleShowcase() {
             Every action your agents take{" "}
             <span>lands here, with a receipt.</span>
           </h2>
-          <p className="section-sub">
+          <p className="section-sub" style={{ margin: "0 auto" }}>
             One pane for every gated tool call across every agent. Pillar pills tell you what
             happened, latency tells you how fast, the receipt hash tells you it&rsquo;s real.
           </p>
         </header>
 
-        <div
-          style={{ perspective: 2400, perspectiveOrigin: "50% 0%" }}
-          onMouseEnter={() => setTilt(false)}
-          onMouseLeave={() => setTilt(true)}
-        >
+        <div>
           <div
             style={{
-              transform: tilt ? "rotateX(6deg) rotateY(-2deg)" : "rotateX(0deg) rotateY(0deg)",
-              transformOrigin: "50% 0%",
-              transition: "transform 700ms cubic-bezier(0.2,0.7,0.2,1)",
               borderRadius: 14,
               boxShadow:
-                "0 60px 120px -40px rgba(0,0,0,0.55), 0 30px 60px -30px rgba(184,68,46,0.18)",
+                "0 40px 80px -36px rgba(0,0,0,0.55), 0 20px 40px -24px rgba(184,68,46,0.22), 0 0 0 1px rgba(255,255,255,0.04) inset",
               background: "#0a0a0b",
               border: "1px solid rgba(255,255,255,0.08)",
               overflow: "hidden",
-              maxWidth: 1180,
+              maxWidth: 1140,
               margin: "0 auto",
             }}
           >
@@ -219,7 +311,7 @@ export default function ConsoleShowcase() {
               </span>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", minHeight: 620 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "188px 1fr", minHeight: 480 }}>
               {/* sidebar */}
               <aside
                 style={{
@@ -261,15 +353,20 @@ export default function ConsoleShowcase() {
                         <div
                           key={item}
                           style={{
-                            padding: "6px 8px",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            padding: "6px 8px 6px 10px",
                             fontSize: 12,
                             color: active ? "#fafafa" : "#a1a1aa",
                             background: active ? "rgba(251,146,60,0.10)" : "transparent",
                             borderRadius: 4,
                             borderLeft: active ? "2px solid #fb923c" : "2px solid transparent",
-                            paddingLeft: 10,
                           }}
                         >
+                          <span style={{ color: active ? "#fb923c" : "#71717a", display: "inline-flex" }}>
+                            <NavIcon name={item} />
+                          </span>
                           {item}
                         </div>
                       );
@@ -341,25 +438,25 @@ export default function ConsoleShowcase() {
                       <div
                         key={k.label}
                         style={{
-                          padding: "12px 14px",
+                          padding: "10px 12px",
                           background: "#101013",
                           border: "1px solid rgba(255,255,255,0.06)",
                           borderRadius: 8,
                           display: "flex",
                           flexDirection: "column",
-                          gap: 4,
+                          gap: 3,
                         }}
                       >
-                        <div style={{ fontSize: 10, color: "#71717a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                        <div style={{ fontSize: 9, color: "#71717a", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                           {k.label}
                         </div>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                          <div style={{ fontSize: 22, color: "#fafafa", fontWeight: 600, fontFamily: "var(--mono)" }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                          <div style={{ fontSize: 18, color: "#fafafa", fontWeight: 600, fontFamily: "var(--mono)" }}>
                             {k.value}
                           </div>
                           {i === 0 && <Histogram data={CONSOLE_HISTOGRAM} />}
                         </div>
-                        <div style={{ fontSize: 10, color: "#52525b" }}>{k.hint}</div>
+                        <div style={{ fontSize: 9, color: "#52525b" }}>{k.hint}</div>
                       </div>
                     ))}
                   </div>
