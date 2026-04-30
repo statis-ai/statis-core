@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+import time
 from datetime import datetime, timezone
 
 from statis import StatisClient
@@ -35,15 +36,21 @@ def main() -> int:
     )
     p.add_argument("--yc-max-per-batch", type=int, default=10)
     p.add_argument(
-        "--sync",
+        "--no-sync",
         action="store_true",
-        help="Run sync-on-approval before research: write sheet rows for any newly-COMPLETED connection requests.",
+        help="Skip the auto-sync at start. By default every run begins with a sync that writes sheet rows for any escalations the operator has approved since the last run.",
     )
     p.add_argument(
         "--sync-only",
         action="store_true",
         help="Skip the agent pipeline; only run the sync.",
     )
+    p.add_argument(
+        "--watch",
+        action="store_true",
+        help="After the pipeline finishes, keep polling the sync every --watch-interval seconds. Ctrl-C to stop. Useful: leave it running while you approve escalations in the console — the sheet updates within a minute of each click.",
+    )
+    p.add_argument("--watch-interval", type=int, default=60)
     p.add_argument(
         "--run-id",
         default=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
@@ -65,8 +72,11 @@ def main() -> int:
     tiers = {int(t.strip()) for t in args.tiers.split(",") if t.strip()}
     print(f"== run_id: {args.run_id}  tiers={sorted(tiers)} ==")
 
-    # Sync-on-approval: write sheet rows for newly-COMPLETED connection requests.
-    if args.sync or args.sync_only:
+    # Sync-on-approval is the default. Every run starts by writing sheet rows
+    # for any escalations the operator has approved in the console since the
+    # last invocation. Use --no-sync to skip (rare — e.g. when offline).
+    should_sync = not args.no_sync or args.sync_only
+    if should_sync:
         print()
         print(f"== Stage 0: sync-on-approval ==")
         result = sync_sheet(args.base_url, os.environ["STATIS_API_KEY"])
@@ -189,6 +199,23 @@ def main() -> int:
     print(f"  receipts/escalations created: {len(receipts_seen)}")
     print(f"  console: https://console.statis.dev")
     print(f"  csv:     agents/outreach/outreach_log.csv")
+
+    # Watch mode: keep polling sync until Ctrl-C. Approvals you click in
+    # console show up in the sheet within --watch-interval seconds.
+    if args.watch:
+        print(f"\n== Watching: sync every {args.watch_interval}s — Ctrl-C to stop ==")
+        try:
+            while True:
+                time.sleep(args.watch_interval)
+                print(f"\n  [{datetime.now(timezone.utc).strftime('%H:%M:%S')}] sync tick")
+                try:
+                    r = sync_sheet(args.base_url, os.environ["STATIS_API_KEY"])
+                    if r["written"]:
+                        print(f"    wrote {r['written']} new sheet rows")
+                except Exception as e:
+                    print(f"    sync error: {e}")
+        except KeyboardInterrupt:
+            print("\n  watch stopped")
     return 0
 
 
