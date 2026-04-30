@@ -51,16 +51,20 @@ HEADER = [
     "icp_score",
     "intake_decision",
     "qualify_decision",
-    "message_draft",
-    "send_status",
+    "connection_note",        # the LinkedIn invite note (≤280 chars)
+    "followup_dm",             # post-accept follow-up DM (with Calendly)
+    "connection_status",       # queued | sent | accepted | declined | timeout
+    "send_status",             # post-accept DM status
     "sent_at",
+    "accepted_at",
     "reply_received",
     "calendly_link",
     "statis_action_id_intake",
     "statis_action_id_score",
     "statis_action_id_qualify",
     "statis_action_id_draft",
-    "statis_action_id_send",
+    "statis_action_id_connection",  # linkedin_send_connection_request
+    "statis_action_id_send",         # linkedin_send_message (post-accept)
     "statis_action_id_log",
 ]
 
@@ -193,17 +197,21 @@ def init_existing_sheet(spreadsheet_id: str) -> dict[str, str]:
     tab_title = _first_sheet_title(sheets, spreadsheet_id)
     tab_id = _first_sheet_id(sheets, spreadsheet_id)
 
-    # Read existing first row to detect prior init
+    # Read existing first row to detect prior init / detect drift from current HEADER
     existing = (
         sheets.spreadsheets()
         .values()
-        .get(spreadsheetId=spreadsheet_id, range=f"{tab_title}!A1:Z1")
+        .get(spreadsheetId=spreadsheet_id, range=f"{tab_title}!A1:AZ1")
         .execute()
         .get("values", [])
     )
-    is_initialized = bool(existing) and existing[0][:3] == HEADER[:3]
+    existing_row = existing[0] if existing else []
+    header_match = existing_row == HEADER
 
-    if not is_initialized:
+    if not header_match:
+        # Either uninitialized OR HEADER drifted (new columns added in this push).
+        # Rewrite the header row in place. Existing data rows are unaffected;
+        # values in newly-added columns will simply be empty for old rows.
         sheets.spreadsheets().values().update(
             spreadsheetId=spreadsheet_id,
             range=f"{tab_title}!A1",
@@ -242,7 +250,7 @@ def init_existing_sheet(spreadsheet_id: str) -> dict[str, str]:
         "sheet_id": spreadsheet_id,
         "tab": tab_title,
         "url": f"https://docs.google.com/spreadsheets/d/{spreadsheet_id}",
-        "header_written": "no" if is_initialized else "yes",
+        "header_written": "no" if header_match else "yes",
     }
 
 

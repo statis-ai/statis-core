@@ -134,7 +134,7 @@ def main() -> int:
             if d.statis_action_id:
                 receipts_seen.append(d.statis_action_id)
 
-        print(f"\n== Stage 6+7: send + log ==")
+        print(f"\n== Stage 6+7: connection request + log ==")
         for d in drafts:
             url = d.scored.candidate.signal_url
             i_dec, i_aid = intake_by_url.get(url, ("", ""))
@@ -147,10 +147,10 @@ def main() -> int:
             backend = r.get("log_backend", "?")
             print(
                 f"  {d.scored.candidate.author_handle or '?':<24} "
-                f"send={r['send_decision']:<10} log={r['log_decision']:<10} via={backend}"
+                f"connreq={r['connection_decision']:<10} log={r['log_decision']:<10} via={backend}"
             )
-            if r["send_action_id"]:
-                receipts_seen.append(r["send_action_id"])
+            if r["connection_action_id"]:
+                receipts_seen.append(r["connection_action_id"])
             if r["log_action_id"]:
                 receipts_seen.append(r["log_action_id"])
     finally:

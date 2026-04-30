@@ -85,17 +85,23 @@ simulate "draft (with required fields)" \
 simulate "draft (missing fields)" \
   '{"action_type":"outreach_draft_message","parameters":{"message_body":"hi"}}'
 
-simulate "send (score 95, full fields)" \
+simulate "connreq (score 95, full fields)" \
+  '{"action_type":"linkedin_send_connection_request","context":{"icp_score":95},"parameters":{"recipient_profile":"u","connection_note":"hi","recipient_name":"Alice"}}'
+
+simulate "connreq (score 85, full fields)" \
+  '{"action_type":"linkedin_send_connection_request","context":{"icp_score":85},"parameters":{"recipient_profile":"u","connection_note":"hi","recipient_name":"Alice"}}'
+
+simulate "connreq (score 70, full fields)" \
+  '{"action_type":"linkedin_send_connection_request","context":{"icp_score":70},"parameters":{"recipient_profile":"u","connection_note":"hi","recipient_name":"Alice"}}'
+
+simulate "connreq (missing fields)" \
+  '{"action_type":"linkedin_send_connection_request","context":{"icp_score":95},"parameters":{}}'
+
+simulate "send-followup (score 95, full)" \
   '{"action_type":"linkedin_send_message","context":{"icp_score":95},"parameters":{"recipient_profile":"u","message_body":"hi","recipient_name":"Alice"}}'
 
-simulate "send (score 85, full fields)" \
+simulate "send-followup (score 85, full)" \
   '{"action_type":"linkedin_send_message","context":{"icp_score":85},"parameters":{"recipient_profile":"u","message_body":"hi","recipient_name":"Alice"}}'
-
-simulate "send (score 70, full fields)" \
-  '{"action_type":"linkedin_send_message","context":{"icp_score":70},"parameters":{"recipient_profile":"u","message_body":"hi","recipient_name":"Alice"}}'
-
-simulate "send (missing fields)" \
-  '{"action_type":"linkedin_send_message","context":{"icp_score":95},"parameters":{}}'
 
 simulate "sheets (score 85, full)" \
   '{"action_type":"sheets_append_row","context":{"icp_score":85},"parameters":{"prospect_name":"x","linkedin_url":"y","icp_score":85}}'
@@ -125,10 +131,12 @@ echo "  qualified (30)                                            -> DENIED"
 echo "  qualified (90 but disqualified)                           -> DENIED"
 echo "  draft (with required fields)                              -> APPROVED"
 echo "  draft (missing fields)                                    -> DENIED"
-echo "  send (score 95, full fields)                              -> APPROVED  (auto-execute)"
-echo "  send (score 85, full fields)                              -> ESCALATED (manual review)"
-echo "  send (score 70, full fields)                              -> DENIED"
-echo "  send (missing fields)                                     -> DENIED"
+echo "  connreq (score 95, full fields)                           -> APPROVED  (auto-execute)"
+echo "  connreq (score 85, full fields)                           -> ESCALATED (manual review)"
+echo "  connreq (score 70, full fields)                           -> DENIED"
+echo "  connreq (missing fields)                                  -> DENIED"
+echo "  send-followup (score 95, full)                            -> APPROVED"
+echo "  send-followup (score 85, full)                            -> ESCALATED"
 echo "  sheets (score 85, full)                                   -> APPROVED"
 echo "  sheets (score 70, full)                                   -> DENIED"
 echo "  sheets (missing fields)                                   -> DENIED"

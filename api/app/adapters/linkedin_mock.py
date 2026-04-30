@@ -18,7 +18,11 @@ _DEFAULT_LOG = "/tmp/statis_linkedin_mock.log"
 
 
 class MockLinkedInAdapter(BaseAdapter):
-    _SUPPORTED = {"linkedin_send_message", "linkedin_connect"}
+    _SUPPORTED = {
+        "linkedin_send_message",          # post-accept follow-up DM
+        "linkedin_send_connection_request",  # invite + connection note
+        "linkedin_connect",               # legacy alias
+    }
 
     def __init__(self, log_path: str | None = None) -> None:
         self._log_path = Path(log_path or os.getenv("LINKEDIN_MOCK_LOG", _DEFAULT_LOG))
@@ -40,12 +44,15 @@ class MockLinkedInAdapter(BaseAdapter):
                 error=f"MockLinkedInAdapter does not handle action_type={action_type!r}",
             )
 
+        # connection_note (invite) vs message_body (post-accept DM) — both
+        # supported in the same record for cross-action audit traceability.
         record = {
             "ts": datetime.now(timezone.utc).isoformat(),
             "action_id": action_id,
             "action_type": action_type,
             "recipient": params.get("recipient_profile") or params.get("linkedin_url"),
             "recipient_name": params.get("recipient_name"),
+            "connection_note": params.get("connection_note"),
             "message_body": params.get("message_body") or params.get("body"),
             "campaign_id": params.get("campaign_id"),
         }

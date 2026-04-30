@@ -144,11 +144,41 @@ rules:
     active: true
     description: "Deny drafts missing required fields"
 
-  # ── linkedin_send_message — score-graduated approval ──
-  # Score >=90: auto-approve (worker executes via MockLinkedInAdapter today,
-  #             real Unipile in v1 — no human touch).
-  # Score 80-89: escalate for Aniket's review in console.
-  # Score <80:   deny.
+  # ── linkedin_send_connection_request — STEP 1 of the two-step LinkedIn flow ──
+  # The connection request + 280-char note. This is what goes out first.
+  # Score-graduated like the post-accept DM: 90+ auto, 80-89 escalate, else deny.
+  - rule_id: outreach_connreq_high_confidence
+    action_type: linkedin_send_connection_request
+    conditions:
+      min_icp_score: 90
+      required_fields: [recipient_profile, recipient_name, connection_note]
+    decision: APPROVED
+    priority: 30
+    active: true
+    description: "Score>=90: auto-approve connection request, invite goes out without human review"
+
+  - rule_id: outreach_connreq_review
+    action_type: linkedin_send_connection_request
+    conditions:
+      min_icp_score: 80
+      required_fields: [recipient_profile, recipient_name, connection_note]
+    decision: ESCALATED
+    priority: 20
+    active: true
+    description: "Score 80-89: escalate connection request for human review"
+
+  - rule_id: outreach_connreq_default_deny
+    action_type: linkedin_send_connection_request
+    conditions: {}
+    decision: DENIED
+    priority: 1
+    active: true
+    description: "Score <80 or missing required fields: deny connection request"
+
+  # ── linkedin_send_message — STEP 2 (post-accept follow-up DM) ──
+  # Sent only AFTER the prospect accepts the connection request. Same
+  # score gating; in practice this fires from a separate flow triggered
+  # by linkedin_connection_accepted (v1) — for v0 the user runs it manually.
   - rule_id: outreach_send_high_confidence
     action_type: linkedin_send_message
     conditions:
@@ -157,7 +187,7 @@ rules:
     decision: APPROVED
     priority: 30
     active: true
-    description: "Score>=90: auto-approve, message goes out without human review"
+    description: "Score>=90: auto-approve post-accept follow-up DM"
 
   - rule_id: outreach_send_review
     action_type: linkedin_send_message
@@ -167,7 +197,7 @@ rules:
     decision: ESCALATED
     priority: 20
     active: true
-    description: "Score 80-89: escalate to console for human review"
+    description: "Score 80-89: escalate post-accept follow-up DM"
 
   - rule_id: outreach_send_default_deny
     action_type: linkedin_send_message
@@ -175,7 +205,18 @@ rules:
     decision: DENIED
     priority: 1
     active: true
-    description: "Score <80 or missing required fields: deny"
+    description: "Score <80 or missing required fields: deny post-accept DM"
+
+  # ── linkedin_connection_accepted — pure ledger event ──
+  # Recorded when an accept is detected (manual today, webhook in v1).
+  # Auto-approves so each accept lands a receipt on the timeline.
+  - rule_id: outreach_connection_accepted_default
+    action_type: linkedin_connection_accepted
+    conditions: {}
+    decision: APPROVED
+    priority: 10
+    active: true
+    description: "Always approve connection-accepted event — pure ledger record"
 
   # ── sheets_append_row — auto-approve at score >=80 ──
   # The sheet is the operator's view; rows show up as soon as a prospect is

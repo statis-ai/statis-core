@@ -1,7 +1,13 @@
-"""Send stage — gate the LinkedIn DM through Statis, log to Sheet (or CSV fallback).
+"""Send stage — gate the LinkedIn connection request through Statis, log to Sheet.
 
-In v0 the actual LinkedIn delivery is faked by MockLinkedInAdapter (writes to
-a log file). When you approve an escalation in console, the worker invokes the
+Two-step LinkedIn flow:
+  1. linkedin_send_connection_request  — invite + 280-char note. THIS run.
+  2. linkedin_send_message              — post-accept follow-up DM. Drafted now,
+                                          gated separately later (after the
+                                          prospect accepts the connection).
+
+In v0 the actual delivery is faked by MockLinkedInAdapter (writes to a log
+file). When you approve an escalation in console, the worker invokes the
 mock adapter, writes a real receipt, and the action transitions to COMPLETED.
 """
 from __future__ import annotations
@@ -58,54 +64,56 @@ def send_and_log(
 ) -> dict[str, Any]:
     scored = drafted.scored
     cand = scored.candidate
-
-    aid_seed_send = f"send:{run_id}:{cand.source}:{cand.signal_url}"
-    send_action_id = "send-" + hashlib.sha256(aid_seed_send.encode()).hexdigest()[:24]
     target_id = f"{cand.source}:{cand.author_handle or 'unknown'}"
 
-    send_decision = "SKIPPED"
-    send_action_id_real: str | None = None
-    send_status = "skipped"
+    # ─── Step 1: gate the connection request (this run's actual outbound) ───
+    aid_seed_conn = f"connreq:{run_id}:{cand.source}:{cand.signal_url}"
+    conn_action_id = "connreq-" + hashlib.sha256(aid_seed_conn.encode()).hexdigest()[:24]
 
-    if drafted.decision in ("APPROVED", "APPROVED_PENDING"):  # only attempt send if draft was approved (or pending exec)
+    conn_decision = "SKIPPED"
+    conn_action_id_real: str | None = None
+    connection_status = "skipped"
+
+    if drafted.decision in ("APPROVED", "APPROVED_PENDING"):
         try:
             receipt = client.execute(
-                action_id=send_action_id,
-                action_type="linkedin_send_message",
+                action_id=conn_action_id,
+                action_type="linkedin_send_connection_request",
                 target={"entity_type": "prospect", "entity_id": target_id},
                 target_system="linkedin",
                 agent_id=AGENT_ID,
                 parameters={
                     "recipient_profile": cand.author_url or cand.author_handle,
                     "recipient_name": cand.author_handle,
-                    "message_body": drafted.message_body,
+                    "connection_note": drafted.connection_note,
                     "campaign_id": "design-partner-beta",
                 },
                 context={
                     "icp_score": scored.icp_score,
                     "signal_seen_at": cand.signal_seen_at,
-                    "days_since_last_contact": 999,  # never contacted before
+                    "days_since_last_contact": 999,
                     "dnc": False,
                 },
                 timeout=2.0,
             )
-            send_decision = "APPROVED"
-            send_action_id_real = receipt.action_id
-            send_status = "sent"
+            conn_decision = "APPROVED"
+            conn_action_id_real = receipt.action_id
+            connection_status = "sent"
         except ActionDeniedError as e:
-            send_decision = "DENIED"
-            send_action_id_real = e.receipt.action_id if e.receipt else None
-            send_status = "denied"
+            conn_decision = "DENIED"
+            conn_action_id_real = e.receipt.action_id if e.receipt else None
+            connection_status = "denied"
         except ActionEscalatedError as e:
-            send_decision = "ESCALATED"
-            send_action_id_real = e.action_id
-            send_status = "pending_approval"
+            conn_decision = "ESCALATED"
+            conn_action_id_real = e.action_id
+            connection_status = "pending_approval"
         except ActionTimeoutError as e:
-            send_decision = "APPROVED_PENDING"
-            send_action_id_real = e.action_id
-            send_status = "approved_pending"
+            conn_decision = "APPROVED_PENDING"
+            conn_action_id_real = e.action_id
+            connection_status = "approved_pending"
 
-    # Log the row to CSV via a sheets_append_row gate (proves the log itself is gated).
+    # ─── Step 2: log to sheet — both drafts persisted, follow-up DM not yet
+    # gated (it fires later, after a connection_accepted event in v1) ───
     aid_seed_log = f"log:{run_id}:{cand.source}:{cand.signal_url}"
     log_action_id = "log-" + hashlib.sha256(aid_seed_log.encode()).hexdigest()[:24]
     log_action_id_real: str | None = None
@@ -123,16 +131,20 @@ def send_and_log(
         "icp_score": scored.icp_score,
         "intake_decision": intake_decision,
         "qualify_decision": qualify_decision,
-        "message_draft": drafted.message_body.replace("\n", " "),
-        "send_status": send_status,
+        "connection_note": drafted.connection_note.replace("\n", " "),
+        "followup_dm": drafted.followup_dm.replace("\n", " "),
+        "connection_status": connection_status,
+        "send_status": "queued_post_accept",  # post-accept DM still draft-only
         "sent_at": "",
+        "accepted_at": "",
         "reply_received": "",
         "calendly_link": "https://calendly.com/aniket-statis/30min",
         "statis_action_id_intake": intake_action_id,
         "statis_action_id_score": scored.statis_action_id or "",
         "statis_action_id_qualify": qualify_action_id,
         "statis_action_id_draft": drafted.statis_action_id or "",
-        "statis_action_id_send": send_action_id_real or "",
+        "statis_action_id_connection": conn_action_id_real or "",
+        "statis_action_id_send": "",  # populated only after follow-up DM is gated
         "statis_action_id_log": "",
     }
 
@@ -147,8 +159,8 @@ def send_and_log(
                 "prospect_name": cand.author_handle or "",
                 "linkedin_url": cand.author_url or cand.signal_url,
                 "icp_score": scored.icp_score,
-                "send_status": send_status,
-                "statis_action_id_send": send_action_id_real or "",
+                "connection_status": connection_status,
+                "statis_action_id_connection": conn_action_id_real or "",
             },
             context={"icp_score": scored.icp_score},
             timeout=2.0,
@@ -169,8 +181,11 @@ def send_and_log(
     backend = _log_row(sheet_row)
 
     return {
-        "send_decision": send_decision,
-        "send_action_id": send_action_id_real,
+        # Legacy keys preserved for main.py print line — map send_* → conn_*
+        "send_decision": conn_decision,
+        "send_action_id": conn_action_id_real,
+        "connection_decision": conn_decision,
+        "connection_action_id": conn_action_id_real,
         "log_decision": log_decision,
         "log_action_id": log_action_id_real,
         "csv_row": sheet_row,

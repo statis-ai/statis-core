@@ -7,8 +7,10 @@
       "prospect_scored",
       "prospect_qualified",
       "outreach_draft_message",
+      "linkedin_send_connection_request",
       "linkedin_send_message",
       "linkedin_connect",
+      "linkedin_connection_accepted",
       "sheets_append_row",
       "schedule_followup",
       "outreach_reply_received"
