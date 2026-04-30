@@ -302,6 +302,54 @@ class PolicyEvaluator:
 
         # ── outreach agent condition handlers ────────────────────────────
 
+        if key == "max_signal_age_days":
+            ctx: dict = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            seen_at = ctx.get("signal_seen_at")
+            if not seen_at:
+                return False
+            try:
+                if isinstance(seen_at, str):
+                    seen_at = datetime.fromisoformat(seen_at.replace("Z", "+00:00"))
+                if seen_at.tzinfo is None:
+                    seen_at = seen_at.replace(tzinfo=timezone.utc)
+                age = datetime.now(timezone.utc) - seen_at
+                return age.total_seconds() <= float(value) * 86400.0
+            except (ValueError, TypeError):
+                return False
+
+        if key == "min_signal_length":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            length = ctx.get("signal_length", 0)
+            return int(length) >= int(value)
+
+        if key == "allowed_sources":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            source = ctx.get("source", "")
+            if not isinstance(value, list):
+                return False
+            return source in value
+
+        if key == "has_inferred_role":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            role = ctx.get("inferred_role")
+            present = bool(role) and str(role).lower() not in ("null", "none", "unknown", "")
+            return present == bool(value)
+
+        if key == "not_disqualified":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            disqualified = bool(ctx.get("disqualified", False))
+            return (not disqualified) == bool(value)
+
         if key == "days_since_last_contact_gte":
             ctx: dict = {}
             if action is not None:

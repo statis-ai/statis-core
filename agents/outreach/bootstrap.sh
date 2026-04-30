@@ -41,8 +41,35 @@ simulate() {
     -d "$body" | jq -r '.decision'
 }
 
+simulate "intake (fresh, long, hn)" \
+  "{\"action_type\":\"prospect_intake\",\"context\":{\"signal_seen_at\":\"$(date -u -v-2d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-2 days' '+%Y-%m-%dT%H:%M:%SZ')\",\"signal_length\":300,\"source\":\"hn\",\"dnc\":false}}"
+
+simulate "intake (stale)" \
+  "{\"action_type\":\"prospect_intake\",\"context\":{\"signal_seen_at\":\"$(date -u -v-30d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-30 days' '+%Y-%m-%dT%H:%M:%SZ')\",\"signal_length\":300,\"source\":\"hn\",\"dnc\":false}}"
+
+simulate "intake (too short)" \
+  "{\"action_type\":\"prospect_intake\",\"context\":{\"signal_seen_at\":\"$(date -u -v-2d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-2 days' '+%Y-%m-%dT%H:%M:%SZ')\",\"signal_length\":50,\"source\":\"hn\",\"dnc\":false}}"
+
+simulate "intake (off-source)" \
+  "{\"action_type\":\"prospect_intake\",\"context\":{\"signal_seen_at\":\"$(date -u -v-2d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-2 days' '+%Y-%m-%dT%H:%M:%SZ')\",\"signal_length\":300,\"source\":\"twitter\",\"dnc\":false}}"
+
+simulate "intake (dnc)" \
+  '{"action_type":"prospect_intake","context":{"dnc":true}}'
+
 simulate "prospect_scored (any)" \
   '{"action_type":"prospect_scored"}'
+
+simulate "qualified (90, role, ok)" \
+  '{"action_type":"prospect_qualified","context":{"icp_score":90,"inferred_role":"Founding Eng","disqualified":false}}'
+
+simulate "qualified (65, borderline)" \
+  '{"action_type":"prospect_qualified","context":{"icp_score":65,"inferred_role":"Eng","disqualified":false}}'
+
+simulate "qualified (30)" \
+  '{"action_type":"prospect_qualified","context":{"icp_score":30,"inferred_role":null,"disqualified":false}}'
+
+simulate "qualified (90 but disqualified)" \
+  '{"action_type":"prospect_qualified","context":{"icp_score":90,"inferred_role":"CTO","disqualified":true}}'
 
 simulate "draft (with required fields)" \
   '{"action_type":"outreach_draft_message","parameters":{"message_body":"hi","signal_url":"https://x","channel":"linkedin"}}'
@@ -64,7 +91,16 @@ simulate "sheets_append_row (missing fields)" \
 
 echo ""
 echo "=== Expected results ==="
-echo "  prospect_scored (any)                                    -> APPROVED"
+echo "  intake (fresh, long, hn)                                  -> APPROVED"
+echo "  intake (stale)                                            -> DENIED"
+echo "  intake (too short)                                        -> DENIED"
+echo "  intake (off-source)                                       -> DENIED"
+echo "  intake (dnc)                                              -> DENIED"
+echo "  prospect_scored (any)                                     -> APPROVED"
+echo "  qualified (90, role, ok)                                  -> APPROVED"
+echo "  qualified (65, borderline)                                -> ESCALATED"
+echo "  qualified (30)                                            -> DENIED"
+echo "  qualified (90 but disqualified)                           -> DENIED"
 echo "  draft (with required fields)                              -> APPROVED"
 echo "  draft (missing fields)                                    -> DENIED"
 echo "  send (with required fields)                               -> ESCALATED"

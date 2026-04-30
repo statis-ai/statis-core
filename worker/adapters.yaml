@@ -25,7 +25,9 @@ adapters:
   # Outreach agent — mock LinkedIn delivery; swap to Unipile in v1
   linkedin: app.adapters.linkedin_mock.MockLinkedInAdapter
   # Audit-only action types — write receipts, no external side effect
+  prospect_intake: app.adapters.generic.GenericAdapter
   prospect_scored: app.adapters.generic.GenericAdapter
+  prospect_qualified: app.adapters.generic.GenericAdapter
   outreach_draft_message: app.adapters.generic.GenericAdapter
   sheets_append_row: app.adapters.generic.GenericAdapter
   schedule_followup: app.adapters.generic.GenericAdapter

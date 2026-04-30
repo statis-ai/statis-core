@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from statis import StatisClient
 
 from .draft import draft_one
+from .intake import intake_one
+from .qualify import qualify_one
 from .research import discover
 from .score import score_one
 from .send import send_and_log
@@ -54,9 +56,23 @@ def main() -> int:
     receipts_seen: list[str] = []
 
     try:
-        print(f"\n== Stage 2: score ({len(candidates)} candidates) ==")
-        scored: list = []
+        print(f"\n== Stage 2: intake gate ({len(candidates)} candidates) ==")
+        admitted: list = []
         for c in candidates:
+            i = intake_one(client, c, run_id=args.run_id)
+            print(
+                f"  {(c.author_handle or '?'):<24} {c.source:<8} len={len(c.signal_text):>4} "
+                f"intake={i.decision:<10} aid={i.statis_action_id}"
+            )
+            if i.statis_action_id:
+                receipts_seen.append(i.statis_action_id)
+            if i.decision in ("APPROVED", "APPROVED_PENDING"):
+                admitted.append(c)
+        print(f"  admitted: {len(admitted)}/{len(candidates)}")
+
+        print(f"\n== Stage 3: score ({len(admitted)} candidates) ==")
+        scored: list = []
+        for c in admitted:
             s = score_one(client, c, run_id=args.run_id)
             if s is None:
                 continue
@@ -68,9 +84,23 @@ def main() -> int:
             if s.statis_action_id:
                 receipts_seen.append(s.statis_action_id)
 
-        print(f"\n== Stage 3: draft (score>=60) ==")
-        drafts: list = []
+        print(f"\n== Stage 4: qualify gate ==")
+        qualified: list = []
         for s in scored:
+            q = qualify_one(client, s, run_id=args.run_id)
+            print(
+                f"  {s.candidate.author_handle or '?':<24} score={s.icp_score:>3} "
+                f"qualify={q.decision:<10} aid={q.statis_action_id}"
+            )
+            if q.statis_action_id:
+                receipts_seen.append(q.statis_action_id)
+            if q.decision in ("APPROVED", "APPROVED_PENDING"):
+                qualified.append(s)
+        print(f"  qualified: {len(qualified)}/{len(scored)}")
+
+        print(f"\n== Stage 5: draft ==")
+        drafts: list = []
+        for s in qualified:
             d = draft_one(client, s, run_id=args.run_id)
             if d is None:
                 continue
@@ -84,7 +114,7 @@ def main() -> int:
             if d.statis_action_id:
                 receipts_seen.append(d.statis_action_id)
 
-        print(f"\n== Stage 4+5: send + log ==")
+        print(f"\n== Stage 6+7: send + log ==")
         for d in drafts:
             r = send_and_log(client, d, run_id=args.run_id)
             print(

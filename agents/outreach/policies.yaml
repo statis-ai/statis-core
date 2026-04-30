@@ -11,6 +11,37 @@
 # Ramp: every linkedin_send_message starts ESCALATED. Aniket approves in console.
 
 rules:
+  # ── prospect_intake — pre-LLM ICP gate ──
+  # Cheap, deterministic filter applied to every research candidate before
+  # we spend an LLM call on scoring. Receipts written for every decision.
+  - rule_id: outreach_intake_qualified
+    action_type: prospect_intake
+    conditions:
+      max_signal_age_days: 14
+      min_signal_length: 120
+      allowed_sources: [hn, github]
+      dnc: false
+    decision: APPROVED
+    priority: 30
+    active: true
+    description: "Admit fresh, substantive signals from approved sources"
+
+  - rule_id: outreach_intake_dnc_block
+    action_type: prospect_intake
+    conditions: {dnc: true}
+    decision: DENIED
+    priority: 40
+    active: true
+    description: "Hard deny if author is on do-not-contact list"
+
+  - rule_id: outreach_intake_default_deny
+    action_type: prospect_intake
+    conditions: {}
+    decision: DENIED
+    priority: 1
+    active: true
+    description: "Deny stale, trivial, or off-source signals"
+
   # ── prospect_scored — every score is a receipt ──
   - rule_id: outreach_prospect_scored_default
     action_type: prospect_scored
@@ -19,6 +50,34 @@ rules:
     priority: 10
     active: true
     description: "Auto-approve scoring; log all decisions to ledger"
+
+  # ── prospect_qualified — post-score ICP gate ──
+  - rule_id: outreach_qualified_high_score
+    action_type: prospect_qualified
+    conditions:
+      min_icp_score: 70
+      has_inferred_role: true
+      not_disqualified: true
+    decision: APPROVED
+    priority: 30
+    active: true
+    description: "Advance to draft when score>=70 + role identified + not disqualified"
+
+  - rule_id: outreach_qualified_borderline
+    action_type: prospect_qualified
+    conditions: {min_icp_score: 60}
+    decision: ESCALATED
+    priority: 20
+    active: true
+    description: "Escalate borderline (60-69) for manual triage"
+
+  - rule_id: outreach_qualified_default_deny
+    action_type: prospect_qualified
+    conditions: {}
+    decision: DENIED
+    priority: 1
+    active: true
+    description: "Deny low scores, missing role, or LLM-disqualified"
 
   # ── outreach_draft_message — auto-approve drafts with required fields ──
   - rule_id: outreach_draft_complete
