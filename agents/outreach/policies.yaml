@@ -145,18 +145,12 @@ rules:
     description: "Deny drafts missing required fields"
 
   # ── linkedin_send_connection_request — STEP 1 of the two-step LinkedIn flow ──
-  # The connection request + 280-char note. This is what goes out first.
-  # Score-graduated like the post-accept DM: 90+ auto, 80-89 escalate, else deny.
-  - rule_id: outreach_connreq_high_confidence
-    action_type: linkedin_send_connection_request
-    conditions:
-      min_icp_score: 90
-      required_fields: [recipient_profile, recipient_name, connection_note]
-    decision: APPROVED
-    priority: 30
-    active: true
-    description: "Score>=90: auto-approve connection request, invite goes out without human review"
-
+  # MANUAL-SEND MODE (current operator preference): every connection request
+  # escalates regardless of score. The operator opens the sheet, copies the
+  # connection_note, sends the request manually on LinkedIn, then approves the
+  # action in console to close the receipt loop. The auto-approve-at-90+ rule
+  # is intentionally absent today; restore it (and outreach_connreq_high_confidence)
+  # when the operator graduates the agent to autonomous send.
   - rule_id: outreach_connreq_review
     action_type: linkedin_send_connection_request
     conditions:
@@ -165,7 +159,7 @@ rules:
     decision: ESCALATED
     priority: 20
     active: true
-    description: "Score 80-89: escalate connection request for human review"
+    description: "Manual mode: every connection request (score>=80) escalates for human send"
 
   - rule_id: outreach_connreq_default_deny
     action_type: linkedin_send_connection_request

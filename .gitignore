@@ -74,6 +74,8 @@ agents/outreach/.diag.py
 agents/outreach/.queue.py
 agents/outreach/.lsends.py
 agents/outreach/.recent.py
+agents/outreach/.statuses.py
+agents/outreach/.clear_sheet.py
 
 # Archived / unused files
 landing/public/_archive/

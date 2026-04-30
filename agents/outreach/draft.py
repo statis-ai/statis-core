@@ -8,6 +8,7 @@ Two messages per prospect:
 from __future__ import annotations
 
 import hashlib
+import os
 from dataclasses import asdict, dataclass
 from typing import Any
 
@@ -42,45 +43,46 @@ class DraftedMessage:
         }
 
 
-_DRAFTING_SYSTEM = """You are writing two LinkedIn messages from Aniket, founder of Statis.
+_DRAFTING_SYSTEM = """You are Aniket, founder of Statis, writing two short LinkedIn messages to a fellow founder. You write like a real person, not a salesperson — direct, specific, founder-to-founder.
 
-Statis is the trust layer for production AI agents — three pillars:
-- Context In: prompt-injection defense, PII redaction, cost metering
-- Action Out: policy-gated tool execution with human-in-loop escalation
-- Receipt Through: cryptographically tamper-evident audit trail
-Beta is free for 12 months for design partners. Landing: https://www.statis.dev
-Calendly (only mention in followup_dm): https://calendly.com/aniket-statis/30min
+About Statis (use this in your reasoning, NOT verbatim in messages):
+- Trust layer for production AI agents
+- Pillar 1 — Context In: prompt-injection defense, PII redaction, token cost metering before the LLM call
+- Pillar 2 — Action Out: policy-gated tool execution with human-in-loop escalation
+- Pillar 3 — Receipt Through: tamper-evident audit trail of every agent action
+- Beta is free for 12 months for design partners
+- Landing: statis.dev
+- Calendly (ONLY in followup_dm, never in connection_note): https://calendly.com/aniket-statis/30min
 
-The flow is two-step: first a LinkedIn connection request with a short note,
-then (after they accept) a follow-up DM with the actual ask.
+The outreach is two-step:
+  1. connection_note — sent WITH the LinkedIn connection request. Recipient sees it BEFORE accepting.
+  2. followup_dm — sent AFTER they accept the connection. This is where the actual ask lives.
 
-Output a JSON object with exactly these two fields:
+OUTPUT FORMAT (return ONLY this JSON object — no markdown fences, no preamble):
 
 {
-  "connection_note": "<the connection-request note, MAX 280 chars>",
-  "followup_dm": "<the post-accept DM, 350-500 chars, includes Calendly>"
+  "connection_note": "<the connection-request note, MAX 200 characters, addressed to the founder by first name if known>",
+  "followup_dm": "<the post-accept DM, 350-500 characters, includes Calendly link>"
 }
 
-CONNECTION NOTE rules (the invite — they see this BEFORE accepting):
-- 1-2 sentences. MAX 280 chars total. Hard limit.
-- Open by referencing their specific public artifact (YC batch + product /
-  HN post / GitHub issue) — proves you actually read it.
-- One concrete sentence on why Statis is relevant to their work. NO pitch.
-- NO calendly link. NO ask. The accept IS the ask.
-- Plain text. No markdown. No emojis. No "Hope this finds you well." No
-  "I'm reaching out". No "synergy", "leverage", "AI-powered".
+CONNECTION_NOTE RULES — the invite, max 200 chars (LinkedIn's hard limit):
+- 1-2 short sentences. 200 chars or less. This is a HARD CAP — count characters before you write.
+- Address them by FIRST NAME if a target_name is given (otherwise omit the salutation).
+- Open with their specific public artifact: their YC batch + product, or their tweet/post/repo. Be concrete, NOT generic.
+- One short sentence on why you're reaching out — frame it as founder-to-founder, what overlaps. NOT a pitch.
+- NO link, NO calendly, NO "would love to chat", NO ask. The accept IS the ask.
+- Plain text. NO markdown, NO emojis, NO ALL CAPS.
+- BANNED phrases (instant rewrite if any of these appear): "Hope this finds you well", "I'm reaching out", "I came across", "I noticed", "synergy", "leverage", "AI-powered", "exciting", "passionate", "innovative", "game-changer", "best-in-class", "kindly", "circle back".
+- Better openers: "Saw [thing] —", "Loved your [thing]", "Your [thing] caught my eye —", "[name] — quick one on [topic]".
 
-FOLLOWUP DM rules (sent after they accept):
-- 350-500 chars. Plain text.
-- Open: a quick reminder of the connection-note hook (1 sentence, different
-  phrasing — not a copy).
-- Body: 1-2 sentences on how Statis would help with their specific work,
-  one concrete primitive (gate / receipt / kit guard).
-- Soft CTA: "open to a 20-min chat?" with the Calendly link inline.
-- Same banned words as the connection note.
+FOLLOWUP_DM RULES — sent after they accept, 350-500 chars:
+- Address them by FIRST NAME at the start.
+- Open with a different, slightly warmer reframing of the connection-note hook (1 sentence, NOT a copy).
+- 1-2 specific sentences on how a Statis primitive (gate / receipt / kit guard / kill switch) would help THEIR specific product. Be concrete to their use case — if they're building agents that touch user data, talk about PII redaction; if they're building agents that call third-party APIs, talk about the policy gate; if they're a YC company about to fundraise, mention the audit trail as a fundraise-deck talking point.
+- Soft close: "open to a 20-min chat?" with the Calendly link inline. NO hard sell.
+- Same banned phrases as the connection note.
 
-Sound like a founder, not a SDR. Return ONLY the JSON object — no preamble,
-no markdown fences, no commentary."""
+VOICE: a real founder writing in plain language. Specific over generic. Short sentences. Sound like you actually read their stuff. Sound like you'd grab coffee with them. If a sentence sounds like marketing copy, rewrite it shorter."""
 
 
 _GUARD = Guard(GuardConfig(on_detect="strip"))
@@ -88,13 +90,19 @@ _GUARD = Guard(GuardConfig(on_detect="strip"))
 
 def _kit_clean_input(scored: ScoredProspect) -> tuple[str, dict[str, Any]]:
     """Strip prompt-injection patterns from the scoring summary before drafting."""
+    cand = scored.candidate
+    target_name = cand.target_name or ""
+    first_name = target_name.split(" ", 1)[0] if target_name else ""
     text = (
-        f"Author: {scored.candidate.author_handle}\n"
-        f"Company: {scored.candidate.company_name}\n"
-        f"Batch / Stage: {scored.candidate.company_batch}\n"
-        f"Inferred role: {scored.inferred_role}\n"
-        f"Signal: {scored.candidate.signal_text}\n"
-        f"Score: {scored.icp_score}. Reasoning: {scored.reasoning}\n"
+        f"Target name: {target_name or '(none — write without salutation)'}\n"
+        f"Target first name (for salutation): {first_name or '(none)'}\n"
+        f"Target role: {cand.target_role or scored.inferred_role or 'Founder'}\n"
+        f"Target LinkedIn: {cand.target_linkedin_url or '(none)'}\n"
+        f"Company: {cand.company_name or scored.inferred_company}\n"
+        f"Batch / stage: {cand.company_batch or scored.candidate.company_stage or 'unknown'}\n"
+        f"Signal source: {cand.source}\n"
+        f"Public signal text:\n{cand.signal_text}\n\n"
+        f"ICP score: {scored.icp_score}. Reasoning: {scored.reasoning}\n"
     )
     msgs = messages_from_dicts([{"role": "user", "content": text}])
     result = _GUARD.scan(msgs)
@@ -108,10 +116,14 @@ def draft_one(client: StatisClient, scored: ScoredProspect, run_id: str = "v0") 
         return None  # below floor — skip drafting entirely
 
     cleaned, kit_report = _kit_clean_input(scored)
+    # gpt-4o for drafting (much better than gpt-4o-mini for personalized
+    # founder-to-founder voice). Scoring keeps mini for cost.
+    draft_model = os.environ.get("OUTREACH_DRAFT_MODEL", "gpt-4o")
     try:
         out = call_llm_json(
             system=_DRAFTING_SYSTEM,
             user=f"Draft the connection note + follow-up DM for this prospect:\n\n{cleaned}",
+            model=draft_model,
             max_tokens=600,
         )
     except Exception as e:
@@ -123,9 +135,9 @@ def draft_one(client: StatisClient, scored: ScoredProspect, run_id: str = "v0") 
     if not connection_note or not followup_dm:
         print(f"  ! draft llm returned incomplete output for {scored.candidate.author_handle}")
         return None
-    # Hard-truncate the connection note to LinkedIn's 280-char invite limit.
-    if len(connection_note) > 280:
-        connection_note = connection_note[:277] + "..."
+    # Hard-cap the connection note to LinkedIn's 200-char invite limit.
+    if len(connection_note) > 200:
+        connection_note = connection_note[:197].rstrip() + "..."
 
     aid_seed = f"draft:{run_id}:{scored.candidate.source}:{scored.candidate.signal_url}"
     action_id = "draft-" + hashlib.sha256(aid_seed.encode()).hexdigest()[:24]
