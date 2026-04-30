@@ -1,4 +1,4 @@
-"""Send stage — gate the LinkedIn DM through Statis, log to local CSV.
+"""Send stage — gate the LinkedIn DM through Statis, log to Sheet (or CSV fallback).
 
 In v0 the actual LinkedIn delivery is faked by MockLinkedInAdapter (writes to
 a log file). When you approve an escalation in console, the worker invokes the
@@ -14,32 +14,13 @@ from typing import Any
 
 from statis import StatisClient, ActionDeniedError, ActionEscalatedError, ActionTimeoutError
 
+from . import sheets
 from .draft import DraftedMessage
 from .score import AGENT_ID
 
 
 CSV_PATH = Path(__file__).parent / "outreach_log.csv"
-
-CSV_COLUMNS = [
-    "timestamp",
-    "prospect_handle",
-    "prospect_url",
-    "source",
-    "signal_url",
-    "signal_summary",
-    "inferred_role",
-    "inferred_company",
-    "icp_score",
-    "message_draft",
-    "send_status",  # pending_approval | approved | denied | sent
-    "sent_at",
-    "reply_received",
-    "calendly_link",
-    "statis_action_id_score",
-    "statis_action_id_draft",
-    "statis_action_id_send",
-    "statis_action_id_log",
-]
+CSV_COLUMNS = sheets.HEADER  # single source of truth for column order
 
 
 def _ensure_csv() -> None:
@@ -54,7 +35,27 @@ def _csv_append(row: dict[str, Any]) -> None:
         csv.writer(f).writerow([row.get(c, "") for c in CSV_COLUMNS])
 
 
-def send_and_log(client: StatisClient, drafted: DraftedMessage, run_id: str = "v0") -> dict[str, Any]:
+def _log_row(row: dict[str, Any]) -> str:
+    """Append to Google Sheets if configured, else CSV. Returns the backend used."""
+    if sheets.get_sheet_id():
+        try:
+            sheets.append_row(row)
+            return "sheets"
+        except Exception as e:
+            print(f"  ! sheets append failed ({e}), falling back to CSV")
+    _csv_append(row)
+    return "csv"
+
+
+def send_and_log(
+    client: StatisClient,
+    drafted: DraftedMessage,
+    run_id: str = "v0",
+    intake_action_id: str = "",
+    intake_decision: str = "",
+    qualify_action_id: str = "",
+    qualify_decision: str = "",
+) -> dict[str, Any]:
     scored = drafted.scored
     cand = scored.candidate
 
@@ -120,12 +121,16 @@ def send_and_log(client: StatisClient, drafted: DraftedMessage, run_id: str = "v
         "inferred_role": scored.inferred_role or "",
         "inferred_company": scored.inferred_company or "",
         "icp_score": scored.icp_score,
+        "intake_decision": intake_decision,
+        "qualify_decision": qualify_decision,
         "message_draft": drafted.message_body.replace("\n", " "),
         "send_status": send_status,
         "sent_at": "",
         "reply_received": "",
         "calendly_link": "https://calendly.com/aniket-statis/30min",
+        "statis_action_id_intake": intake_action_id,
         "statis_action_id_score": scored.statis_action_id or "",
+        "statis_action_id_qualify": qualify_action_id,
         "statis_action_id_draft": drafted.statis_action_id or "",
         "statis_action_id_send": send_action_id_real or "",
         "statis_action_id_log": "",
@@ -161,7 +166,7 @@ def send_and_log(client: StatisClient, drafted: DraftedMessage, run_id: str = "v
         log_action_id_real = e.action_id
 
     sheet_row["statis_action_id_log"] = log_action_id_real or ""
-    _csv_append(sheet_row)
+    backend = _log_row(sheet_row)
 
     return {
         "send_decision": send_decision,
@@ -169,4 +174,5 @@ def send_and_log(client: StatisClient, drafted: DraftedMessage, run_id: str = "v
         "log_decision": log_decision,
         "log_action_id": log_action_id_real,
         "csv_row": sheet_row,
+        "log_backend": backend,
     }

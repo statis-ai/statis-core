@@ -65,11 +65,11 @@ rules:
 
   - rule_id: outreach_qualified_borderline
     action_type: prospect_qualified
-    conditions: {min_icp_score: 60}
+    conditions: {min_icp_score: 60, not_disqualified: true}
     decision: ESCALATED
     priority: 20
     active: true
-    description: "Escalate borderline (60-69) for manual triage"
+    description: "Escalate borderline (60-69) for manual triage; never escalate disqualified"
 
   - rule_id: outreach_qualified_default_deny
     action_type: prospect_qualified

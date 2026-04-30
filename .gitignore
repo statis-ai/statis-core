@@ -68,6 +68,7 @@ sdk-ts/dist/
 # Outreach agent runtime artifacts
 agents/outreach/outreach_log.csv
 agents/outreach/.service_account.json
+agents/outreach/.sheet_id
 
 # Archived / unused files
 landing/public/_archive/

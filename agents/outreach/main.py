@@ -58,12 +58,14 @@ def main() -> int:
     try:
         print(f"\n== Stage 2: intake gate ({len(candidates)} candidates) ==")
         admitted: list = []
+        intake_by_url: dict[str, tuple[str, str]] = {}  # signal_url -> (decision, action_id)
         for c in candidates:
             i = intake_one(client, c, run_id=args.run_id)
             print(
                 f"  {(c.author_handle or '?'):<24} {c.source:<8} len={len(c.signal_text):>4} "
                 f"intake={i.decision:<10} aid={i.statis_action_id}"
             )
+            intake_by_url[c.signal_url] = (i.decision, i.statis_action_id or "")
             if i.statis_action_id:
                 receipts_seen.append(i.statis_action_id)
             if i.decision in ("APPROVED", "APPROVED_PENDING"):
@@ -86,12 +88,14 @@ def main() -> int:
 
         print(f"\n== Stage 4: qualify gate ==")
         qualified: list = []
+        qualify_by_url: dict[str, tuple[str, str]] = {}
         for s in scored:
             q = qualify_one(client, s, run_id=args.run_id)
             print(
                 f"  {s.candidate.author_handle or '?':<24} score={s.icp_score:>3} "
                 f"qualify={q.decision:<10} aid={q.statis_action_id}"
             )
+            qualify_by_url[s.candidate.signal_url] = (q.decision, q.statis_action_id or "")
             if q.statis_action_id:
                 receipts_seen.append(q.statis_action_id)
             if q.decision in ("APPROVED", "APPROVED_PENDING"):
@@ -116,10 +120,18 @@ def main() -> int:
 
         print(f"\n== Stage 6+7: send + log ==")
         for d in drafts:
-            r = send_and_log(client, d, run_id=args.run_id)
+            url = d.scored.candidate.signal_url
+            i_dec, i_aid = intake_by_url.get(url, ("", ""))
+            q_dec, q_aid = qualify_by_url.get(url, ("", ""))
+            r = send_and_log(
+                client, d, run_id=args.run_id,
+                intake_action_id=i_aid, intake_decision=i_dec,
+                qualify_action_id=q_aid, qualify_decision=q_dec,
+            )
+            backend = r.get("log_backend", "?")
             print(
                 f"  {d.scored.candidate.author_handle or '?':<24} "
-                f"send={r['send_decision']:<10} log={r['log_decision']:<10}"
+                f"send={r['send_decision']:<10} log={r['log_decision']:<10} via={backend}"
             )
             if r["send_action_id"]:
                 receipts_seen.append(r["send_action_id"])
