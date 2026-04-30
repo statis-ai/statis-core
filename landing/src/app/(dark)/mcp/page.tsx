@@ -87,10 +87,12 @@ then:
           <div className="pv6-cta-block-links">
             <a href="https://docs.statis.dev/docs/quickstart" className="pv6-btn-primary" rel="noopener">Try in 5 minutes →</a>
             <a
-              href="mailto:hello@statis.dev?subject=Talk%20to%20a%20founder"
+              href="https://calendly.com/aniket-statis/30min"
               className="pv6-btn-ghost"
+              target="_blank"
+              rel="noopener"
             >
-              Talk to a founder
+              Book 30 min with a founder
             </a>
           </div>
         </div>
