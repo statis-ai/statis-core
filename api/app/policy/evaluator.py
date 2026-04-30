@@ -336,6 +336,13 @@ class PolicyEvaluator:
             is_aggregator = bool(ctx.get("is_aggregator_domain", False))
             return (not is_aggregator) == bool(value)
 
+        if key == "not_competitor":
+            ctx: dict = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            is_competitor = bool(ctx.get("is_competitor", False))
+            return (not is_competitor) == bool(value)
+
         if key == "company_batch_in":
             ctx = {}
             if action is not None:

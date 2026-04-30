@@ -7,11 +7,61 @@ social hosts, and confirm the domain is live.
 """
 from __future__ import annotations
 
+import re
 import socket
 from typing import NamedTuple
 from urllib.parse import urlparse
 
 import httpx
+
+
+# ── Competitor / overlap filter ────────────────────────────────────────────
+# Companies whose product overlaps with Statis pillars (Context In = Kit,
+# Action Out = policy gate, Receipt Through = ledger). We don't pitch these.
+# Keep narrow — false positives waste good prospects. False negatives are
+# caught downstream by the LLM scorer's `disqualified` flag.
+
+COMPETITOR_PATTERNS: tuple[re.Pattern[str], ...] = tuple(
+    re.compile(p, re.IGNORECASE) for p in [
+        # Pillar 1 — context hygiene / cost metering
+        r"\b(llm|ai)[- ]native\s+(context\s+)?(compression|optimization|caching)\b",
+        r"\b(prompt|context)\s+(injection\s+)?(defense|guard|firewall)\b",
+        r"\btoken\s+(cost\s+)?(meter|metering|tracking|budget)\s+for\s+(llm|ai)",
+
+        # Pillar 2 — policy gate / agent governance / agent gateway
+        r"\b(ai|agent)\s+(governance|policy|gateway|gating)\s+(platform|layer|tool)?",
+        r"\bpolicy[- ]gated\s+(tool|action|agent)\s+execution\b",
+        r"\bagent\s+(permissions|kill[- ]switch|access\s+control)\b",
+        r"\bhuman[- ]in[- ]the[- ]loop\s+(agent\s+)?(approval|escalation)\s+platform\b",
+
+        # Pillar 3 — receipts / audit / observability for agents
+        r"\b(production\s+)?monitoring\s+for\s+ai\s+agents?\b",
+        r"\bagent\s+(observability|monitoring|audit|telemetry|tracing)\b",
+        r"\bsentry\s+for\s+(ai|agents)\b",
+        r"\b(tamper[- ]evident|cryptographic)\s+(receipt|audit\s+log)\s+for\s+(ai|agents)\b",
+
+        # Catch-alls
+        r"\bagent\s+trust\s+(layer|platform)\b",
+        r"\btrust\s+layer\s+for\s+(ai|production)\s+agents?\b",
+        r"\bcompliance\s+(layer\s+)?for\s+ai\s+agents?\b",
+    ]
+)
+
+
+def is_competitor(text: str | None) -> tuple[bool, str]:
+    """Return (matched, matched_pattern) for the competitor filter.
+
+    Used at intake (cheap, deterministic) and surfaced into the score
+    prompt so the LLM can confirm. False positives are rare given the
+    narrow patterns; the LLM scorer overrides via `disqualified=true`.
+    """
+    if not text:
+        return False, ""
+    for pat in COMPETITOR_PATTERNS:
+        m = pat.search(text)
+        if m:
+            return True, m.group(0).lower().strip()
+    return False, ""
 
 
 # Domains that aggregate user content — having a profile URL here does NOT

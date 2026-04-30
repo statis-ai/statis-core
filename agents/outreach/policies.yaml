@@ -23,6 +23,7 @@ rules:
       tier: 1
       has_company_domain: true
       not_aggregator_domain: true
+      not_competitor: true
       max_signal_age_days: 14
       min_signal_length: 120
       allowed_sources: [hn, github]
@@ -30,7 +31,7 @@ rules:
     decision: APPROVED
     priority: 30
     active: true
-    description: "T1: HN/GitHub individual signal + resolved verified company domain"
+    description: "T1: HN/GitHub individual signal + resolved verified company domain + not a competitor"
 
   # T2 — YC recent batches with agent capabilities + verified domain.
   - rule_id: outreach_intake_t2_yc
@@ -39,12 +40,13 @@ rules:
       tier: 2
       has_company_domain: true
       not_aggregator_domain: true
+      not_competitor: true
       company_batch_in: [Winter 2026, Fall 2025, Summer 2025, Winter 2025, Spring 2026]
       dnc: false
     decision: APPROVED
     priority: 30
     active: true
-    description: "T2: YC W25/S25/F25/W26/Sp26 agent companies with verified domain"
+    description: "T2: YC W25/S25/F25/W26/Sp26 agent companies with verified domain + not a competitor"
 
   # Universal hard blocks
   - rule_id: outreach_intake_dnc_block
@@ -70,6 +72,14 @@ rules:
     priority: 35
     active: true
     description: "Deny aggregator/social profile URLs masquerading as company"
+
+  - rule_id: outreach_intake_competitor_block
+    action_type: prospect_intake
+    conditions: {not_competitor: false}
+    decision: DENIED
+    priority: 35
+    active: true
+    description: "Deny direct competitors / overlapping products (agent obs/governance/context tools)"
 
   - rule_id: outreach_intake_default_deny
     action_type: prospect_intake
@@ -134,15 +144,30 @@ rules:
     active: true
     description: "Deny drafts missing required fields"
 
-  # ── linkedin_send_message — every send escalated for human review (v0) ──
+  # ── linkedin_send_message — score-graduated approval ──
+  # Score >=90: auto-approve (worker executes via MockLinkedInAdapter today,
+  #             real Unipile in v1 — no human touch).
+  # Score 80-89: escalate for Aniket's review in console.
+  # Score <80:   deny.
+  - rule_id: outreach_send_high_confidence
+    action_type: linkedin_send_message
+    conditions:
+      min_icp_score: 90
+      required_fields: [recipient_profile, message_body, recipient_name]
+    decision: APPROVED
+    priority: 30
+    active: true
+    description: "Score>=90: auto-approve, message goes out without human review"
+
   - rule_id: outreach_send_review
     action_type: linkedin_send_message
     conditions:
+      min_icp_score: 80
       required_fields: [recipient_profile, message_body, recipient_name]
     decision: ESCALATED
     priority: 20
     active: true
-    description: "Wk1-2 ramp: every send goes through Aniket's console review"
+    description: "Score 80-89: escalate to console for human review"
 
   - rule_id: outreach_send_default_deny
     action_type: linkedin_send_message
@@ -150,17 +175,20 @@ rules:
     decision: DENIED
     priority: 1
     active: true
-    description: "Deny sends missing recipient or message body"
+    description: "Score <80 or missing required fields: deny"
 
-  # ── sheets_append_row — auto-approve when required fields present ──
+  # ── sheets_append_row — auto-approve at score >=80 ──
+  # The sheet is the operator's view; rows show up as soon as a prospect is
+  # qualified enough to consider, even if the send is still escalated.
   - rule_id: outreach_sheets_log
     action_type: sheets_append_row
     conditions:
+      min_icp_score: 80
       required_fields: [prospect_name, linkedin_url, icp_score]
     decision: APPROVED
     priority: 20
     active: true
-    description: "Auto-approve sheet logging when all required fields present"
+    description: "Score>=80: auto-approve sheet row (operator visibility)"
 
   - rule_id: outreach_sheets_log_default_deny
     action_type: sheets_append_row
@@ -168,7 +196,7 @@ rules:
     decision: DENIED
     priority: 1
     active: true
-    description: "Deny sheet writes missing required fields"
+    description: "Score <80 or missing required fields: deny sheet write"
 
   # ── schedule_followup — placeholder for v1; allow all today ──
   - rule_id: outreach_followup_default

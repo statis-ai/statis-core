@@ -36,11 +36,32 @@ class ScoredProspect:
 
 _SCORING_SYSTEM = """You are an analyst scoring prospects for Statis — a trust/governance layer for production AI agents.
 
+Statis itself does:
+- Pillar 1: Context In — prompt-injection defense, PII redaction, token cost metering (pre-LLM hygiene)
+- Pillar 2: Action Out — policy-gated tool execution with human-in-loop escalation
+- Pillar 3: Receipt Through — cryptographically tamper-evident audit ledger
+
 Score each prospect 0-100 on ICP fit:
 - signal_recency (0-40): How recent and concrete is their public pain about agent trust/governance?
 - role_seniority (0-30): Are they a Staff/Principal eng, EM, Head of AI, founding eng, or CTO?
 - production_evidence (0-20): Do they actually ship agents that touch production APIs?
 - stage_fit (0-10): Series A-C startup or SMB sweet spot? F500 / pre-product disqualified.
+
+DISQUALIFY (set disqualified=true) if the prospect's company is a direct competitor or
+overlapping product. Specifically these categories are competitors/overlap:
+- Production monitoring or observability for AI agents (overlap with Pillar 3)
+- LLM/AI context compression, prompt-injection guards, token-cost meters as a product (Pillar 1)
+- Agent governance / agent gateway / agent permissions / agent kill-switch / agent audit
+  layers offered as a standalone product (Pillar 2)
+- "Trust layer" / "compliance layer" / "Sentry for AI" framing for agents
+- Anything explicitly framed as "policy-gated tool execution" or "tamper-evident receipts"
+  for AI agents
+
+NOT competitors (keep these — they're customer profiles):
+- Agents that DO things (coding agents, ops agents, SDR agents, customer-support agents,
+  legal/medical/financial agent products) — they USE Statis, they aren't Statis
+- Agent frameworks (LangChain, CrewAI, AutoGen) — partners/integration targets
+- Vector DBs, retrieval, evaluation tools — adjacent, not overlapping
 
 Return ONLY a JSON object with this exact shape:
 {
@@ -50,7 +71,7 @@ Return ONLY a JSON object with this exact shape:
   "inferred_role": "<best guess role or null>",
   "inferred_company": "<best guess company or null>",
   "disqualified": <true|false>,
-  "disqualifier_reason": "<reason or null>"
+  "disqualifier_reason": "<reason or null — say 'competitor' or 'overlap' if disqualifying for that reason>"
 }
 Do NOT include any text outside the JSON."""
 

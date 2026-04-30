@@ -85,17 +85,29 @@ simulate "draft (with required fields)" \
 simulate "draft (missing fields)" \
   '{"action_type":"outreach_draft_message","parameters":{"message_body":"hi"}}'
 
-simulate "send (with required fields)" \
-  '{"action_type":"linkedin_send_message","parameters":{"recipient_profile":"u","message_body":"hi","recipient_name":"Alice"}}'
+simulate "send (score 95, full fields)" \
+  '{"action_type":"linkedin_send_message","context":{"icp_score":95},"parameters":{"recipient_profile":"u","message_body":"hi","recipient_name":"Alice"}}'
+
+simulate "send (score 85, full fields)" \
+  '{"action_type":"linkedin_send_message","context":{"icp_score":85},"parameters":{"recipient_profile":"u","message_body":"hi","recipient_name":"Alice"}}'
+
+simulate "send (score 70, full fields)" \
+  '{"action_type":"linkedin_send_message","context":{"icp_score":70},"parameters":{"recipient_profile":"u","message_body":"hi","recipient_name":"Alice"}}'
 
 simulate "send (missing fields)" \
-  '{"action_type":"linkedin_send_message","parameters":{}}'
+  '{"action_type":"linkedin_send_message","context":{"icp_score":95},"parameters":{}}'
 
-simulate "sheets_append_row (full)" \
-  '{"action_type":"sheets_append_row","parameters":{"prospect_name":"x","linkedin_url":"y","icp_score":75}}'
+simulate "sheets (score 85, full)" \
+  '{"action_type":"sheets_append_row","context":{"icp_score":85},"parameters":{"prospect_name":"x","linkedin_url":"y","icp_score":85}}'
 
-simulate "sheets_append_row (missing fields)" \
-  '{"action_type":"sheets_append_row","parameters":{}}'
+simulate "sheets (score 70, full)" \
+  '{"action_type":"sheets_append_row","context":{"icp_score":70},"parameters":{"prospect_name":"x","linkedin_url":"y","icp_score":70}}'
+
+simulate "sheets (missing fields)" \
+  '{"action_type":"sheets_append_row","context":{"icp_score":85},"parameters":{}}'
+
+simulate "intake (T2 competitor)" \
+  '{"action_type":"prospect_intake","context":{"tier":2,"company_domain":"sentrial.com","domain_verified":true,"is_aggregator_domain":false,"company_batch":"Winter 2026","is_competitor":true,"dnc":false}}'
 
 echo ""
 echo "=== Expected results ==="
@@ -113,9 +125,13 @@ echo "  qualified (30)                                            -> DENIED"
 echo "  qualified (90 but disqualified)                           -> DENIED"
 echo "  draft (with required fields)                              -> APPROVED"
 echo "  draft (missing fields)                                    -> DENIED"
-echo "  send (with required fields)                               -> ESCALATED"
+echo "  send (score 95, full fields)                              -> APPROVED  (auto-execute)"
+echo "  send (score 85, full fields)                              -> ESCALATED (manual review)"
+echo "  send (score 70, full fields)                              -> DENIED"
 echo "  send (missing fields)                                     -> DENIED"
-echo "  sheets_append_row (full)                                  -> APPROVED"
-echo "  sheets_append_row (missing fields)                        -> DENIED"
+echo "  sheets (score 85, full)                                   -> APPROVED"
+echo "  sheets (score 70, full)                                   -> DENIED"
+echo "  sheets (missing fields)                                   -> DENIED"
+echo "  intake (T2 competitor)                                    -> DENIED"
 echo ""
 echo "=== Done ==="

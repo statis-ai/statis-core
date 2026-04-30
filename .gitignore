@@ -69,6 +69,8 @@ sdk-ts/dist/
 agents/outreach/outreach_log.csv
 agents/outreach/.service_account.json
 agents/outreach/.sheet_id
+agents/outreach/.probe.py
+agents/outreach/.diag.py
 
 # Archived / unused files
 landing/public/_archive/

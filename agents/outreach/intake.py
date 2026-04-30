@@ -12,7 +12,7 @@ from typing import Any
 
 from statis import StatisClient, ActionDeniedError, ActionEscalatedError, ActionTimeoutError
 
-from .enrich import is_aggregator
+from .enrich import is_aggregator, is_competitor
 from .research import Candidate
 from .score import AGENT_ID  # reuse the agent identity
 
@@ -30,6 +30,11 @@ def intake_one(
     aid_seed = f"intake:{run_id}:{candidate.source}:{candidate.signal_url}"
     action_id = "intake-" + hashlib.sha256(aid_seed.encode()).hexdigest()[:24]
     target_id = f"{candidate.source}:{candidate.author_handle or 'unknown'}"
+
+    competitor_text = (
+        f"{candidate.company_name or ''} {candidate.signal_text or ''}"
+    )
+    is_comp, comp_match = is_competitor(competitor_text)
 
     decision = "UNKNOWN"
     statis_action_id: str | None = None
@@ -63,6 +68,8 @@ def intake_one(
                 "is_aggregator_domain": is_aggregator(candidate.company_domain),
                 "company_batch": candidate.company_batch or "",
                 "company_name": candidate.company_name or "",
+                "is_competitor": is_comp,
+                "competitor_match": comp_match,
             },
             timeout=2.0,
         )
