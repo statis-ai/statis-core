@@ -22,6 +22,14 @@ adapters:
   github_create_release: app.adapters.generic.GenericAdapter
   github_trigger_workflow: app.adapters.generic.GenericAdapter
   github_close_issue: app.adapters.generic.GenericAdapter
+  # Outreach agent — mock LinkedIn delivery; swap to Unipile in v1
+  linkedin: app.adapters.linkedin_mock.MockLinkedInAdapter
+  # Audit-only action types — write receipts, no external side effect
+  prospect_scored: app.adapters.generic.GenericAdapter
+  outreach_draft_message: app.adapters.generic.GenericAdapter
+  sheets_append_row: app.adapters.generic.GenericAdapter
+  schedule_followup: app.adapters.generic.GenericAdapter
+  outreach_reply_received: app.adapters.generic.GenericAdapter
   # Keel log-only action types
   log_expense: app.adapters.generic.GenericAdapter
   propose_trade: app.adapters.generic.GenericAdapter

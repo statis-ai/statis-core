@@ -1,0 +1,93 @@
+# Statis Outreach Agent — v0 policies.
+# Apply with: ./agents/outreach/bootstrap.sh
+#
+# v0 (today) — uses ONLY condition handlers already deployed on the production
+#   evaluator: required_fields, operator_approved. No code deploy needed.
+#
+# v1 (next push) — once api/app/policy/evaluator.py ships the new handlers
+#   (min_icp_score, dnc, days_since_last_contact_gte, max_message_len), promote
+#   to the richer policies.v1.yaml in this directory.
+#
+# Ramp: every linkedin_send_message starts ESCALATED. Aniket approves in console.
+
+rules:
+  # ── prospect_scored — every score is a receipt ──
+  - rule_id: outreach_prospect_scored_default
+    action_type: prospect_scored
+    conditions: {}
+    decision: APPROVED
+    priority: 10
+    active: true
+    description: "Auto-approve scoring; log all decisions to ledger"
+
+  # ── outreach_draft_message — auto-approve drafts with required fields ──
+  - rule_id: outreach_draft_complete
+    action_type: outreach_draft_message
+    conditions:
+      required_fields: [message_body, signal_url, channel]
+    decision: APPROVED
+    priority: 20
+    active: true
+    description: "Auto-approve drafts that include the message body + signal context"
+
+  - rule_id: outreach_draft_default_deny
+    action_type: outreach_draft_message
+    conditions: {}
+    decision: DENIED
+    priority: 1
+    active: true
+    description: "Deny drafts missing required fields"
+
+  # ── linkedin_send_message — every send escalated for human review (v0) ──
+  - rule_id: outreach_send_review
+    action_type: linkedin_send_message
+    conditions:
+      required_fields: [recipient_profile, message_body, recipient_name]
+    decision: ESCALATED
+    priority: 20
+    active: true
+    description: "Wk1-2 ramp: every send goes through Aniket's console review"
+
+  - rule_id: outreach_send_default_deny
+    action_type: linkedin_send_message
+    conditions: {}
+    decision: DENIED
+    priority: 1
+    active: true
+    description: "Deny sends missing recipient or message body"
+
+  # ── sheets_append_row — auto-approve when required fields present ──
+  - rule_id: outreach_sheets_log
+    action_type: sheets_append_row
+    conditions:
+      required_fields: [prospect_name, linkedin_url, icp_score]
+    decision: APPROVED
+    priority: 20
+    active: true
+    description: "Auto-approve sheet logging when all required fields present"
+
+  - rule_id: outreach_sheets_log_default_deny
+    action_type: sheets_append_row
+    conditions: {}
+    decision: DENIED
+    priority: 1
+    active: true
+    description: "Deny sheet writes missing required fields"
+
+  # ── schedule_followup — placeholder for v1; allow all today ──
+  - rule_id: outreach_followup_default
+    action_type: schedule_followup
+    conditions: {}
+    decision: APPROVED
+    priority: 10
+    active: true
+    description: "Auto-approve follow-up scheduling — denied later by sends_count rule (v1)"
+
+  # ── outreach_reply_received — pure ledger event ──
+  - rule_id: outreach_reply_received_default
+    action_type: outreach_reply_received
+    conditions: {}
+    decision: APPROVED
+    priority: 10
+    active: true
+    description: "Always approve reply detection — pure ledger event"

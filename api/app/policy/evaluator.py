@@ -300,6 +300,41 @@ class PolicyEvaluator:
             # entity_state["opened_by_agent"] must match the expected bool.
             return bool(entity_state.get("opened_by_agent")) == bool(value)
 
+        # ── outreach agent condition handlers ────────────────────────────
+
+        if key == "days_since_last_contact_gte":
+            ctx: dict = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            days = ctx.get("days_since_last_contact")
+            if days is None:
+                return False
+            return float(days) >= float(value)
+
+        if key == "dnc":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            return bool(ctx.get("dnc", False)) == bool(value)
+
+        if key == "min_icp_score":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            score = ctx.get("icp_score", 0)
+            return float(score) >= float(value)
+
+        if key == "max_message_len":
+            params: dict = {}
+            if action is not None:
+                params = (
+                    action.parameters
+                    if hasattr(action, "parameters")
+                    else action.get("parameters", {})
+                )
+            body = params.get("message_body", "") or params.get("body", "")
+            return len(body) <= int(value)
+
         if key == "canonical_args_hash":
             # Graduation (migration 0045). The auto-drafted rule pins the
             # exact canonical args shape that earned 3 prior approvals;

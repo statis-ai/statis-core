@@ -1,0 +1,16 @@
+[
+  {
+    "agent_id": "outreach-agent",
+    "name": "Outreach Research Agent",
+    "allowed_action_types": [
+      "prospect_scored",
+      "outreach_draft_message",
+      "linkedin_send_message",
+      "linkedin_connect",
+      "sheets_append_row",
+      "schedule_followup",
+      "outreach_reply_received"
+    ],
+    "rate_limit_per_hour": 200
+  }
+]
