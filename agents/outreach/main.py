@@ -72,16 +72,20 @@ def main() -> int:
     receipts_seen: list[str] = []
 
     try:
+        def _ckey(c) -> str:
+            return f"{c.signal_url}|{c.target_linkedin_url or c.target_name or c.author_handle or ''}"
+
         print(f"\n== Stage 2: intake gate ({len(candidates)} candidates) ==")
         admitted: list = []
-        intake_by_url: dict[str, tuple[str, str]] = {}  # signal_url -> (decision, action_id)
+        intake_by_key: dict[str, tuple[str, str]] = {}
         for c in candidates:
             i = intake_one(client, c, run_id=args.run_id)
+            label = c.target_name or c.author_handle or "?"
             print(
-                f"  {(c.author_handle or '?'):<24} {c.source:<8} len={len(c.signal_text):>4} "
+                f"  {label:<22} {c.source:<6} len={len(c.signal_text):>4} "
                 f"intake={i.decision:<10} aid={i.statis_action_id}"
             )
-            intake_by_url[c.signal_url] = (i.decision, i.statis_action_id or "")
+            intake_by_key[_ckey(c)] = (i.decision, i.statis_action_id or "")
             if i.statis_action_id:
                 receipts_seen.append(i.statis_action_id)
             if i.decision in ("APPROVED", "APPROVED_PENDING"):
@@ -95,8 +99,9 @@ def main() -> int:
             if s is None:
                 continue
             scored.append(s)
+            label = s.candidate.target_name or s.candidate.author_handle or "?"
             print(
-                f"  {s.candidate.author_handle or '?':<24} score={s.icp_score:>3} "
+                f"  {label:<22} score={s.icp_score:>3} "
                 f"decision={s.decision:<10} aid={s.statis_action_id}"
             )
             if s.statis_action_id:
@@ -104,14 +109,15 @@ def main() -> int:
 
         print(f"\n== Stage 4: qualify gate ==")
         qualified: list = []
-        qualify_by_url: dict[str, tuple[str, str]] = {}
+        qualify_by_key: dict[str, tuple[str, str]] = {}
         for s in scored:
             q = qualify_one(client, s, run_id=args.run_id)
+            label = s.candidate.target_name or s.candidate.author_handle or "?"
             print(
-                f"  {s.candidate.author_handle or '?':<24} score={s.icp_score:>3} "
+                f"  {label:<22} score={s.icp_score:>3} "
                 f"qualify={q.decision:<10} aid={q.statis_action_id}"
             )
-            qualify_by_url[s.candidate.signal_url] = (q.decision, q.statis_action_id or "")
+            qualify_by_key[_ckey(s.candidate)] = (q.decision, q.statis_action_id or "")
             if q.statis_action_id:
                 receipts_seen.append(q.statis_action_id)
             if q.decision in ("APPROVED", "APPROVED_PENDING"):
@@ -125,29 +131,30 @@ def main() -> int:
             if d is None:
                 continue
             drafts.append(d)
-            preview = d.message_body.replace("\n", " ")[:80]
+            label = d.scored.candidate.target_name or d.scored.candidate.author_handle or "?"
+            preview = d.connection_note.replace("\n", " ")[:80]
             print(
-                f"  {d.scored.candidate.author_handle or '?':<24} "
-                f"draft_decision={d.decision:<10} aid={d.statis_action_id}"
+                f"  {label:<22} ({len(d.connection_note)} chars) "
+                f"draft={d.decision:<10} aid={d.statis_action_id}"
             )
-            print(f"    > {preview}{'...' if len(d.message_body) > 80 else ''}")
+            print(f"    note> {preview}{'...' if len(d.connection_note) > 80 else ''}")
             if d.statis_action_id:
                 receipts_seen.append(d.statis_action_id)
 
         print(f"\n== Stage 6+7: connection request + log ==")
         for d in drafts:
-            url = d.scored.candidate.signal_url
-            i_dec, i_aid = intake_by_url.get(url, ("", ""))
-            q_dec, q_aid = qualify_by_url.get(url, ("", ""))
+            key = _ckey(d.scored.candidate)
+            i_dec, i_aid = intake_by_key.get(key, ("", ""))
+            q_dec, q_aid = qualify_by_key.get(key, ("", ""))
             r = send_and_log(
                 client, d, run_id=args.run_id,
                 intake_action_id=i_aid, intake_decision=i_dec,
                 qualify_action_id=q_aid, qualify_decision=q_dec,
             )
             backend = r.get("log_backend", "?")
+            label = d.scored.candidate.target_name or d.scored.candidate.author_handle or "?"
             print(
-                f"  {d.scored.candidate.author_handle or '?':<24} "
-                f"connreq={r['connection_decision']:<10} log={r['log_decision']:<10} via={backend}"
+                f"  {label:<22} connreq={r['connection_decision']:<10} log={r['log_decision']:<10} via={backend}"
             )
             if r["connection_action_id"]:
                 receipts_seen.append(r["connection_action_id"])

@@ -115,11 +115,13 @@ def score_one(client: StatisClient, candidate: Candidate, run_id: str = "v0") ->
 
     icp_score = int(scored.get("icp_score", 0))
 
-    # Stable action_id within a run: tied to (run_id, source, signal_url)
-    aid_seed = f"score:{run_id}:{candidate.source}:{candidate.signal_url}"
+    # Stable action_id within a run: tied to (run_id, source, signal_url, target).
+    # Including target disambiguates per-founder candidates that share a company.
+    target_key = candidate.target_linkedin_url or candidate.target_name or candidate.author_handle or "company-only"
+    aid_seed = f"score:{run_id}:{candidate.source}:{candidate.signal_url}:{target_key}"
     action_id = "score-" + hashlib.sha256(aid_seed.encode()).hexdigest()[:24]
 
-    target_id = f"{candidate.source}:{candidate.author_handle or 'unknown'}"
+    target_id = f"{candidate.source}:{candidate.target_name or candidate.author_handle or 'unknown'}"
     decision = "UNKNOWN"
     statis_action_id: str | None = None
 

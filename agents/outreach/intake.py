@@ -27,9 +27,10 @@ class IntakeDecision:
 def intake_one(
     client: StatisClient, candidate: Candidate, run_id: str = "v0"
 ) -> IntakeDecision:
-    aid_seed = f"intake:{run_id}:{candidate.source}:{candidate.signal_url}"
+    target_key = candidate.target_linkedin_url or candidate.target_name or candidate.author_handle or "company-only"
+    aid_seed = f"intake:{run_id}:{candidate.source}:{candidate.signal_url}:{target_key}"
     action_id = "intake-" + hashlib.sha256(aid_seed.encode()).hexdigest()[:24]
-    target_id = f"{candidate.source}:{candidate.author_handle or 'unknown'}"
+    target_id = f"{candidate.source}:{candidate.target_name or candidate.author_handle or 'unknown'}"
 
     competitor_text = (
         f"{candidate.company_name or ''} {candidate.signal_text or ''}"

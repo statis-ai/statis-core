@@ -64,10 +64,11 @@ def send_and_log(
 ) -> dict[str, Any]:
     scored = drafted.scored
     cand = scored.candidate
-    target_id = f"{cand.source}:{cand.author_handle or 'unknown'}"
+    target_key = cand.target_linkedin_url or cand.target_name or cand.author_handle or "company-only"
+    target_id = f"{cand.source}:{cand.target_name or cand.author_handle or 'unknown'}"
 
     # ─── Step 1: gate the connection request (this run's actual outbound) ───
-    aid_seed_conn = f"connreq:{run_id}:{cand.source}:{cand.signal_url}"
+    aid_seed_conn = f"connreq:{run_id}:{cand.source}:{cand.signal_url}:{target_key}"
     conn_action_id = "connreq-" + hashlib.sha256(aid_seed_conn.encode()).hexdigest()[:24]
 
     conn_decision = "SKIPPED"
@@ -114,7 +115,7 @@ def send_and_log(
 
     # ─── Step 2: log to sheet — both drafts persisted, follow-up DM not yet
     # gated (it fires later, after a connection_accepted event in v1) ───
-    aid_seed_log = f"log:{run_id}:{cand.source}:{cand.signal_url}"
+    aid_seed_log = f"log:{run_id}:{cand.source}:{cand.signal_url}:{target_key}"
     log_action_id = "log-" + hashlib.sha256(aid_seed_log.encode()).hexdigest()[:24]
     log_action_id_real: str | None = None
     log_decision = "SKIPPED"

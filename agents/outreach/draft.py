@@ -139,9 +139,11 @@ def draft_one(client: StatisClient, scored: ScoredProspect, run_id: str = "v0") 
     if len(connection_note) > 200:
         connection_note = connection_note[:197].rstrip() + "..."
 
-    aid_seed = f"draft:{run_id}:{scored.candidate.source}:{scored.candidate.signal_url}"
+    cand = scored.candidate
+    target_key = cand.target_linkedin_url or cand.target_name or cand.author_handle or "company-only"
+    aid_seed = f"draft:{run_id}:{cand.source}:{cand.signal_url}:{target_key}"
     action_id = "draft-" + hashlib.sha256(aid_seed.encode()).hexdigest()[:24]
-    target_id = f"{scored.candidate.source}:{scored.candidate.author_handle or 'unknown'}"
+    target_id = f"{cand.source}:{cand.target_name or cand.author_handle or 'unknown'}"
 
     decision = "UNKNOWN"
     statis_action_id: str | None = None

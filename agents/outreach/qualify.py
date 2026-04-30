@@ -25,9 +25,10 @@ def qualify_one(
     client: StatisClient, scored: ScoredProspect, run_id: str = "v0"
 ) -> QualifyDecision:
     cand = scored.candidate
-    aid_seed = f"qualify:{run_id}:{cand.source}:{cand.signal_url}"
+    target_key = cand.target_linkedin_url or cand.target_name or cand.author_handle or "company-only"
+    aid_seed = f"qualify:{run_id}:{cand.source}:{cand.signal_url}:{target_key}"
     action_id = "qualify-" + hashlib.sha256(aid_seed.encode()).hexdigest()[:24]
-    target_id = f"{cand.source}:{cand.author_handle or 'unknown'}"
+    target_id = f"{cand.source}:{cand.target_name or cand.author_handle or 'unknown'}"
 
     decision = "UNKNOWN"
     statis_action_id: str | None = None
