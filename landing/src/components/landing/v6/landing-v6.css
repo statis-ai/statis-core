@@ -1356,11 +1356,32 @@ body:has(.landing-v6)::before {
 }
 
 .landing-v6 .closing-cta-actions {
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
   margin-bottom: 36px;
+}
+.landing-v6 .closing-cta-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.landing-v6 .closing-cta-secondary {
+  background: rgba(251, 248, 241, 0.65);
+  color: var(--ink);
+  border: 1px solid rgba(26, 26, 26, 0.18);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.02);
+}
+.landing-v6 .closing-cta-secondary:hover {
+  transform: translateY(-2px);
+  background: var(--paper);
+  border-color: var(--ink);
+  box-shadow: 0 12px 28px -14px rgba(26, 26, 26, 0.20);
 }
 .landing-v6 .closing-cta-btn {
   display: inline-flex;

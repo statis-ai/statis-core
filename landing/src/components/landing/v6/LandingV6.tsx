@@ -740,16 +740,30 @@ export default function LandingV6() {
           </p>
 
           <div className="closing-cta-actions">
-            <a
-              href="https://docs.statis.dev/docs/quickstart"
-              className="closing-cta-btn closing-cta-primary"
-              rel="noopener"
-            >
-              Read the quickstart
-              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M3 8h10M9 4l4 4-4 4" />
-              </svg>
-            </a>
+            <div className="closing-cta-buttons">
+              <a
+                href="https://docs.statis.dev/docs/quickstart"
+                className="closing-cta-btn closing-cta-primary"
+                rel="noopener"
+              >
+                Read the quickstart
+                <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 8h10M9 4l4 4-4 4" />
+                </svg>
+              </a>
+              <a
+                href="https://calendly.com/aniket-statis/30min"
+                className="closing-cta-btn closing-cta-secondary"
+                target="_blank"
+                rel="noopener"
+              >
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="2.5" y="3.5" width="11" height="10" rx="1.5" />
+                  <path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" />
+                </svg>
+                Book 30 min with a founder
+              </a>
+            </div>
             <span className="closing-cta-meta">
               6 steps · install to first receipt · ~3 minutes
             </span>

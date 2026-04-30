@@ -50,7 +50,7 @@ const TIERS: Tier[] = [
       "30-day execution history",
       "Cost dashboard across agents",
     ],
-    cta: { label: "Talk to a founder", href: "mailto:hello@statis.dev?subject=Teams", primary: true },
+    cta: { label: "Book 30 min with a founder", href: "https://calendly.com/aniket-statis/30min", primary: true },
     accent: true,
   },
   {
@@ -67,7 +67,7 @@ const TIERS: Tier[] = [
       "Compliance bundle (HIPAA, GDPR)",
       "Dedicated CSM",
     ],
-    cta: { label: "Talk to a founder", href: "mailto:hello@statis.dev?subject=Enterprise", primary: false },
+    cta: { label: "Book 30 min with a founder", href: "https://calendly.com/aniket-statis/30min", primary: false },
     accent: false,
   },
 ];
