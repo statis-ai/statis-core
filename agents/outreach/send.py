@@ -76,6 +76,10 @@ def send_and_log(
     connection_status = "skipped"
 
     if drafted.decision in ("APPROVED", "APPROVED_PENDING"):
+        # Bundle the FULL sheet-row context into the connection_request action's
+        # parameters + context. The sync command later reconstructs the sheet
+        # row from this single action — no need to re-query the related
+        # intake/score/qualify/draft actions.
         try:
             receipt = client.execute(
                 action_id=conn_action_id,
@@ -84,10 +88,25 @@ def send_and_log(
                 target_system="linkedin",
                 agent_id=AGENT_ID,
                 parameters={
-                    "recipient_profile": cand.author_url or cand.author_handle,
-                    "recipient_name": cand.author_handle,
+                    "recipient_profile": cand.target_linkedin_url or cand.author_url or cand.author_handle,
+                    "recipient_name": cand.target_name or cand.author_handle,
                     "connection_note": drafted.connection_note,
+                    "followup_dm": drafted.followup_dm,
                     "campaign_id": "design-partner-beta",
+                    # ─ Sheet-row reconstruction context (read by sync.py) ─
+                    "sheet_prospect_handle": cand.author_handle or "",
+                    "sheet_prospect_url": cand.target_linkedin_url or cand.author_url or "",
+                    "sheet_source": cand.source,
+                    "sheet_signal_url": cand.signal_url,
+                    "sheet_signal_summary": (cand.signal_text or "")[:240].replace("\n", " "),
+                    "sheet_inferred_role": cand.target_role or scored.inferred_role or "",
+                    "sheet_inferred_company": cand.company_name or scored.inferred_company or "",
+                    "sheet_intake_action_id": intake_action_id,
+                    "sheet_intake_decision": intake_decision,
+                    "sheet_score_action_id": scored.statis_action_id or "",
+                    "sheet_qualify_action_id": qualify_action_id,
+                    "sheet_qualify_decision": qualify_decision,
+                    "sheet_draft_action_id": drafted.statis_action_id or "",
                 },
                 context={
                     "icp_score": scored.icp_score,
@@ -113,12 +132,22 @@ def send_and_log(
             conn_action_id_real = e.action_id
             connection_status = "approved_pending"
 
-    # ─── Step 2: log to sheet — both drafts persisted, follow-up DM not yet
-    # gated (it fires later, after a connection_accepted event in v1) ───
+    # ─── Step 2: log to sheet — ONLY when the connection_request was approved.
+    #
+    # Sync-on-approval semantics (per operator preference): the sheet is the
+    # "approved/sent" log, NOT a staging area. ESCALATED connection requests
+    # do NOT write a sheet row here — the sync command (`agents.outreach.sync`)
+    # writes them after the operator approves in console + the worker executes.
+    #
+    # In manual-send mode today, conn_decision is always ESCALATED, so this
+    # block is a no-op for every prospect. In future when score-90+ auto-approves
+    # land back, those will write here on the agent run itself.
     aid_seed_log = f"log:{run_id}:{cand.source}:{cand.signal_url}:{target_key}"
     log_action_id = "log-" + hashlib.sha256(aid_seed_log.encode()).hexdigest()[:24]
     log_action_id_real: str | None = None
     log_decision = "SKIPPED"
+
+    should_log_now = conn_decision in ("APPROVED", "APPROVED_PENDING")
 
     sheet_row = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -149,37 +178,41 @@ def send_and_log(
         "statis_action_id_log": "",
     }
 
-    try:
-        receipt = client.execute(
-            action_id=log_action_id,
-            action_type="sheets_append_row",
-            target={"entity_type": "sheet", "entity_id": "outreach_log"},
-            target_system="sheets_append_row",
-            agent_id=AGENT_ID,
-            parameters={
-                "prospect_name": cand.author_handle or "",
-                "linkedin_url": cand.author_url or cand.signal_url,
-                "icp_score": scored.icp_score,
-                "connection_status": connection_status,
-                "statis_action_id_connection": conn_action_id_real or "",
-            },
-            context={"icp_score": scored.icp_score},
-            timeout=2.0,
-        )
-        log_decision = "APPROVED"
-        log_action_id_real = receipt.action_id
-    except ActionDeniedError as e:
-        log_decision = "DENIED"
-        log_action_id_real = e.receipt.action_id if e.receipt else None
-    except ActionEscalatedError as e:
-        log_decision = "ESCALATED"
-        log_action_id_real = e.action_id
-    except ActionTimeoutError as e:
-        log_decision = "APPROVED_PENDING"
-        log_action_id_real = e.action_id
+    if should_log_now:
+        try:
+            receipt = client.execute(
+                action_id=log_action_id,
+                action_type="sheets_append_row",
+                target={"entity_type": "sheet", "entity_id": "outreach_log"},
+                target_system="sheets_append_row",
+                agent_id=AGENT_ID,
+                parameters={
+                    "prospect_name": cand.target_name or cand.author_handle or "",
+                    "linkedin_url": cand.target_linkedin_url or cand.author_url or cand.signal_url,
+                    "icp_score": scored.icp_score,
+                    "connection_status": connection_status,
+                    "statis_action_id_connection": conn_action_id_real or "",
+                },
+                context={"icp_score": scored.icp_score},
+                timeout=2.0,
+            )
+            log_decision = "APPROVED"
+            log_action_id_real = receipt.action_id
+        except ActionDeniedError as e:
+            log_decision = "DENIED"
+            log_action_id_real = e.receipt.action_id if e.receipt else None
+        except ActionEscalatedError as e:
+            log_decision = "ESCALATED"
+            log_action_id_real = e.action_id
+        except ActionTimeoutError as e:
+            log_decision = "APPROVED_PENDING"
+            log_action_id_real = e.action_id
 
-    sheet_row["statis_action_id_log"] = log_action_id_real or ""
-    backend = _log_row(sheet_row)
+        sheet_row["statis_action_id_log"] = log_action_id_real or ""
+        backend = _log_row(sheet_row)
+    else:
+        log_decision = "DEFERRED_TO_SYNC"  # sync command writes this row after approval
+        backend = "deferred"
 
     return {
         # Legacy keys preserved for main.py print line — map send_* → conn_*

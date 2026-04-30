@@ -21,6 +21,7 @@ from .research import discover as discover_t1
 from .research_yc import discover as discover_t2
 from .score import score_one
 from .send import send_and_log
+from .sync import sync as sync_sheet
 
 
 def main() -> int:
@@ -33,6 +34,16 @@ def main() -> int:
         help="Comma-separated tiers to run. 1=HN/GitHub individuals, 2=YC. Default: 2 (T1 needs domain resolution; gated off until next push).",
     )
     p.add_argument("--yc-max-per-batch", type=int, default=10)
+    p.add_argument(
+        "--sync",
+        action="store_true",
+        help="Run sync-on-approval before research: write sheet rows for any newly-COMPLETED connection requests.",
+    )
+    p.add_argument(
+        "--sync-only",
+        action="store_true",
+        help="Skip the agent pipeline; only run the sync.",
+    )
     p.add_argument(
         "--run-id",
         default=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
@@ -53,6 +64,17 @@ def main() -> int:
 
     tiers = {int(t.strip()) for t in args.tiers.split(",") if t.strip()}
     print(f"== run_id: {args.run_id}  tiers={sorted(tiers)} ==")
+
+    # Sync-on-approval: write sheet rows for newly-COMPLETED connection requests.
+    if args.sync or args.sync_only:
+        print()
+        print(f"== Stage 0: sync-on-approval ==")
+        result = sync_sheet(args.base_url, os.environ["STATIS_API_KEY"])
+        print(f"  sync result: {result}")
+        if args.sync_only:
+            return 0
+
+    print()
     print(f"== Stage 1: research ==")
     candidates: list = []
     if 1 in tiers:
