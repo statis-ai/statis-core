@@ -12,6 +12,7 @@ from typing import Any
 
 from statis import StatisClient, ActionDeniedError, ActionEscalatedError, ActionTimeoutError
 
+from .enrich import is_aggregator
 from .research import Candidate
 from .score import AGENT_ID  # reuse the agent identity
 
@@ -45,6 +46,10 @@ def intake_one(
                 "signal_url": candidate.signal_url,
                 "author_handle": candidate.author_handle or "",
                 "matched_keyword": candidate.matched_keyword,
+                "company_name": candidate.company_name or "",
+                "company_url": candidate.company_url or "",
+                "company_domain": candidate.company_domain or "",
+                "company_batch": candidate.company_batch or "",
             },
             context={
                 "source": candidate.source,
@@ -52,6 +57,12 @@ def intake_one(
                 "signal_length": len(candidate.signal_text or ""),
                 "matched_keyword": candidate.matched_keyword,
                 "dnc": False,
+                "tier": candidate.tier,
+                "company_domain": candidate.company_domain or "",
+                "domain_verified": candidate.domain_verified,
+                "is_aggregator_domain": is_aggregator(candidate.company_domain),
+                "company_batch": candidate.company_batch or "",
+                "company_name": candidate.company_name or "",
             },
             timeout=2.0,
         )

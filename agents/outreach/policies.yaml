@@ -12,11 +12,17 @@
 
 rules:
   # ── prospect_intake — pre-LLM ICP gate ──
-  # Cheap, deterministic filter applied to every research candidate before
-  # we spend an LLM call on scoring. Receipts written for every decision.
-  - rule_id: outreach_intake_qualified
+  # Hard requirement: a verified, non-aggregator company domain. No domain,
+  # no message — full stop. Tier-specific rules layer on top.
+
+  # T1 — individual signal (HN/GitHub) with company resolution. Currently
+  # gated off until research.py learns to resolve employer + domain (next push).
+  - rule_id: outreach_intake_t1_individual
     action_type: prospect_intake
     conditions:
+      tier: 1
+      has_company_domain: true
+      not_aggregator_domain: true
       max_signal_age_days: 14
       min_signal_length: 120
       allowed_sources: [hn, github]
@@ -24,15 +30,46 @@ rules:
     decision: APPROVED
     priority: 30
     active: true
-    description: "Admit fresh, substantive signals from approved sources"
+    description: "T1: HN/GitHub individual signal + resolved verified company domain"
 
+  # T2 — YC recent batches with agent capabilities + verified domain.
+  - rule_id: outreach_intake_t2_yc
+    action_type: prospect_intake
+    conditions:
+      tier: 2
+      has_company_domain: true
+      not_aggregator_domain: true
+      company_batch_in: [Winter 2026, Fall 2025, Summer 2025, Winter 2025, Spring 2026]
+      dnc: false
+    decision: APPROVED
+    priority: 30
+    active: true
+    description: "T2: YC W25/S25/F25/W26/Sp26 agent companies with verified domain"
+
+  # Universal hard blocks
   - rule_id: outreach_intake_dnc_block
     action_type: prospect_intake
     conditions: {dnc: true}
     decision: DENIED
     priority: 40
     active: true
-    description: "Hard deny if author is on do-not-contact list"
+    description: "Hard deny if author/company is on do-not-contact list"
+
+  - rule_id: outreach_intake_no_domain_block
+    action_type: prospect_intake
+    conditions: {has_company_domain: false}
+    decision: DENIED
+    priority: 35
+    active: true
+    description: "Hard deny if no verified company domain — quality > volume"
+
+  - rule_id: outreach_intake_aggregator_block
+    action_type: prospect_intake
+    conditions: {not_aggregator_domain: false}
+    decision: DENIED
+    priority: 35
+    active: true
+    description: "Deny aggregator/social profile URLs masquerading as company"
 
   - rule_id: outreach_intake_default_deny
     action_type: prospect_intake
@@ -40,7 +77,7 @@ rules:
     decision: DENIED
     priority: 1
     active: true
-    description: "Deny stale, trivial, or off-source signals"
+    description: "Default deny — must match a tier rule with verified domain"
 
   # ── prospect_scored — every score is a receipt ──
   - rule_id: outreach_prospect_scored_default

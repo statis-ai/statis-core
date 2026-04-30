@@ -302,6 +302,49 @@ class PolicyEvaluator:
 
         # ── outreach agent condition handlers ────────────────────────────
 
+        if key == "tier":
+            ctx: dict = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            tier = ctx.get("tier")
+            if tier is None:
+                return False
+            try:
+                tier = int(tier)
+            except (ValueError, TypeError):
+                return False
+            if isinstance(value, list):
+                return tier in [int(v) for v in value]
+            try:
+                return tier == int(value)
+            except (ValueError, TypeError):
+                return False
+
+        if key == "has_company_domain":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            domain = ctx.get("company_domain") or ""
+            verified = bool(ctx.get("domain_verified", False))
+            present_and_verified = bool(domain) and verified
+            return present_and_verified == bool(value)
+
+        if key == "not_aggregator_domain":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            is_aggregator = bool(ctx.get("is_aggregator_domain", False))
+            return (not is_aggregator) == bool(value)
+
+        if key == "company_batch_in":
+            ctx = {}
+            if action is not None:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+            batch = (ctx.get("company_batch") or "").strip()
+            if not isinstance(value, list):
+                return False
+            return batch in value
+
         if key == "max_signal_age_days":
             ctx: dict = {}
             if action is not None:

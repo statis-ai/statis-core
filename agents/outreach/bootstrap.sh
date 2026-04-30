@@ -41,17 +41,25 @@ simulate() {
     -d "$body" | jq -r '.decision'
 }
 
-simulate "intake (fresh, long, hn)" \
-  "{\"action_type\":\"prospect_intake\",\"context\":{\"signal_seen_at\":\"$(date -u -v-2d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-2 days' '+%Y-%m-%dT%H:%M:%SZ')\",\"signal_length\":300,\"source\":\"hn\",\"dnc\":false}}"
+FRESH=$(date -u -v-2d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-2 days' '+%Y-%m-%dT%H:%M:%SZ')
 
-simulate "intake (stale)" \
-  "{\"action_type\":\"prospect_intake\",\"context\":{\"signal_seen_at\":\"$(date -u -v-30d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-30 days' '+%Y-%m-%dT%H:%M:%SZ')\",\"signal_length\":300,\"source\":\"hn\",\"dnc\":false}}"
+simulate "intake (T1 verified domain)" \
+  "{\"action_type\":\"prospect_intake\",\"context\":{\"tier\":1,\"signal_seen_at\":\"$FRESH\",\"signal_length\":300,\"source\":\"hn\",\"company_domain\":\"acme.ai\",\"domain_verified\":true,\"is_aggregator_domain\":false,\"dnc\":false}}"
 
-simulate "intake (too short)" \
-  "{\"action_type\":\"prospect_intake\",\"context\":{\"signal_seen_at\":\"$(date -u -v-2d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-2 days' '+%Y-%m-%dT%H:%M:%SZ')\",\"signal_length\":50,\"source\":\"hn\",\"dnc\":false}}"
+simulate "intake (T1 NO domain)" \
+  "{\"action_type\":\"prospect_intake\",\"context\":{\"tier\":1,\"signal_seen_at\":\"$FRESH\",\"signal_length\":300,\"source\":\"hn\",\"company_domain\":\"\",\"domain_verified\":false,\"dnc\":false}}"
 
-simulate "intake (off-source)" \
-  "{\"action_type\":\"prospect_intake\",\"context\":{\"signal_seen_at\":\"$(date -u -v-2d '+%Y-%m-%dT%H:%M:%SZ' 2>/dev/null || date -u -d '-2 days' '+%Y-%m-%dT%H:%M:%SZ')\",\"signal_length\":300,\"source\":\"twitter\",\"dnc\":false}}"
+simulate "intake (T1 aggregator domain)" \
+  "{\"action_type\":\"prospect_intake\",\"context\":{\"tier\":1,\"signal_seen_at\":\"$FRESH\",\"signal_length\":300,\"source\":\"hn\",\"company_domain\":\"github.com\",\"domain_verified\":true,\"is_aggregator_domain\":true,\"dnc\":false}}"
+
+simulate "intake (T2 YC W26 verified)" \
+  '{"action_type":"prospect_intake","context":{"tier":2,"company_domain":"sentrial.com","domain_verified":true,"is_aggregator_domain":false,"company_batch":"Winter 2026","dnc":false}}'
+
+simulate "intake (T2 YC ancient batch)" \
+  '{"action_type":"prospect_intake","context":{"tier":2,"company_domain":"acme.com","domain_verified":true,"is_aggregator_domain":false,"company_batch":"Winter 2018","dnc":false}}'
+
+simulate "intake (T2 YC NO domain)" \
+  '{"action_type":"prospect_intake","context":{"tier":2,"company_domain":"","domain_verified":false,"company_batch":"Winter 2026","dnc":false}}'
 
 simulate "intake (dnc)" \
   '{"action_type":"prospect_intake","context":{"dnc":true}}'
@@ -91,10 +99,12 @@ simulate "sheets_append_row (missing fields)" \
 
 echo ""
 echo "=== Expected results ==="
-echo "  intake (fresh, long, hn)                                  -> APPROVED"
-echo "  intake (stale)                                            -> DENIED"
-echo "  intake (too short)                                        -> DENIED"
-echo "  intake (off-source)                                       -> DENIED"
+echo "  intake (T1 verified domain)                               -> APPROVED"
+echo "  intake (T1 NO domain)                                     -> DENIED"
+echo "  intake (T1 aggregator domain)                             -> DENIED"
+echo "  intake (T2 YC W26 verified)                               -> APPROVED"
+echo "  intake (T2 YC ancient batch)                              -> DENIED"
+echo "  intake (T2 YC NO domain)                                  -> DENIED"
 echo "  intake (dnc)                                              -> DENIED"
 echo "  prospect_scored (any)                                     -> APPROVED"
 echo "  qualified (90, role, ok)                                  -> APPROVED"

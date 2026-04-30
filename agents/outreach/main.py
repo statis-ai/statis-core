@@ -17,7 +17,8 @@ from statis import StatisClient
 from .draft import draft_one
 from .intake import intake_one
 from .qualify import qualify_one
-from .research import discover
+from .research import discover as discover_t1
+from .research_yc import discover as discover_t2
 from .score import score_one
 from .send import send_and_log
 
@@ -26,6 +27,12 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--max-prospects", type=int, default=5)
     p.add_argument("--max-per-source", type=int, default=3)
+    p.add_argument(
+        "--tiers",
+        default="2",
+        help="Comma-separated tiers to run. 1=HN/GitHub individuals, 2=YC. Default: 2 (T1 needs domain resolution; gated off until next push).",
+    )
+    p.add_argument("--yc-max-per-batch", type=int, default=10)
     p.add_argument(
         "--run-id",
         default=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
@@ -44,10 +51,19 @@ def main() -> int:
         print("ERROR: set OPENAI_API_KEY or ANTHROPIC_API_KEY", file=sys.stderr)
         return 2
 
-    print(f"== run_id: {args.run_id} ==")
-    print(f"== Stage 1: research (max {args.max_per_source}/source) ==")
-    candidates = discover(max_per_source=args.max_per_source)
-    print(f"  found {len(candidates)} candidates")
+    tiers = {int(t.strip()) for t in args.tiers.split(",") if t.strip()}
+    print(f"== run_id: {args.run_id}  tiers={sorted(tiers)} ==")
+    print(f"== Stage 1: research ==")
+    candidates: list = []
+    if 1 in tiers:
+        t1 = discover_t1(max_per_source=args.max_per_source)
+        print(f"  T1 (HN+GitHub):  {len(t1)} candidates")
+        candidates.extend(t1)
+    if 2 in tiers:
+        t2 = discover_t2(max_per_batch=args.yc_max_per_batch)
+        print(f"  T2 (YC recent):  {len(t2)} candidates (verified domains only)")
+        candidates.extend(t2)
+    print(f"  total: {len(candidates)} candidates")
     if not candidates:
         return 0
     candidates = candidates[: args.max_prospects]

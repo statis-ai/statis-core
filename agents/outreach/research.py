@@ -30,13 +30,31 @@ ICP_KEYWORDS = [
 
 @dataclass
 class Candidate:
-    source: str  # "hn" | "github"
+    source: str  # "hn" | "github" | "yc"
     signal_url: str
     signal_text: str
     signal_seen_at: str  # ISO-8601 UTC
     author_handle: str | None
     author_url: str | None
     matched_keyword: str
+
+    # Tiering — set by the researcher that produced this candidate.
+    tier: int = 1
+
+    # Company-level enrichment. Required to pass the intake domain gate.
+    company_name: str | None = None
+    company_url: str | None = None
+    company_domain: str | None = None  # extracted root, e.g. "acme.ai"
+    domain_verified: bool = False
+    company_batch: str | None = None  # e.g. "Winter 2026" for YC
+    company_tags: list[str] = field(default_factory=list)
+    company_stage: str | None = None  # e.g. "yc-w26", "seed", "seriesA"
+
+    # Decision-maker, populated when known (T2 YC has founders; T1 sometimes).
+    target_role: str | None = None  # "Founder/CEO", "CTO", etc.
+    target_name: str | None = None
+    target_linkedin_url: str | None = None
+
     extra: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
