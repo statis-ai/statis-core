@@ -123,7 +123,7 @@ export default function ActionsPage() {
   const load = async (showSpinner = true) => {
     if (showSpinner) setRefreshing(true);
     try {
-      const data = await fetchAllActions({ limit: 200 });
+      const data = await fetchAllActions({ limit: 5000 });
       setActions(data);
       setError(null);
       setLastRefreshed(new Date());

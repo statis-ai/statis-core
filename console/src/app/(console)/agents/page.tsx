@@ -87,7 +87,7 @@ export default function AgentsPage() {
   const load = useCallback(async () => {
     try {
       const [actions, regs] = await Promise.all([
-        fetchAllActions({ limit: 200 }),
+        fetchAllActions({ limit: 5000 }),
         fetchRegisteredAgents(),
       ]);
       setAgents(deriveAgents(actions));

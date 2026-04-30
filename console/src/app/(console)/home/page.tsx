@@ -59,7 +59,7 @@ export default function HomePage() {
     try {
       const [actionsRes, eventsRes, escalationsRes, ksRes, rulesRes, analyticsRes] =
         await Promise.all([
-          fetchAllActions({ limit: 200 }),
+          fetchAllActions({ limit: 5000 }),
           fetchAllEvents({ limit: 10 }),
           fetchEscalations(),
           fetchKillSwitchStatus(),

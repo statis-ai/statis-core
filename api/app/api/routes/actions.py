@@ -331,7 +331,7 @@ def list_actions(
     entity_type: str = Query(default=None),
     entity_id: str = Query(default=None),
     status: str = Query(default=None),
-    limit: int = Query(default=50, ge=1, le=200),
+    limit: int = Query(default=200, ge=1, le=10000),
     db: Session = Depends(get_db),
     auth: AuthContext = Depends(get_auth_context),
 ) -> list[ActionOut]:

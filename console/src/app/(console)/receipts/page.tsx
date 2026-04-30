@@ -69,7 +69,7 @@ export default function ReceiptsPage() {
   async function load(showSpinner = false) {
     if (showSpinner) setRefreshing(true);
     try {
-      const data = await fetchAllActions({ status: "COMPLETED", limit: 200 });
+      const data = await fetchAllActions({ status: "COMPLETED", limit: 5000 });
       setActions(data);
       setError(null);
       setLastRefreshed(new Date());
