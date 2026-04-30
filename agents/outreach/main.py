@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import os
 import sys
+from datetime import datetime, timezone
 
 from statis import StatisClient
 
@@ -24,6 +25,11 @@ def main() -> int:
     p.add_argument("--max-prospects", type=int, default=5)
     p.add_argument("--max-per-source", type=int, default=3)
     p.add_argument(
+        "--run-id",
+        default=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
+        help="Per-run nonce in action_ids; defaults to current UTC timestamp",
+    )
+    p.add_argument(
         "--base-url",
         default=os.environ.get("STATIS_BASE_URL", "https://statis-core.onrender.com"),
     )
@@ -36,6 +42,7 @@ def main() -> int:
         print("ERROR: set OPENAI_API_KEY or ANTHROPIC_API_KEY", file=sys.stderr)
         return 2
 
+    print(f"== run_id: {args.run_id} ==")
     print(f"== Stage 1: research (max {args.max_per_source}/source) ==")
     candidates = discover(max_per_source=args.max_per_source)
     print(f"  found {len(candidates)} candidates")
@@ -50,7 +57,7 @@ def main() -> int:
         print(f"\n== Stage 2: score ({len(candidates)} candidates) ==")
         scored: list = []
         for c in candidates:
-            s = score_one(client, c)
+            s = score_one(client, c, run_id=args.run_id)
             if s is None:
                 continue
             scored.append(s)
@@ -64,7 +71,7 @@ def main() -> int:
         print(f"\n== Stage 3: draft (score>=60) ==")
         drafts: list = []
         for s in scored:
-            d = draft_one(client, s)
+            d = draft_one(client, s, run_id=args.run_id)
             if d is None:
                 continue
             drafts.append(d)
@@ -79,7 +86,7 @@ def main() -> int:
 
         print(f"\n== Stage 4+5: send + log ==")
         for d in drafts:
-            r = send_and_log(client, d)
+            r = send_and_log(client, d, run_id=args.run_id)
             print(
                 f"  {d.scored.candidate.author_handle or '?':<24} "
                 f"send={r['send_decision']:<10} log={r['log_decision']:<10}"

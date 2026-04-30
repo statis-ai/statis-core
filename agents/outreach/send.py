@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from statis import StatisClient, ActionDeniedError, ActionEscalatedError
+from statis import StatisClient, ActionDeniedError, ActionEscalatedError, ActionTimeoutError
 
 from .draft import DraftedMessage
 from .score import AGENT_ID
@@ -54,11 +54,11 @@ def _csv_append(row: dict[str, Any]) -> None:
         csv.writer(f).writerow([row.get(c, "") for c in CSV_COLUMNS])
 
 
-def send_and_log(client: StatisClient, drafted: DraftedMessage) -> dict[str, Any]:
+def send_and_log(client: StatisClient, drafted: DraftedMessage, run_id: str = "v0") -> dict[str, Any]:
     scored = drafted.scored
     cand = scored.candidate
 
-    aid_seed_send = f"send:{cand.source}:{cand.signal_url}"
+    aid_seed_send = f"send:{run_id}:{cand.source}:{cand.signal_url}"
     send_action_id = "send-" + hashlib.sha256(aid_seed_send.encode()).hexdigest()[:24]
     target_id = f"{cand.source}:{cand.author_handle or 'unknown'}"
 
@@ -66,7 +66,7 @@ def send_and_log(client: StatisClient, drafted: DraftedMessage) -> dict[str, Any
     send_action_id_real: str | None = None
     send_status = "skipped"
 
-    if drafted.decision == "APPROVED":  # only attempt send if draft was approved
+    if drafted.decision in ("APPROVED", "APPROVED_PENDING"):  # only attempt send if draft was approved (or pending exec)
         try:
             receipt = client.execute(
                 action_id=send_action_id,
@@ -86,7 +86,7 @@ def send_and_log(client: StatisClient, drafted: DraftedMessage) -> dict[str, Any
                     "days_since_last_contact": 999,  # never contacted before
                     "dnc": False,
                 },
-                timeout=10.0,
+                timeout=2.0,
             )
             send_decision = "APPROVED"
             send_action_id_real = receipt.action_id
@@ -99,9 +99,13 @@ def send_and_log(client: StatisClient, drafted: DraftedMessage) -> dict[str, Any
             send_decision = "ESCALATED"
             send_action_id_real = e.action_id
             send_status = "pending_approval"
+        except ActionTimeoutError as e:
+            send_decision = "APPROVED_PENDING"
+            send_action_id_real = e.action_id
+            send_status = "approved_pending"
 
     # Log the row to CSV via a sheets_append_row gate (proves the log itself is gated).
-    aid_seed_log = f"log:{cand.source}:{cand.signal_url}"
+    aid_seed_log = f"log:{run_id}:{cand.source}:{cand.signal_url}"
     log_action_id = "log-" + hashlib.sha256(aid_seed_log.encode()).hexdigest()[:24]
     log_action_id_real: str | None = None
     log_decision = "SKIPPED"
@@ -142,7 +146,7 @@ def send_and_log(client: StatisClient, drafted: DraftedMessage) -> dict[str, Any
                 "statis_action_id_send": send_action_id_real or "",
             },
             context={"icp_score": scored.icp_score},
-            timeout=10.0,
+            timeout=2.0,
         )
         log_decision = "APPROVED"
         log_action_id_real = receipt.action_id
@@ -151,6 +155,9 @@ def send_and_log(client: StatisClient, drafted: DraftedMessage) -> dict[str, Any
         log_action_id_real = e.receipt.action_id if e.receipt else None
     except ActionEscalatedError as e:
         log_decision = "ESCALATED"
+        log_action_id_real = e.action_id
+    except ActionTimeoutError as e:
+        log_decision = "APPROVED_PENDING"
         log_action_id_real = e.action_id
 
     sheet_row["statis_action_id_log"] = log_action_id_real or ""

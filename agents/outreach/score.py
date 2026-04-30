@@ -6,9 +6,8 @@ import json
 from dataclasses import asdict, dataclass
 from typing import Any
 
-from statis import StatisClient, ActionDeniedError, ActionEscalatedError
-from statis_kit import process as kit_process
-from statis_kit import KitConfig, GuardConfig, CompressorConfig, MeterConfig
+from statis import StatisClient, ActionDeniedError, ActionEscalatedError, ActionTimeoutError
+from statis_kit import Guard, GuardConfig, messages_from_dicts
 
 from .llm import call_claude_json
 from .research import Candidate
@@ -56,31 +55,26 @@ Return ONLY a JSON object with this exact shape:
 Do NOT include any text outside the JSON."""
 
 
-def _kit_clean(text: str) -> tuple[str, dict[str, Any]]:
-    """Run scraped text through Statis Kit before showing it to Claude.
+_GUARD = Guard(GuardConfig(on_detect="strip"))
 
-    Treats the scraped material as a 'user' message; Guard catches injection
-    patterns, Compressor trims, Meter records token cost.
+
+def _kit_clean(text: str) -> tuple[str, dict[str, Any]]:
+    """Run scraped text through Statis Kit Guard before showing it to the LLM.
+
+    Strips known prompt-injection patterns from the scraped material so a
+    malicious tweet/comment can't hijack our scoring or drafting prompts.
     """
-    cfg = KitConfig(
-        guard=GuardConfig(on_detect="strip"),
-        compressor=CompressorConfig(pin_top=0, recent_turns=1),
-        meter=MeterConfig(model="claude-sonnet-4-5"),
-    )
-    result = kit_process([{"role": "user", "content": text}], cfg)
-    cleaned = result.messages[0]["content"] if result.messages else text
+    msgs = messages_from_dicts([{"role": "user", "content": text}])
+    result = _GUARD.scan(msgs)
+    cleaned = result.messages[0].content if result.messages else text
     report = {
-        "original_tokens": result.report.original_tokens,
-        "processed_tokens": result.report.processed_tokens,
-        "token_delta": result.report.token_delta,
-        "cost_usd": result.report.cost_estimate.usd if result.report.cost_estimate else 0.0,
-        "guard_detections": len(result.report.guard_detections),
-        "stripped_payloads": result.report.stripped_payloads,
+        "guard_detections": len(result.detections),
+        "stripped_payloads": [d.turn_index for d in result.detections],
     }
     return cleaned, report
 
 
-def score_one(client: StatisClient, candidate: Candidate) -> ScoredProspect | None:
+def score_one(client: StatisClient, candidate: Candidate, run_id: str = "v0") -> ScoredProspect | None:
     cleaned_text, kit_report = _kit_clean(candidate.signal_text)
 
     user_prompt = (
@@ -100,8 +94,8 @@ def score_one(client: StatisClient, candidate: Candidate) -> ScoredProspect | No
 
     icp_score = int(scored.get("icp_score", 0))
 
-    # Stable action_id for idempotency: tied to (source, signal_url)
-    aid_seed = f"score:{candidate.source}:{candidate.signal_url}"
+    # Stable action_id within a run: tied to (run_id, source, signal_url)
+    aid_seed = f"score:{run_id}:{candidate.source}:{candidate.signal_url}"
     action_id = "score-" + hashlib.sha256(aid_seed.encode()).hexdigest()[:24]
 
     target_id = f"{candidate.source}:{candidate.author_handle or 'unknown'}"
@@ -119,8 +113,6 @@ def score_one(client: StatisClient, candidate: Candidate) -> ScoredProspect | No
                 "source": candidate.source,
                 "signal_url": candidate.signal_url,
                 "icp_score": icp_score,
-                "kit_token_delta": kit_report["token_delta"],
-                "kit_cost_usd": kit_report["cost_usd"],
                 "kit_guard_detections": kit_report["guard_detections"],
             },
             context={
@@ -129,7 +121,7 @@ def score_one(client: StatisClient, candidate: Candidate) -> ScoredProspect | No
                 "kit_report": kit_report,
                 "disqualified": scored.get("disqualified", False),
             },
-            timeout=10.0,
+            timeout=2.0,
         )
         decision = "APPROVED"
         statis_action_id = receipt.action_id
@@ -138,6 +130,10 @@ def score_one(client: StatisClient, candidate: Candidate) -> ScoredProspect | No
         statis_action_id = e.receipt.action_id if e.receipt else None
     except ActionEscalatedError as e:
         decision = "ESCALATED"
+        statis_action_id = e.action_id
+    except ActionTimeoutError as e:
+        # APPROVED but worker hasn't executed yet — fire-and-forget, action exists on ledger
+        decision = "APPROVED_PENDING"
         statis_action_id = e.action_id
 
     return ScoredProspect(
