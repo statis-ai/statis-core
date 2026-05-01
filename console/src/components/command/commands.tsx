@@ -218,8 +218,8 @@ export const COMMANDS: Command[] = [
     keywords: ["theme", "dark", "night"],
     run: ({ toggleTheme }) => toggleTheme(),
     when: () =>
-      typeof document !== "undefined" &&
-      document.documentElement.getAttribute("data-theme") === "light",
+      typeof document === "undefined" ||
+      document.documentElement.getAttribute("data-theme") !== "dark",
   },
   {
     id: "theme-toggle-light",
@@ -229,7 +229,7 @@ export const COMMANDS: Command[] = [
     keywords: ["theme", "light", "day"],
     run: ({ toggleTheme }) => toggleTheme(),
     when: () =>
-      typeof document === "undefined" ||
-      document.documentElement.getAttribute("data-theme") !== "light",
+      typeof document !== "undefined" &&
+      document.documentElement.getAttribute("data-theme") === "dark",
   },
 ];
