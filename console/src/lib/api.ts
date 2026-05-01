@@ -317,6 +317,14 @@ export function verifyReceipt(receiptId: string): Promise<ReceiptVerifyResult> {
   return json<ReceiptVerifyResult>(`${BASE}/receipts/${receiptId}/verify`);
 }
 
+export function fetchReceiptById(receiptId: string): Promise<ReceiptDetail> {
+  return json<ReceiptDetail>(`${BASE}/receipts/by-id/${receiptId}`);
+}
+
+export function fetchReceiptsByRule(ruleId: string, limit = 50): Promise<ReceiptDetail[]> {
+  return json<ReceiptDetail[]>(`${BASE}/receipts?rule_id=${encodeURIComponent(ruleId)}&limit=${limit}`);
+}
+
 // ── Deliveries ───────────────────────────────────────────────
 
 export function fetchDeliveries(
@@ -333,6 +341,10 @@ export function fetchDeliveries(
 export function fetchPolicyRules(actionType?: string): Promise<PolicyRule[]> {
   const qs = actionType ? `?action_type=${actionType}` : "";
   return json<PolicyRule[]>(`${BASE}/policy-rules${qs}`);
+}
+
+export function fetchPolicyRule(ruleId: string): Promise<PolicyRule> {
+  return json<PolicyRule>(`${BASE}/policy-rules/${encodeURIComponent(ruleId)}`);
 }
 
 export function createPolicyRule(rule: PolicyRuleCreate): Promise<PolicyRule> {
