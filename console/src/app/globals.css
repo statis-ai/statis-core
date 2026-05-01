@@ -80,6 +80,30 @@
   --dot-color:    rgba(210,96,74,0.16);
 }
 
+/* ── Backward-compat aliases (delete as pages migrate to brand-* classes) ─── */
+/* Maps old dark-zinc token names to new V6 equivalents so legacy pages render. */
+:root {
+  --bg-surface:   var(--paper);
+  --border:       var(--rule);
+  --text:         var(--ink);
+  --text-2:       var(--ink-soft);
+  --text-muted:   var(--ink-muted);
+  --text-subtle:  var(--ink-subtle);
+  --highlight:    var(--accent);
+  --font:         var(--font-sans);
+  --radius:       4px;
+}
+/* Dark mode compat aliases */
+[data-theme="dark"] {
+  --bg-surface:   var(--paper);
+  --border:       var(--rule);
+  --text:         var(--ink);
+  --text-2:       var(--ink-soft);
+  --text-muted:   var(--ink-muted);
+  --text-subtle:  var(--ink-subtle);
+  --highlight:    var(--accent);
+}
+
 /* ── Reset & base ───────────────────────────────────────────── */
 
 * { box-sizing: border-box; }
