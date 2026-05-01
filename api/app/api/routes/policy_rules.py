@@ -58,6 +58,28 @@ def create_policy_rule(
     return PolicyRuleOut.model_validate(rule)
 
 
+@router.get("/policy-rules/{rule_id}", response_model=PolicyRuleOut)
+def get_policy_rule(
+    rule_id: str,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> PolicyRuleOut:
+    rule = (
+        db.query(PolicyRule)
+        .filter(
+            PolicyRule.rule_id == rule_id,
+            PolicyRule.tenant_id == auth.tenant_id,
+        )
+        .first()
+    )
+    if rule is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Policy rule '{rule_id}' not found",
+        )
+    return PolicyRuleOut.model_validate(rule)
+
+
 @router.get("/policy-rules", response_model=list[PolicyRuleOut])
 def list_policy_rules(
     action_type: str = Query(None),

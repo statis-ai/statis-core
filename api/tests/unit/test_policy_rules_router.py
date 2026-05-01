@@ -213,3 +213,33 @@ def test_delete_rule_404_when_not_found(client_and_db):
     resp = client.delete("/policy-rules/nonexistent", headers={"X-API-Key": "test-key"})
 
     assert resp.status_code == 404
+
+
+# ---------------------------------------------------------------------------
+# GET /policy-rules/{rule_id}
+# ---------------------------------------------------------------------------
+
+
+def test_get_rule_returns_200(client_and_db):
+    client, db = client_and_db
+    rule = _make_rule("rule-get")
+
+    db.query.return_value.filter.return_value.first.return_value = rule
+
+    resp = client.get("/policy-rules/rule-get", headers={"X-API-Key": "test-key"})
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["rule_id"] == "rule-get"
+    assert data["action_type"] == "log_expense"
+
+
+def test_get_rule_404_when_not_found(client_and_db):
+    client, db = client_and_db
+
+    db.query.return_value.filter.return_value.first.return_value = None
+
+    resp = client.get("/policy-rules/nonexistent", headers={"X-API-Key": "test-key"})
+
+    assert resp.status_code == 404
+    assert "not found" in resp.json()["detail"]

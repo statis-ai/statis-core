@@ -3,9 +3,7 @@
  *
  * Token-aligned classes for the 5 patterns from /plan-design-review (D27)
  * + the PublicPageChrome wrapper (Q4). Token names come from
- * console/src/app/globals.css; do not introduce new colors here. New
- * primitives go in :root and [data-theme="light"], not as hard-coded
- * literals.
+ * console/src/app/globals.css. Do not introduce new colors here.
  *
  * Lane 3a owns: IdentityCard (D16), ArgsPanel (D19, D8).
  * Lane 3b owns: StateBanner (D17, D21), AuditPanel (D18), GraduationOverlay (D22).
@@ -19,8 +17,8 @@
 .public-chrome {
   min-height: 100vh;
   background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
+  color: var(--ink);
+  font-family: var(--font-sans);
   display: flex;
   flex-direction: column;
 }
@@ -30,20 +28,20 @@
   align-items: center;
   gap: 12px;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--rule);
 }
 
 .public-chrome__eyebrow {
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .public-chrome__warning {
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border);
-  color: var(--text-muted);
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-muted);
   font-size: 12px;
   padding: 10px 24px;
 }
@@ -57,10 +55,10 @@
 }
 
 .public-chrome__footer {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--rule);
   padding: 14px 24px;
   font-size: 12px;
-  color: var(--text-subtle);
+  color: var(--ink-subtle);
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -71,8 +69,8 @@
 /* ---------------------------------------------------------------- */
 
 .identity-card {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
+  background: var(--paper);
+  border: 1px solid var(--rule);
   border-radius: var(--radius);
   padding: 12px 14px;
 }
@@ -80,12 +78,12 @@
 .identity-card__handle {
   font-size: 13px;
   font-weight: 500;
-  color: var(--text);
+  color: var(--ink);
 }
 
 .identity-card__lineage {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   margin-top: 2px;
 }
 
@@ -100,22 +98,22 @@
   padding: 12px 16px;
   border-radius: var(--radius);
   font-size: 13px;
-  border-left: 3px solid var(--border);
+  border-left: 3px solid var(--rule);
 }
 
 .state-banner--ok {
-  background: color-mix(in srgb, #16a34a 12%, var(--bg-surface));
-  border-left-color: #16a34a;
+  background: color-mix(in srgb, var(--good) 10%, var(--paper));
+  border-left-color: var(--good);
 }
 
 .state-banner--fail {
-  background: color-mix(in srgb, #dc2626 12%, var(--bg-surface));
-  border-left-color: #dc2626;
+  background: color-mix(in srgb, var(--bad) 10%, var(--paper));
+  border-left-color: var(--bad);
 }
 
 .state-banner--warn {
-  background: color-mix(in srgb, #ca8a04 12%, var(--bg-surface));
-  border-left-color: #ca8a04;
+  background: color-mix(in srgb, var(--warn) 10%, var(--paper));
+  border-left-color: var(--warn);
 }
 
 .state-banner__icon {
@@ -125,22 +123,20 @@
 .state-banner__caption {
   margin-left: auto;
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 /* ---------------------------------------------------------------- */
 /* ArgsPanel — D19 — Lane 3a renders                                  */
-/* Variants: long-string (word-wrap+max-h+expand), nested, binary,    */
-/* no-args. The diff render uses jsondiffpatch.css already in app/.   */
 /* ---------------------------------------------------------------- */
 
 .args-panel {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
+  background: var(--paper);
+  border: 1px solid var(--rule);
   border-radius: var(--radius);
   padding: 14px 16px;
   font-size: 12px;
-  color: var(--text-2);
+  color: var(--ink-soft);
 }
 
 .args-panel__row {
@@ -148,7 +144,7 @@
   grid-template-columns: 140px 1fr;
   gap: 12px;
   padding: 6px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--rule-soft);
 }
 
 .args-panel__row:last-child {
@@ -156,11 +152,11 @@
 }
 
 .args-panel__key {
-  color: var(--text-muted);
+  color: var(--ink-muted);
 }
 
 .args-panel__value {
-  color: var(--text-2);
+  color: var(--ink-soft);
   word-break: break-word;
   white-space: pre-wrap;
 }
@@ -176,12 +172,12 @@
 }
 
 .args-panel__value--binary {
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-style: italic;
 }
 
 .args-panel__value--empty {
-  color: var(--text-subtle);
+  color: var(--ink-subtle);
   font-style: italic;
 }
 
@@ -191,15 +187,15 @@
 
 .audit-panel {
   margin-top: 12px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--rule);
   border-radius: var(--radius);
-  background: var(--bg-surface);
+  background: var(--paper);
 }
 
 .audit-panel__summary {
   padding: 10px 14px;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   cursor: pointer;
   list-style: none;
 }
@@ -209,13 +205,13 @@
 }
 
 .audit-panel[open] .audit-panel__summary {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--rule);
 }
 
 .audit-panel__row {
   padding: 8px 14px;
   font-size: 11px;
-  color: var(--text-2);
+  color: var(--ink-soft);
   display: grid;
   grid-template-columns: 1fr auto auto;
   gap: 12px;
@@ -223,7 +219,7 @@
 }
 
 .audit-panel__row + .audit-panel__row {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--rule-soft);
 }
 
 .audit-panel__graduated {
@@ -248,34 +244,33 @@
 
 /* ---------------------------------------------------------------- */
 /* GraduationOverlay — D22, D25, D26 — Lane 3b renders                */
-/* 5 states: edit, validate-error, expand, save-confirm, snooze.      */
 /* ---------------------------------------------------------------- */
 
 .graduation-overlay {
   margin-top: 16px;
   padding: 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--rule);
   border-radius: var(--radius);
-  background: var(--bg-surface);
+  background: var(--paper);
 }
 
 .graduation-overlay__eyebrow {
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   margin-bottom: 6px;
 }
 
 .graduation-overlay__headline {
   font-size: 14px;
   font-weight: 500;
-  color: var(--text);
+  color: var(--ink);
 }
 
 .graduation-overlay__sub {
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   margin-top: 4px;
 }
 
@@ -283,26 +278,26 @@
   margin-top: 12px;
   padding: 12px;
   background: var(--bg);
-  border: 1px solid var(--border);
+  border: 1px solid var(--rule);
   border-radius: var(--radius);
   font-size: 12px;
-  color: var(--text-2);
+  color: var(--ink-soft);
   overflow-x: auto;
   white-space: pre;
 }
 
 .graduation-overlay__yaml [contenteditable="true"]:focus {
-  outline: 2px solid var(--text);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 .graduation-overlay__field--invalid {
-  border-color: #dc2626;
-  color: #dc2626;
+  border-color: var(--bad);
+  color: var(--bad);
 }
 
 .graduation-overlay__error {
-  color: #dc2626;
+  color: var(--bad);
   font-size: 11px;
   margin-top: 6px;
 }

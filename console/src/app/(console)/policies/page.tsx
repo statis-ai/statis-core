@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Plus,
@@ -225,6 +226,13 @@ function PolicyCard({
             <FlaskConical size={12} />
             Test
           </button>
+          <Link
+            href={`/policies/${rule.rule_id}`}
+            className="flex items-center gap-1 text-xs font-mono font-medium transition-colors"
+            style={{ color: "var(--accent)" }}
+          >
+            Detail <ChevronRight size={12} />
+          </Link>
           <button
             onClick={onEdit}
             className="flex items-center gap-1 text-xs text-[#d4d4d4] font-medium hover:text-white transition-colors"

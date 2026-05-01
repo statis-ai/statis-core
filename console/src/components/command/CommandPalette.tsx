@@ -9,12 +9,12 @@ import {
   type KeyboardEvent,
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Search, ArrowUp, ArrowDown, CornerDownLeft } from "lucide-react";
+import { Search, ArrowUp, ArrowDown, CornerDownLeft, Zap, Shield } from "lucide-react";
 import { COMMANDS } from "./commands";
 import { SECTION_LABELS, type Command, type CommandContext } from "./types";
 import { useTheme } from "@/components/ThemeProvider";
+import { fetchAllActions, fetchPolicyRules, type ActionContract, type PolicyRule } from "@/lib/api";
 
-// Simple scoring: prefix match > word-boundary match > substring match.
 function score(cmd: Command, query: string): number {
   if (!query) return 1;
   const q = query.toLowerCase();
@@ -31,6 +31,32 @@ function score(cmd: Command, query: string): number {
   return 0;
 }
 
+const iconProps = { size: 13 } as const;
+
+function dynamicActionCommands(actions: ActionContract[]): Command[] {
+  return actions.map((a) => ({
+    id: `action-${a.action_id}`,
+    title: a.action_id.slice(0, 20),
+    subtitle: `${a.action_type} · ${a.status}`,
+    section: "actions" as const,
+    icon: <Zap {...iconProps} />,
+    keywords: [a.action_type, a.proposed_by, a.status, a.action_id],
+    run: ({ router }) => router.push(`/actions/${a.action_id}`),
+  }));
+}
+
+function dynamicPolicyCommands(rules: PolicyRule[]): Command[] {
+  return rules.map((r) => ({
+    id: `policy-${r.rule_id}`,
+    title: r.rule_id,
+    subtitle: `${r.action_type} · ${r.decision}`,
+    section: "policies" as const,
+    icon: <Shield {...iconProps} />,
+    keywords: [r.action_type, r.decision, r.rule_id, r.description ?? ""],
+    run: ({ router }) => router.push(`/policies/${r.rule_id}`),
+  }));
+}
+
 export function CommandPalette({
   open,
   onClose,
@@ -43,6 +69,8 @@ export function CommandPalette({
   const { toggle: toggleTheme } = useTheme();
   const [query, setQuery] = useState("");
   const [activeIdx, setActiveIdx] = useState(0);
+  const [dynamicActions, setDynamicActions] = useState<ActionContract[]>([]);
+  const [dynamicPolicies, setDynamicPolicies] = useState<PolicyRule[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -55,10 +83,39 @@ export function CommandPalette({
     [router, pathname, toggleTheme]
   );
 
-  // Filter + score + group
+  // Fetch dynamic data when palette opens
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    async function load() {
+      try {
+        const [actions, policies] = await Promise.allSettled([
+          fetchAllActions({ limit: 50 }),
+          fetchPolicyRules(),
+        ]);
+        if (cancelled) return;
+        if (actions.status === "fulfilled") setDynamicActions(actions.value);
+        if (policies.status === "fulfilled") setDynamicPolicies(policies.value);
+      } catch { /* silently fail — palette still works for static commands */ }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [open]);
+
+  // Merge static + dynamic commands
+  const allCommands: Command[] = useMemo(() => [
+    ...COMMANDS,
+    ...dynamicActionCommands(dynamicActions),
+    ...dynamicPolicyCommands(dynamicPolicies),
+  ], [dynamicActions, dynamicPolicies]);
+
   const { visible, grouped } = useMemo(() => {
-    const scored = COMMANDS.filter((cmd) => (cmd.when ? cmd.when(ctx) : true))
-      .map((cmd) => ({ cmd, s: score(cmd, query.trim()) }))
+    const q = query.trim();
+    // When query is empty, show only static nav/create/theme commands
+    const pool = q ? allCommands : COMMANDS;
+    const scored = pool
+      .filter((cmd) => (cmd.when ? cmd.when(ctx) : true))
+      .map((cmd) => ({ cmd, s: score(cmd, q) }))
       .filter(({ s }) => s > 0)
       .sort((a, b) => b.s - a.s);
 
@@ -70,25 +127,21 @@ export function CommandPalette({
     }
 
     return { visible: list, grouped: groups };
-  }, [query, ctx]);
+  }, [query, ctx, allCommands]);
 
-  // Clamp active index when list changes
   useEffect(() => {
     if (activeIdx >= visible.length) setActiveIdx(0);
   }, [visible.length, activeIdx]);
 
-  // Focus input on open, reset state on close
   useEffect(() => {
     if (open) {
       setQuery("");
       setActiveIdx(0);
-      // Slight delay so focus doesn't fight with opening transition
       const t = window.setTimeout(() => inputRef.current?.focus(), 20);
       return () => window.clearTimeout(t);
     }
   }, [open]);
 
-  // Scroll active into view
   useEffect(() => {
     const list = listRef.current;
     if (!list) return;
@@ -99,20 +152,13 @@ export function CommandPalette({
   const run = useCallback(
     async (cmd: Command) => {
       onClose();
-      // Give the close animation a frame to start before navigating
-      requestAnimationFrame(() => {
-        cmd.run(ctx);
-      });
+      requestAnimationFrame(() => { cmd.run(ctx); });
     },
     [onClose, ctx]
   );
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      onClose();
-      return;
-    }
+    if (e.key === "Escape") { e.preventDefault(); onClose(); return; }
     if (e.key === "ArrowDown" || (e.ctrlKey && e.key === "j")) {
       e.preventDefault();
       setActiveIdx((i) => Math.min(i + 1, Math.max(visible.length - 1, 0)));
@@ -132,7 +178,6 @@ export function CommandPalette({
 
   if (!open) return null;
 
-  // Build flat-index lookup so clicks and keyboard nav use the same index space
   let flatIdx = 0;
 
   return (
@@ -144,27 +189,28 @@ export function CommandPalette({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 backdrop-blur-sm"
+        style={{ background: "rgba(0,0,0,0.35)" }}
         onClick={onClose}
       />
 
       {/* Panel */}
       <div
-        className="relative w-full max-w-[580px] rounded-lg shadow-2xl overflow-hidden animate-palette-in"
+        className="relative w-full max-w-[600px] overflow-hidden animate-palette-in"
         style={{
-          background: "var(--bg-surface)",
-          color: "var(--text)",
-          border: "1px solid var(--border)",
-          boxShadow:
-            "0 30px 60px -15px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.03)",
+          background: "var(--paper)",
+          color: "var(--ink)",
+          border: "1px solid var(--rule)",
+          borderRadius: "var(--radius-lg)",
+          boxShadow: "var(--tw-shadow, 0 30px 60px -15px rgba(60,40,20,0.22))",
         }}
       >
         {/* Search input */}
         <div
           className="flex items-center gap-3 px-4 py-3"
-          style={{ borderBottom: "1px solid var(--border)" }}
+          style={{ borderBottom: "1px solid var(--rule)" }}
         >
-          <Search size={15} style={{ color: "var(--text-muted)" }} />
+          <Search size={15} style={{ color: "var(--ink-muted)" }} />
           <input
             ref={inputRef}
             value={query}
@@ -173,17 +219,20 @@ export function CommandPalette({
               setActiveIdx(0);
             }}
             onKeyDown={handleKeyDown}
-            placeholder="Type a command or search…"
-            className="flex-1 bg-transparent text-[14px] focus:outline-none"
-            style={{ color: "var(--text)" }}
+            placeholder="Type a command, action ID, or policy name…"
+            className="flex-1 bg-transparent focus:outline-none font-sans"
+            style={{ fontSize: 14, color: "var(--ink)" }}
             autoComplete="off"
             spellCheck={false}
           />
           <kbd
-            className="hidden sm:inline-flex text-[10px] px-1.5 py-0.5 rounded font-mono"
+            className="hidden sm:inline-flex font-mono"
             style={{
-              color: "var(--text-muted)",
-              border: "1px solid var(--border)",
+              fontSize: 10,
+              padding: "2px 6px",
+              color: "var(--ink-muted)",
+              border: "1px solid var(--rule)",
+              borderRadius: "var(--radius-sm)",
             }}
           >
             esc
@@ -194,10 +243,10 @@ export function CommandPalette({
         <div ref={listRef} className="max-h-[54vh] overflow-y-auto py-2">
           {visible.length === 0 ? (
             <div
-              className="px-4 py-12 text-center text-[12px]"
-              style={{ color: "var(--text-muted)" }}
+              className="px-4 py-12 text-center font-mono"
+              style={{ color: "var(--ink-muted)", fontSize: 12 }}
             >
-              No commands match &ldquo;{query}&rdquo;
+              No results for &ldquo;{query}&rdquo;
             </div>
           ) : (
             Object.entries(SECTION_LABELS).map(([section, label]) => {
@@ -205,10 +254,20 @@ export function CommandPalette({
               if (!items || items.length === 0) return null;
               return (
                 <div key={section} className="mb-2 last:mb-0">
+                  {/* Section eyebrow */}
                   <div
-                    className="px-4 py-1.5 text-[9px] font-semibold uppercase tracking-widest"
-                    style={{ color: "var(--text-muted)" }}
+                    className="flex items-center gap-3 px-4 py-1.5 font-mono uppercase"
+                    style={{ fontSize: 10, letterSpacing: "0.18em", color: "var(--ink-muted)" }}
                   >
+                    <span
+                      style={{
+                        display: "inline-block",
+                        width: 16,
+                        height: 1,
+                        background: "var(--accent)",
+                        flexShrink: 0,
+                      }}
+                    />
                     {label}
                   </div>
                   <div>
@@ -224,46 +283,43 @@ export function CommandPalette({
                           onClick={() => run(cmd)}
                           className="w-full flex items-center gap-3 px-4 py-2 text-left transition-colors"
                           style={{
-                            background: active
-                              ? "color-mix(in srgb, var(--text) 8%, transparent)"
-                              : "transparent",
-                            color: active ? "var(--text)" : "var(--text-2)",
+                            background: active ? "var(--accent-tint)" : "transparent",
+                            color: active ? "var(--accent)" : "var(--ink-soft)",
+                            borderLeft: active ? "2px solid var(--accent)" : "2px solid transparent",
                           }}
                         >
                           <span
-                            className="flex items-center justify-center w-6 h-6 rounded"
-                            style={{
-                              color: active
-                                ? "var(--text)"
-                                : "var(--text-muted)",
-                            }}
+                            className="flex items-center justify-center w-5 h-5 shrink-0"
+                            style={{ color: active ? "var(--accent)" : "var(--ink-muted)" }}
                           >
                             {cmd.icon}
                           </span>
                           <div className="flex-1 min-w-0">
-                            <div className="text-[13px] truncate">
+                            <div className="font-mono truncate" style={{ fontSize: 13 }}>
                               {cmd.title}
                             </div>
                             {cmd.subtitle && (
                               <div
-                                className="text-[11px] truncate"
-                                style={{ color: "var(--text-muted)" }}
+                                className="font-mono truncate"
+                                style={{ fontSize: 11, color: active ? "var(--accent)" : "var(--ink-muted)", opacity: 0.8 }}
                               >
                                 {cmd.subtitle}
                               </div>
                             )}
                           </div>
-                          {cmd.shortcut && (
+                          {cmd.shortcut && cmd.shortcut.length > 0 && (
                             <div className="flex items-center gap-1 shrink-0">
                               {cmd.shortcut.map((k, i) => (
                                 <kbd
                                   key={`${cmd.id}-${i}`}
-                                  className="text-[9px] px-1.5 py-0.5 rounded font-mono uppercase"
+                                  className="font-mono uppercase"
                                   style={{
-                                    color: "var(--text-2)",
-                                    border: "1px solid var(--border)",
-                                    background:
-                                      "color-mix(in srgb, var(--text) 4%, transparent)",
+                                    fontSize: 9,
+                                    padding: "2px 5px",
+                                    color: "var(--ink-muted)",
+                                    border: "1px solid var(--rule)",
+                                    borderRadius: "var(--radius-sm)",
+                                    background: "var(--bg-deep)",
                                   }}
                                 >
                                   {k}
@@ -283,54 +339,36 @@ export function CommandPalette({
 
         {/* Footer */}
         <div
-          className="flex items-center justify-between gap-4 px-4 py-2 text-[10px]"
+          className="flex items-center justify-between gap-4 px-4 py-2 font-mono"
           style={{
-            borderTop: "1px solid var(--border)",
-            color: "var(--text-muted)",
+            borderTop: "1px solid var(--rule)",
+            fontSize: 10,
+            color: "var(--ink-muted)",
           }}
         >
           <div className="flex items-center gap-3">
             <span className="inline-flex items-center gap-1">
               <ArrowUp size={10} />
               <ArrowDown size={10} />
-              <span>navigate</span>
+              navigate
             </span>
             <span className="inline-flex items-center gap-1">
               <CornerDownLeft size={10} />
-              <span>select</span>
+              select
             </span>
           </div>
-          <span className="hidden sm:inline">
-            Press{" "}
-            <kbd
-              className="text-[9px] px-1 rounded"
-              style={{
-                color: "var(--text-2)",
-                border: "1px solid var(--border)",
-                background: "color-mix(in srgb, var(--text) 4%, transparent)",
-              }}
-            >
-              ?
-            </kbd>{" "}
-            for shortcuts
+          <span className="hidden sm:inline text-brand-muted">
+            Type to search actions &amp; policies
           </span>
         </div>
       </div>
 
       <style jsx>{`
         @keyframes palette-in {
-          from {
-            opacity: 0;
-            transform: translateY(-6px) scale(0.98);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-          }
+          from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
         }
-        .animate-palette-in {
-          animation: palette-in 140ms ease-out;
-        }
+        .animate-palette-in { animation: palette-in 140ms ease-out; }
       `}</style>
     </div>
   );

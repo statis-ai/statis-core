@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = "dark" | "light";
+type Theme = "light" | "dark";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -10,7 +10,7 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  theme: "dark",
+  theme: "light",
   toggle: () => {},
 });
 
@@ -19,20 +19,28 @@ export function useTheme() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     const stored = localStorage.getItem("statis_theme") as Theme | null;
-    const resolved: Theme = stored === "light" ? "light" : "dark";
+    const resolved: Theme = stored === "dark" ? "dark" : "light";
     setTheme(resolved);
-    document.documentElement.setAttribute("data-theme", resolved);
+    if (resolved === "dark") {
+      document.documentElement.setAttribute("data-theme", "dark");
+    } else {
+      document.documentElement.removeAttribute("data-theme");
+    }
   }, []);
 
   function toggle() {
     setTheme((prev) => {
-      const next: Theme = prev === "dark" ? "light" : "dark";
+      const next: Theme = prev === "light" ? "dark" : "light";
       localStorage.setItem("statis_theme", next);
-      document.documentElement.setAttribute("data-theme", next);
+      if (next === "dark") {
+        document.documentElement.setAttribute("data-theme", "dark");
+      } else {
+        document.documentElement.removeAttribute("data-theme");
+      }
       return next;
     });
   }

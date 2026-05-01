@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   Receipt,
@@ -123,6 +124,9 @@ export default function ReceiptsPage() {
             hash_valid: false,
             stored_hash: "",
             computed_hash: "",
+            signature_valid: null,
+            signature_alg: null,
+            public_key_id: null,
           },
         }))
       )
@@ -577,6 +581,16 @@ export default function ReceiptsPage() {
                               </div>
                             </div>
                           )}
+
+                          <div className="pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+                            <Link
+                              href={`/receipts/${receipt.receipt_id}`}
+                              className="inline-flex items-center gap-1 text-[11px] font-mono transition-colors"
+                              style={{ color: "var(--accent)" }}
+                            >
+                              Open receipt detail →
+                            </Link>
+                          </div>
 
                           {!!receipt.execution_result && (
                             <div>

@@ -1,11 +1,23 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "./jsondiffpatch.css";
 import "@/styles/components.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
-const jetbrainsMono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
+const inter = Inter({
+  variable: "--font-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Statis Console",
@@ -24,7 +36,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={`${jetbrainsMono.variable} min-h-screen bg-[#0a0a0a] font-mono antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} min-h-screen bg-brand-bg text-brand-ink font-sans antialiased`}>
         <ThemeProvider>
           {children}
         </ThemeProvider>

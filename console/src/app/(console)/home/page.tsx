@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import {
   fetchAllActions,
-  fetchAllEvents,
   fetchEscalations,
   fetchKillSwitchStatus,
   fetchPolicyRules,
@@ -14,20 +13,25 @@ import {
 } from "@/lib/api";
 import type {
   ActionContract,
-  EventRecord,
   EscalatedAction,
   KillSwitchStatus,
   PolicyRule,
   AnalyticsSummary,
 } from "@/lib/api";
+import { KPITile } from "@/components/observe/KPITile";
+import { ActivityChart } from "@/components/observe/ActivityChart";
+import { HBarList } from "@/components/observe/HBarList";
+import { SystemHealth } from "@/components/observe/SystemHealth";
+import { QuickActions } from "@/components/observe/QuickActions";
+import { EmptyHome } from "@/components/observe/EmptyHome";
 
-const STATUS_STYLES: Record<string, string> = {
-  COMPLETED: "bg-white/[0.06] text-[#d4d4d4] border border-[#1a1a1a]",
-  ESCALATED: "bg-white/[0.04] text-[#888888] border border-[#1a1a1a]",
-  DENIED: "bg-white/[0.04] text-[#444444] border border-[#1a1a1a]",
-  EXECUTING: "bg-white/[0.06] text-[#d4d4d4] border border-[#1a1a1a]",
-  APPROVED: "bg-white/[0.06] text-[#d4d4d4] border border-[#1a1a1a]",
-  PROPOSED: "bg-white/[0.04] text-[#888888] border border-[#1a1a1a]",
+const STATUS_COLOR: Record<string, string> = {
+  COMPLETED: "var(--good)",
+  APPROVED:  "var(--good)",
+  ESCALATED: "var(--warn)",
+  DENIED:    "var(--bad)",
+  EXECUTING: "var(--accent)",
+  PROPOSED:  "var(--ink-muted)",
 };
 
 function timeAgo(dateStr: string): string {
@@ -38,41 +42,41 @@ function timeAgo(dateStr: string): string {
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
 export default function HomePage() {
   const [actions, setActions] = useState<ActionContract[]>([]);
-  const [events, setEvents] = useState<EventRecord[]>([]);
   const [escalations, setEscalations] = useState<EscalatedAction[]>([]);
   const [killSwitch, setKillSwitch] = useState<KillSwitchStatus | null>(null);
   const [policyRules, setPolicyRules] = useState<PolicyRule[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
+  const [analyticsDays, setAnalyticsDays] = useState(7);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number>(0);
-  const [secondsAgo, setSecondsAgo] = useState(0);
   const [killSwitchLoading, setKillSwitchLoading] = useState(false);
+  const [email, setEmail] = useState("");
 
-  const loadData = useCallback(async () => {
+  useEffect(() => {
+    const stored = localStorage.getItem("statis_user_email");
+    if (stored) setEmail(stored);
+  }, []);
+
+  const loadData = useCallback(async (days = 7) => {
     try {
-      const [actionsRes, eventsRes, escalationsRes, ksRes, rulesRes, analyticsRes] =
+      const [actionsRes, escalationsRes, ksRes, rulesRes, analyticsRes] =
         await Promise.all([
-          fetchAllActions({ limit: 5000 }),
-          fetchAllEvents({ limit: 10 }),
+          fetchAllActions({ limit: 100 }),
           fetchEscalations(),
           fetchKillSwitchStatus(),
           fetchPolicyRules(),
-          fetchAnalyticsSummary(7),
+          fetchAnalyticsSummary(days),
         ]);
       setActions(actionsRes);
-      setEvents(eventsRes);
       setEscalations(escalationsRes);
       setKillSwitch(ksRes);
       setPolicyRules(rulesRes);
       setAnalytics(analyticsRes);
-      setLastUpdated(Date.now());
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load data");
@@ -82,431 +86,292 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    loadData();
-    const interval = setInterval(loadData, 15000);
+    loadData(analyticsDays);
+    const interval = setInterval(() => loadData(analyticsDays), 15_000);
     return () => clearInterval(interval);
-  }, [loadData]);
+  }, [loadData, analyticsDays]);
 
-  useEffect(() => {
-    if (!lastUpdated) return;
-    const tick = setInterval(() => {
-      setSecondsAgo(Math.floor((Date.now() - lastUpdated) / 1000));
-    }, 1000);
-    return () => clearInterval(tick);
-  }, [lastUpdated]);
-
-  // Metrics
-  const pendingEscalations = escalations.length;
-  const activePolicies = policyRules.filter((r) => r.active).length;
-  const approvalRateDisplay = analytics
-    ? `${(analytics.approval_rate * 100).toFixed(1)}%`
-    : "--";
+  function handleRangeChange(days: number) {
+    setAnalyticsDays(days);
+    loadData(days);
+  }
 
   async function handleKillSwitchToggle() {
     if (!killSwitch) return;
     if (killSwitch.active) {
       setKillSwitchLoading(true);
-      try {
-        const res = await deactivateKillSwitch();
-        setKillSwitch(res);
-      } catch {
-        /* ignore */
-      } finally {
-        setKillSwitchLoading(false);
-      }
+      try { setKillSwitch(await deactivateKillSwitch()); } catch { /* ignore */ }
+      finally { setKillSwitchLoading(false); }
     } else {
-      const confirmed = window.confirm(
-        "Activate kill switch? This will deny ALL actions until deactivated."
-      );
-      if (!confirmed) return;
+      if (!window.confirm("Activate kill switch? This will deny ALL actions until deactivated.")) return;
       setKillSwitchLoading(true);
-      try {
-        const res = await activateKillSwitch();
-        setKillSwitch(res);
-      } catch {
-        /* ignore */
-      } finally {
-        setKillSwitchLoading(false);
-      }
+      try { setKillSwitch(await activateKillSwitch()); } catch { /* ignore */ }
+      finally { setKillSwitchLoading(false); }
     }
   }
 
   if (loading) {
     return (
-      <div className="p-8 max-w-6xl">
-        <p className="text-sm text-[#444444]">Loading...</p>
+      <div className="p-8">
+        <p className="font-mono text-brand-muted" style={{ fontSize: 13 }}>Loading...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="p-8 max-w-6xl">
-        <p className="text-sm text-[#888888]">Error: {error}</p>
+      <div className="p-8">
+        <p className="font-mono text-brand-bad" style={{ fontSize: 13 }}>Error: {error}</p>
       </div>
     );
   }
 
-  // New tenant empty state — shown when no actions have ever been recorded
-  const isNewTenant = !loading && actions.length === 0 && (!analytics || analytics.actions_total === 0);
-  if (isNewTenant) {
-    return (
-      <div className="p-8 max-w-3xl">
-        <div className="mb-8">
-          <h1 className="text-[20px] font-semibold text-white">Home</h1>
-          <p className="text-xs text-[#444444] mt-0.5">Your workspace is ready.</p>
-        </div>
+  const isNewTenant = actions.length === 0 && (!analytics || analytics.actions_total === 0);
+  if (isNewTenant) return <EmptyHome />;
 
-        <div className="bg-[#111111] rounded border border-[#1a1a1a] p-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-[#444444] mb-6">
-            Get started in 3 steps
-          </p>
-
-          <div className="space-y-8">
-            {/* Step 1 */}
-            <div className="flex gap-5">
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
-                <span className="text-[11px] font-bold text-[#888888]">1</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-white mb-1">Get your API key</p>
-                <p className="text-xs text-[#444444] mb-3">
-                  Create a key in the Developers tab. Your agents will use it to propose actions.
-                </p>
-                <Link
-                  href="/developers"
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-[#d4d4d4] bg-white/[0.06] hover:bg-white/[0.1] border border-[#1a1a1a] px-3 py-1.5 rounded transition-colors"
-                >
-                  Developers →
-                </Link>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="flex gap-5">
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
-                <span className="text-[11px] font-bold text-[#888888]">2</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-white mb-1">Install the SDK</p>
-                <p className="text-xs text-[#444444] mb-3">
-                  Wrap any function your agent calls. No framework assumptions.
-                </p>
-                <div className="flex items-center gap-2 bg-[#0a0a0a] rounded border border-[#1a1a1a] px-3 py-2 font-mono text-xs text-[#888888] w-fit">
-                  pip install statis-ai
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="flex gap-5">
-              <div className="flex-shrink-0 w-7 h-7 rounded-full bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center">
-                <span className="text-[11px] font-bold text-[#888888]">3</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-white mb-1">Gate your first function</p>
-                <p className="text-xs text-[#444444] mb-3">
-                  One decorator. Your agent asks permission before it executes.
-                </p>
-                <div className="bg-[#0a0a0a] rounded border border-[#1a1a1a] px-4 py-3 font-mono text-xs text-[#888888] leading-relaxed">
-                  <span className="text-[#444444]">from</span> statis <span className="text-[#444444]">import</span> gate
-                  <br /><br />
-                  <span className="text-[#b8442e]">@gate</span>(<span className="text-[#d4d4d4]">&quot;send_money&quot;</span>)
-                  <br />
-                  <span className="text-[#444444]">def</span> send_money(amount, recipient):
-                  <br />
-                  <span className="ml-4">...</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-6 border-t border-[#1a1a1a] flex items-center gap-4">
-            <a
-              href="https://docs.statis.dev"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-[#444444] hover:text-[#888888] transition-colors"
-            >
-              Docs →
-            </a>
-            <a
-              href="https://statis.dev/blog/gate-decorator-launch"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-[#444444] hover:text-[#888888] transition-colors"
-            >
-              How it works →
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
+  // Derived data
+  const activePolicies = policyRules.filter((r) => r.active).length;
+  const approvalRatePct = analytics ? (analytics.approval_rate * 100).toFixed(1) + "%" : "--";
   const recentActions = actions.slice(0, 10);
-  const recentEvents = events.slice(0, 5);
+
+  const topPoliciesItems = (analytics?.top_rules ?? []).map((r) => ({
+    label: r.rule_id,
+    count: r.fires,
+    href: `/policies/${r.rule_id}`,
+  }));
+
+  const topAgentsItems = (analytics?.top_agents ?? []).map((a) => ({
+    label: a.agent_id,
+    count: a.actions,
+    href: `/actions?proposed_by=${encodeURIComponent(a.agent_id)}`,
+  }));
+
+  const sparkApproval = analytics?.daily_trend.map((d) =>
+    d.approved + d.denied > 0 ? (d.approved / (d.approved + d.denied)) * 100 : 0
+  );
+
+  const greeting = (() => {
+    const h = new Date().getHours();
+    if (h < 12) return "Good morning";
+    if (h < 17) return "Good afternoon";
+    return "Good evening";
+  })();
+
+  const firstName = email ? email.split("@")[0] : null;
 
   return (
-    <div className="p-8 max-w-6xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-[20px] font-semibold text-white">Home</h1>
-          <p className="text-xs text-[#444444] mt-0.5">
-            Last updated {secondsAgo}s ago
-          </p>
-        </div>
-      </div>
+    <div className="p-6 max-w-6xl flex flex-col gap-6">
 
-      {/* Kill Switch Strip */}
-      {killSwitch && (
-        <div
-          className={`rounded border p-3 mb-6 flex items-center justify-between ${
-            killSwitch.active
-              ? "bg-red-950/40 border-red-900/50"
-              : "bg-[#111111] border-[#1a1a1a]"
-          }`}
+      {/* Hero strip */}
+      <div
+        className="halftone-bg relative border border-brand-rule bg-brand-paper px-6 py-5 overflow-hidden"
+        style={{ borderRadius: "var(--radius)" }}
+      >
+        <span className="eyebrow mb-2 block">
+          Workspace · {analyticsDays === 1 ? "24h" : `${analyticsDays}d`} view
+        </span>
+        <h1
+          className="text-brand-ink"
+          style={{ fontSize: 26, fontWeight: 300, letterSpacing: "-0.025em", lineHeight: 1.2 }}
         >
-          <div className="flex items-center gap-3">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                killSwitch.active ? "bg-red-500" : "bg-[#444444]"
-              }`}
-            />
-            <span
-              className={`text-sm font-medium ${
-                killSwitch.active ? "text-red-400" : "text-[#444444]"
-              }`}
-            >
-              {killSwitch.active
-                ? "KILL SWITCH ACTIVE -- all actions denied"
-                : "Kill Switch: Off"}
+          {greeting}{firstName ? `, ${firstName}` : ""}.{" "}
+          {analytics && analytics.actions_approved > 0 && (
+            <span style={{ color: "var(--accent)" }}>
+              {analytics.actions_approved.toLocaleString()} action{analytics.actions_approved !== 1 ? "s" : ""}
             </span>
-          </div>
-          <button
-            onClick={handleKillSwitchToggle}
-            disabled={killSwitchLoading}
-            className={`text-xs font-semibold px-4 py-1.5 rounded transition-colors disabled:opacity-40 ${
-              killSwitch.active
-                ? "bg-white/[0.06] text-[#d4d4d4] hover:bg-white/[0.1] border border-[#1a1a1a]"
-                : "bg-[#d4d4d4] text-[#0a0a0a] hover:bg-white"
-            }`}
-          >
-            {killSwitchLoading
-              ? "..."
-              : killSwitch.active
-                ? "Deactivate"
-                : "Activate"}
-          </button>
-        </div>
-      )}
+          )}{" "}
+          {analytics?.actions_approved ? "approved this period." : ""}
+        </h1>
 
-      {/* Metrics */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        {[
-          { label: "Actions (7d)", value: analytics ? String(analytics.actions_total) : "--" },
-          { label: "Approval Rate", value: approvalRateDisplay },
-          { label: "Pending Escalations", value: String(pendingEscalations) },
-          { label: "Active Policies", value: String(activePolicies) },
-        ].map((m) => (
+        {/* Kill switch banner */}
+        {killSwitch?.active && (
           <div
-            key={m.label}
-            className="bg-[#111111] rounded border border-[#1a1a1a] p-5"
+            className="mt-4 flex items-center justify-between px-4 py-2.5 border"
+            style={{
+              background: "rgba(185,28,28,0.08)",
+              borderColor: "var(--bad)",
+              borderRadius: "var(--radius-sm)",
+            }}
           >
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
-              {m.label}
-            </p>
-            <p className="text-3xl font-bold text-white">{m.value}</p>
+            <span className="flex items-center gap-2 font-mono text-brand-bad" style={{ fontSize: 12 }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-brand-bad animate-pulse" />
+              KILL SWITCH ACTIVE — all actions denied
+            </span>
+            <button
+              onClick={handleKillSwitchToggle}
+              disabled={killSwitchLoading}
+              className="font-mono text-brand-muted hover:text-brand-ink transition-colors disabled:opacity-40"
+              style={{ fontSize: 11 }}
+            >
+              {killSwitchLoading ? "..." : "Deactivate"}
+            </button>
           </div>
-        ))}
+        )}
       </div>
 
-      {/* Analytics row */}
+      {/* KPI row */}
+      <div className="grid grid-cols-4 gap-4">
+        <KPITile
+          label={`Actions ${analyticsDays}d`}
+          value={analytics ? String(analytics.actions_total) : "--"}
+          sparkline={analytics?.daily_trend.map((d) => d.approved + d.denied + d.escalated)}
+        />
+        <KPITile
+          label="Approval rate"
+          value={approvalRatePct}
+          sparkline={sparkApproval}
+        />
+        <KPITile
+          label="Pending escalations"
+          value={String(escalations.length)}
+          deltaPositive={escalations.length === 0}
+        />
+        <KPITile
+          label="Active rules"
+          value={String(activePolicies)}
+        />
+      </div>
+
+      {/* Activity timeline */}
       {analytics && (
-        <div className="flex gap-5 mb-5">
-          {/* 7-Day Trend sparkline */}
-          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-[2]">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
-              7-Day Trend
-            </p>
-            {analytics.daily_trend.length > 0 ? (() => {
-              const W = 240, H = 48;
-              const days = analytics.daily_trend;
-              const totals = days.map(d => d.approved + d.denied + d.escalated);
-              const approveds = days.map(d => d.approved);
-              const maxTotal = Math.max(...totals, 1);
-              const pts = (vals: number[]) =>
-                vals
-                  .map((v, i) => {
-                    const x = (i / Math.max(vals.length - 1, 1)) * W;
-                    const y = H - (v / maxTotal) * H;
-                    return `${x.toFixed(1)},${y.toFixed(1)}`;
-                  })
-                  .join(" ");
-              return (
-                <svg width={W} height={H} className="overflow-visible">
-                  <polyline
-                    points={pts(totals)}
-                    fill="none"
-                    stroke="#333"
-                    strokeWidth="1.5"
-                  />
-                  <polyline
-                    points={pts(approveds)}
-                    fill="none"
-                    stroke="#888"
-                    strokeWidth="1.5"
-                  />
-                </svg>
-              );
-            })() : (
-              <p className="text-xs text-[#444444]">No data yet.</p>
-            )}
-            <div className="flex gap-4 mt-3">
-              <span className="flex items-center gap-1.5 text-[10px] text-[#444444]">
-                <span className="w-3 h-px bg-[#333] inline-block" /> Total
-              </span>
-              <span className="flex items-center gap-1.5 text-[10px] text-[#444444]">
-                <span className="w-3 h-px bg-[#888] inline-block" /> Approved
-              </span>
-            </div>
-          </div>
-
-          {/* Top Rules */}
-          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
-              Top Rules (7d)
-            </p>
-            {analytics.top_rules.length === 0 ? (
-              <p className="text-xs text-[#444444]">No rule activity.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {analytics.top_rules.map((r) => (
-                  <div key={r.rule_id} className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[11px] text-[#888888] truncate" title={r.rule_id}>
-                      {r.rule_id.length > 20 ? `${r.rule_id.slice(0, 20)}…` : r.rule_id}
-                    </span>
-                    <span className="text-[11px] text-[#555555] shrink-0">{r.fires}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Top Agents */}
-          <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-1">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
-              Top Agents (7d)
-            </p>
-            {analytics.top_agents.length === 0 ? (
-              <p className="text-xs text-[#444444]">No agent activity.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {analytics.top_agents.map((a) => (
-                  <div key={a.agent_id} className="flex items-center justify-between gap-2">
-                    <span className="font-mono text-[11px] text-[#888888] truncate" title={a.agent_id}>
-                      {a.agent_id.length > 20 ? `${a.agent_id.slice(0, 20)}…` : a.agent_id}
-                    </span>
-                    <span className="text-[11px] text-[#555555] shrink-0">{a.actions}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+        <ActivityChart
+          data={analytics.daily_trend}
+          onRangeChange={handleRangeChange}
+          currentDays={analyticsDays}
+        />
       )}
 
-      {/* Bottom row */}
-      <div className="flex gap-5">
-        {/* Recent Actions */}
-        <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-[3]">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444]">
-              Recent Actions
-            </p>
-            <Link
-              href="/actions"
-              className="text-xs text-[#d4d4d4] hover:text-white"
-            >
-              View all
-            </Link>
-          </div>
-          {recentActions.length === 0 ? (
-            <p className="text-xs text-[#444444]">No actions yet.</p>
-          ) : (
-            <table className="w-full">
-              <thead>
-                <tr className="text-[10px] uppercase tracking-widest text-[#444444]">
-                  <th className="text-left pb-3 font-semibold">Action ID</th>
-                  <th className="text-left pb-3 font-semibold">Entity</th>
-                  <th className="text-left pb-3 font-semibold">Action Type</th>
-                  <th className="text-left pb-3 font-semibold">Status</th>
-                  <th className="text-left pb-3 font-semibold">Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentActions.map((a) => {
-                  const entity = a.target_entity
-                    ? `${a.target_entity.entity_type || ""}/${a.target_entity.entity_id || ""}`
-                    : "--";
-                  const style =
-                    STATUS_STYLES[a.status] ?? STATUS_STYLES.COMPLETED;
-                  return (
-                    <tr key={a.action_id} className="border-t border-[#1a1a1a]">
+      {/* 2-col grid */}
+      <div className="grid grid-cols-3 gap-4">
+
+        {/* LEFT — 2/3 */}
+        <div className="col-span-2 flex flex-col gap-4">
+
+          {/* Recent actions */}
+          <div
+            className="bg-brand-paper border border-brand-rule p-5"
+            style={{ borderRadius: "var(--radius)" }}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <span className="eyebrow">Recent actions</span>
+              <Link
+                href="/actions"
+                className="font-mono text-brand-muted hover:text-brand-accent transition-colors"
+                style={{ fontSize: 11 }}
+              >
+                View all →
+              </Link>
+            </div>
+
+            {recentActions.length === 0 ? (
+              <p className="font-mono text-brand-muted" style={{ fontSize: 12 }}>No actions yet.</p>
+            ) : (
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    {["Action ID", "Type", "Status", "Agent", "Time"].map((h) => (
+                      <th
+                        key={h}
+                        className="text-left pb-3 font-mono uppercase text-brand-muted"
+                        style={{ fontSize: 10, letterSpacing: "0.12em" }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentActions.map((a) => (
+                    <tr
+                      key={a.action_id}
+                      className="border-t border-brand-rule-soft hover:bg-brand-deep transition-colors cursor-pointer"
+                    >
                       <td className="py-2.5 pr-4">
-                        <span className="font-mono text-xs text-[#d4d4d4]">
-                          {a.action_id.slice(0, 12)}
-                        </span>
+                        <Link
+                          href={`/actions/${a.action_id}`}
+                          className="font-mono text-brand-ink hover:text-brand-accent transition-colors"
+                          style={{ fontSize: 12 }}
+                        >
+                          {a.action_id.slice(0, 14)}
+                        </Link>
                       </td>
-                      <td className="py-2.5 pr-4 text-xs text-[#888888]">
-                        {entity}
-                      </td>
-                      <td className="py-2.5 pr-4 font-mono text-xs text-[#888888]">
+                      <td className="py-2.5 pr-4 font-mono text-brand-muted" style={{ fontSize: 12 }}>
                         {a.action_type}
                       </td>
                       <td className="py-2.5 pr-4">
                         <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium ${style}`}
+                          className="font-mono"
+                          style={{
+                            fontSize: 10,
+                            letterSpacing: "0.08em",
+                            color: STATUS_COLOR[a.status] ?? "var(--ink-muted)",
+                          }}
                         >
                           {a.status}
                         </span>
                       </td>
-                      <td className="py-2.5 text-xs text-[#444444]">
+                      <td className="py-2.5 pr-4 font-mono text-brand-muted truncate max-w-[120px]" style={{ fontSize: 11 }}>
+                        {a.proposed_by}
+                      </td>
+                      <td className="py-2.5 font-mono text-brand-subtle" style={{ fontSize: 11 }}>
                         {timeAgo(a.created_at)}
                       </td>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          {/* Top policies */}
+          {topPoliciesItems.length > 0 && (
+            <div
+              className="bg-brand-paper border border-brand-rule p-5"
+              style={{ borderRadius: "var(--radius)" }}
+            >
+              <span className="eyebrow block mb-4">Top policies (fires {analyticsDays}d)</span>
+              <HBarList items={topPoliciesItems} />
+            </div>
+          )}
+
+          {/* Top agents */}
+          {topAgentsItems.length > 0 && (
+            <div
+              className="bg-brand-paper border border-brand-rule p-5"
+              style={{ borderRadius: "var(--radius)" }}
+            >
+              <span className="eyebrow block mb-4">Top agents ({analyticsDays}d)</span>
+              <HBarList items={topAgentsItems} />
+            </div>
           )}
         </div>
 
-        {/* Recent Events */}
-        <div className="bg-[#111111] rounded border border-[#1a1a1a] p-5 flex-[1.5]">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-[#444444] mb-4">
-            Recent Events
-          </p>
-          {recentEvents.length === 0 ? (
-            <p className="text-xs text-[#444444]">No events yet.</p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {recentEvents.map((ev) => (
-                <div key={ev.event_id} className="flex flex-col gap-0.5">
-                  <span className="font-mono text-[11px] text-[#444444]">
-                    {timeAgo(ev.occurred_at)}
-                  </span>
-                  <span className="text-xs text-[#888888]">
-                    {ev.event_type}
-                  </span>
-                  <span className="text-[11px] text-[#444444]">
-                    {ev.entity_type}/{ev.entity_id}
-                  </span>
-                </div>
-              ))}
+        {/* RIGHT — 1/3 */}
+        <div className="flex flex-col gap-4">
+          <SystemHealth killSwitch={killSwitch} />
+
+          {/* Kill switch control (when inactive) */}
+          {killSwitch && !killSwitch.active && (
+            <div
+              className="bg-brand-paper border border-brand-rule p-4"
+              style={{ borderRadius: "var(--radius)" }}
+            >
+              <p className="eyebrow mb-3">Kill switch</p>
+              <p className="text-brand-muted mb-3" style={{ fontSize: 12 }}>
+                Emergency halt — denies all actions immediately.
+              </p>
+              <button
+                onClick={handleKillSwitchToggle}
+                disabled={killSwitchLoading}
+                className="w-full font-mono text-brand-bad border border-brand-bad hover:bg-brand-bad hover:text-brand-paper transition-colors disabled:opacity-40 py-2"
+                style={{ fontSize: 12, borderRadius: "var(--radius-sm)" }}
+              >
+                {killSwitchLoading ? "..." : "Activate kill switch"}
+              </button>
             </div>
           )}
+
+          <QuickActions />
         </div>
       </div>
     </div>

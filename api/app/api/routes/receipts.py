@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -36,6 +36,55 @@ class ReceiptVerifyResponse(BaseModel):
     signature_alg: Optional[str] = None
     public_key_id: Optional[str] = None
     rule_ids_evaluated: list[str]
+
+
+@router.get("/receipts", response_model=list[ReceiptOut])
+def list_receipts(
+    rule_id: str = Query(None),
+    limit: int = Query(50, le=500),
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> list[ReceiptOut]:
+    """List receipts for this tenant, optionally filtered by rule_id."""
+    q = (
+        db.query(Receipt)
+        .join(ActionContract, ActionContract.action_id == Receipt.action_id)
+        .filter(ActionContract.tenant_id == auth.tenant_id)
+    )
+    if rule_id is not None:
+        q = q.filter(Receipt.rule_id == rule_id)
+    rows = q.order_by(Receipt.created_at.desc()).limit(limit).all()
+    return [ReceiptOut.model_validate(r) for r in rows]
+
+
+@router.get("/receipts/by-id/{receipt_id}", response_model=ReceiptOut)
+def get_receipt_by_id(
+    receipt_id: str,
+    db: Session = Depends(get_db),
+    auth: AuthContext = Depends(get_auth_context),
+) -> ReceiptOut:
+    """Fetch a receipt by its receipt_id (primary key)."""
+    receipt = db.query(Receipt).filter(Receipt.receipt_id == receipt_id).first()
+    if receipt is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Receipt '{receipt_id}' not found",
+        )
+    # Verify the linked action belongs to this tenant
+    contract = (
+        db.query(ActionContract)
+        .filter(
+            ActionContract.action_id == receipt.action_id,
+            ActionContract.tenant_id == auth.tenant_id,
+        )
+        .first()
+    )
+    if contract is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Receipt '{receipt_id}' not found",
+        )
+    return ReceiptOut.model_validate(receipt)
 
 
 @router.get("/receipts/{action_id}", response_model=ReceiptOut)
