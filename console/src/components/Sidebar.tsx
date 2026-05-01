@@ -128,16 +128,22 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="flex flex-col w-[220px] min-h-screen bg-[#0a0a0a] border-r border-[#1a1a1a] shrink-0">
+    <aside className="flex flex-col w-[220px] min-h-screen bg-brand-bg border-r border-brand-rule shrink-0">
       {/* Logo */}
-      <div className="flex items-center gap-2 px-5 py-4 border-b border-[#1a1a1a]">
-        <span className="text-[15px] font-bold tracking-tight text-white inline-flex items-center gap-2 flex-1">
-          <StatisMark size={22} barColor="#e8e4de" accentColor="#b8442e" />
+      <div className="flex items-center gap-2 px-5 py-4 border-b border-brand-rule">
+        <span className="text-[15px] font-bold tracking-tight text-brand-ink inline-flex items-center gap-2 flex-1">
+          <StatisMark size={22} barColor="var(--ink)" accentColor="var(--accent)" />
           statis
+          <span
+            className="ml-0.5 text-[9px] font-mono tracking-[0.12em] uppercase text-brand-muted border border-brand-rule rounded-sm px-1 py-px"
+            style={{ borderRadius: "var(--radius-sm)" }}
+          >
+            BETA
+          </span>
         </span>
         <button
           onClick={toggle}
-          className="text-[#444444] hover:text-[#888888] transition-colors shrink-0"
+          className="text-brand-muted hover:text-brand-accent transition-colors shrink-0"
           title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
         >
           {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
@@ -149,7 +155,10 @@ export default function Sidebar() {
         {NAV.map((section, i) => (
           <div key={i}>
             {section.group && (
-              <p className="px-2 mb-1 text-[10px] font-semibold tracking-widest text-[#444444] uppercase">
+              <p
+                className="px-2 mb-1 font-mono uppercase text-brand-subtle"
+                style={{ fontSize: "10px", letterSpacing: "0.18em" }}
+              >
                 {section.group}
               </p>
             )}
@@ -168,27 +177,33 @@ export default function Sidebar() {
                       href={item.href}
                       {...linkProps}
                       className={cn(
-                        "relative flex items-center gap-2.5 px-2.5 py-2 rounded text-sm transition-colors",
+                        "relative flex items-center gap-2.5 px-2.5 py-2 text-sm transition-colors",
                         active
-                          ? "bg-white/[0.06] text-[#d4d4d4] font-medium"
-                          : "text-[#444444] hover:bg-white/[0.04] hover:text-[#888888]"
+                          ? "bg-brand-accent-tint text-brand-ink font-medium"
+                          : "text-brand-muted hover:bg-brand-deep hover:text-brand-ink"
                       )}
+                      style={{ borderRadius: "var(--radius)" }}
                     >
                       {active && (
-                        <span className="active-indicator absolute left-0 top-1 bottom-1 w-[2px] rounded-full bg-white" />
+                        <span
+                          className="active-indicator absolute left-0 top-1 bottom-1 w-[2px] rounded-full bg-brand-accent"
+                        />
                       )}
                       <Icon
                         size={15}
-                        className={active ? "text-[#d4d4d4]" : "text-[#444444]"}
+                        className={active ? "text-brand-accent" : "text-brand-muted"}
                       />
                       <span className="flex-1">{item.label}</span>
                       {badgeCount > 0 && (
-                        <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-red-500/20 text-red-400 text-[10px] font-semibold">
+                        <span
+                          className="flex items-center justify-center min-w-[18px] h-[18px] px-1 font-mono text-brand-bad border border-brand-bad"
+                          style={{ fontSize: "10px", borderRadius: "var(--radius-sm)", background: "rgba(185,28,28,0.08)" }}
+                        >
                           {badgeCount}
                         </span>
                       )}
                       {isExternal && (
-                        <ExternalLink size={11} className="text-[#444444]" />
+                        <ExternalLink size={11} className="text-brand-muted" />
                       )}
                     </Link>
                   </li>
@@ -199,23 +214,42 @@ export default function Sidebar() {
         ))}
       </nav>
 
+      {/* Cmd+K hint */}
+      <div className="px-3 pb-1">
+        <div
+          className="flex items-center justify-between px-2.5 py-1.5 border border-brand-rule text-brand-subtle cursor-pointer hover:border-brand-muted hover:text-brand-muted transition-colors"
+          style={{ borderRadius: "var(--radius)", fontSize: "11px" }}
+        >
+          <span className="font-mono tracking-wide">Command palette</span>
+          <span
+            className="font-mono border border-brand-rule px-1 py-px text-brand-subtle"
+            style={{ fontSize: "10px", borderRadius: "var(--radius-sm)" }}
+          >
+            ⌘K
+          </span>
+        </div>
+      </div>
+
       {/* User footer */}
-      <div className="px-3 py-3 border-t border-[#1a1a1a]">
-        <div className="flex items-center gap-2.5 px-2.5 py-2 rounded">
-          <div className="w-7 h-7 rounded bg-[#1a1a1a] flex items-center justify-center shrink-0">
-            <span className="text-white text-[11px] font-semibold">
+      <div className="px-3 py-3 border-t border-brand-rule">
+        <div className="flex items-center gap-2.5 px-2.5 py-2" style={{ borderRadius: "var(--radius)" }}>
+          <div
+            className="w-7 h-7 flex items-center justify-center shrink-0 bg-brand-deep border border-brand-rule"
+            style={{ borderRadius: "var(--radius-sm)" }}
+          >
+            <span className="text-brand-ink text-[11px] font-semibold font-mono">
               {email ? email[0].toUpperCase() : "?"}
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-[#888888] truncate leading-tight">
+            <p className="text-xs font-medium text-brand-muted truncate leading-tight">
               {email || ""}
             </p>
-            <p className="text-[10px] text-[#444444] leading-tight">Workspace</p>
+            <p className="text-brand-subtle leading-tight" style={{ fontSize: "10px" }}>Workspace</p>
           </div>
           <button
             onClick={handleLogout}
-            className="text-[#444444] hover:text-[#888888] transition-colors shrink-0"
+            className="text-brand-muted hover:text-brand-accent transition-colors shrink-0"
             title="Sign out"
           >
             <LogOut size={14} />
