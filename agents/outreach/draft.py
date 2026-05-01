@@ -112,9 +112,9 @@ def _kit_clean_input(scored: ScoredProspect) -> tuple[str, dict[str, Any]]:
 
 
 def draft_one(client: StatisClient, scored: ScoredProspect, run_id: str = "v0") -> DraftedMessage | None:
-    if scored.icp_score < 60:
-        return None  # below floor — skip drafting entirely
-
+    # No score floor: any prospect that survived qualify gets drafted, even
+    # low-scoring ones. The operator decides on the escalation. The qualify
+    # gate already filtered out LLM-disqualified prospects + score=0.
     cleaned, kit_report = _kit_clean_input(scored)
     # gpt-4o for drafting (much better than gpt-4o-mini for personalized
     # founder-to-founder voice). Scoring keeps mini for cost.

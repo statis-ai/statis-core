@@ -21,6 +21,7 @@ from .qualify import qualify_one
 from .research import discover as discover_t1
 from .research_yc import discover as discover_t2
 from .score import score_one
+from .seen import fetch_seen_handles, filter_unseen
 from .send import send_and_log
 from .sync import sync as sync_sheet
 
@@ -51,6 +52,12 @@ def main() -> int:
         help="After the pipeline finishes, keep polling the sync every --watch-interval seconds. Ctrl-C to stop. Useful: leave it running while you approve escalations in the console — the sheet updates within a minute of each click.",
     )
     p.add_argument("--watch-interval", type=int, default=60)
+    p.add_argument(
+        "--allow-duplicates",
+        action="store_true",
+        help="Don't dedupe against past prospects. By default, candidates whose "
+             "LinkedIn handle was processed in any prior run are filtered out.",
+    )
     p.add_argument(
         "--run-id",
         default=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
@@ -98,6 +105,27 @@ def main() -> int:
     print(f"  total: {len(candidates)} candidates")
     if not candidates:
         return 0
+
+    # Cross-run dedupe: drop any candidate whose LinkedIn handle was processed
+    # in a prior run (regardless of decision). The set comes from the action
+    # ledger — every connection_request ever proposed contributes its
+    # recipient_profile.
+    if not args.allow_duplicates:
+        seen = fetch_seen_handles(args.base_url, os.environ["STATIS_API_KEY"])
+        before = len(candidates)
+        candidates = filter_unseen(candidates, seen)
+        skipped = before - len(candidates)
+        if skipped:
+            print(f"  cross-run dedupe: skipped {skipped} already-processed handles ({len(seen)} seen total)")
+        else:
+            print(f"  cross-run dedupe: 0 duplicates ({len(seen)} seen total)")
+
+    if not candidates:
+        print("  all candidates already processed in prior runs — nothing new to do.")
+        if args.watch:
+            print("  (watch mode still active for sheet syncs)")
+        else:
+            return 0
     candidates = candidates[: args.max_prospects]
 
     client = StatisClient(base_url=args.base_url)

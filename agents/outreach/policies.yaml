@@ -98,25 +98,20 @@ rules:
     active: true
     description: "Auto-approve scoring; log all decisions to ledger"
 
-  # ── prospect_qualified — post-score ICP gate ──
-  - rule_id: outreach_qualified_high_score
+  # ── prospect_qualified — operator decides on every non-zero, non-disqualified prospect ──
+  # Score is INFORMATION, not a gate. The agent doesn't auto-reject on score
+  # thresholds — the operator makes that call when they review the escalation.
+  # The only auto-rejections are: (a) score=0 (no relevant signal at all), and
+  # (b) LLM-flagged disqualified (competitor, no fit, fundamental ICP mismatch).
+  - rule_id: outreach_qualified_present
     action_type: prospect_qualified
     conditions:
-      min_icp_score: 70
-      has_inferred_role: true
+      min_icp_score: 1
       not_disqualified: true
-    decision: APPROVED
-    priority: 30
-    active: true
-    description: "Advance to draft when score>=70 + role identified + not disqualified"
-
-  - rule_id: outreach_qualified_borderline
-    action_type: prospect_qualified
-    conditions: {min_icp_score: 60, not_disqualified: true}
     decision: ESCALATED
     priority: 20
     active: true
-    description: "Escalate borderline (60-69) for manual triage; never escalate disqualified"
+    description: "Any non-zero score + not LLM-disqualified -> operator decides"
 
   - rule_id: outreach_qualified_default_deny
     action_type: prospect_qualified
@@ -124,7 +119,7 @@ rules:
     decision: DENIED
     priority: 1
     active: true
-    description: "Deny low scores, missing role, or LLM-disqualified"
+    description: "Deny score=0 or LLM-disqualified (competitor / no-fit)"
 
   # ── outreach_draft_message — auto-approve drafts with required fields ──
   - rule_id: outreach_draft_complete
@@ -145,21 +140,20 @@ rules:
     description: "Deny drafts missing required fields"
 
   # ── linkedin_send_connection_request — STEP 1 of the two-step LinkedIn flow ──
-  # MANUAL-SEND MODE (current operator preference): every connection request
-  # escalates regardless of score. The operator opens the sheet, copies the
-  # connection_note, sends the request manually on LinkedIn, then approves the
-  # action in console to close the receipt loop. The auto-approve-at-90+ rule
-  # is intentionally absent today; restore it (and outreach_connreq_high_confidence)
-  # when the operator graduates the agent to autonomous send.
-  - rule_id: outreach_connreq_review
+  # MANUAL-SEND MODE: every well-formed connection request escalates. The
+  # operator opens the console, reads the draft + score, decides whether
+  # to send, sends manually on LinkedIn, then approves the action in
+  # console to close the receipt loop. Score is informational only — no
+  # threshold rejection here. The qualify gate already caught score=0 and
+  # LLM-disqualified prospects upstream.
+  - rule_id: outreach_connreq_present
     action_type: linkedin_send_connection_request
     conditions:
-      min_icp_score: 80
       required_fields: [recipient_profile, recipient_name, connection_note]
     decision: ESCALATED
     priority: 20
     active: true
-    description: "Manual mode: every connection request (score>=80) escalates for human send"
+    description: "Manual mode: every well-formed connreq escalates for operator review"
 
   - rule_id: outreach_connreq_default_deny
     action_type: linkedin_send_connection_request
@@ -167,7 +161,7 @@ rules:
     decision: DENIED
     priority: 1
     active: true
-    description: "Score <80 or missing required fields: deny connection request"
+    description: "Missing required fields: deny connection request"
 
   # ── linkedin_send_message — STEP 2 (post-accept follow-up DM) ──
   # Sent only AFTER the prospect accepts the connection request. Same
@@ -212,18 +206,18 @@ rules:
     active: true
     description: "Always approve connection-accepted event — pure ledger record"
 
-  # ── sheets_append_row — auto-approve at score >=80 ──
-  # The sheet is the operator's view; rows show up as soon as a prospect is
-  # qualified enough to consider, even if the send is still escalated.
+  # ── sheets_append_row — write the row whenever the operator approved ──
+  # This action only fires for connection requests the operator has approved
+  # (per send.py logic + sync.py). At that point the score is irrelevant —
+  # the operator already decided to reach out. Only required_fields gates.
   - rule_id: outreach_sheets_log
     action_type: sheets_append_row
     conditions:
-      min_icp_score: 80
       required_fields: [prospect_name, linkedin_url, icp_score]
     decision: APPROVED
     priority: 20
     active: true
-    description: "Score>=80: auto-approve sheet row (operator visibility)"
+    description: "Required fields present -> approve sheet write"
 
   - rule_id: outreach_sheets_log_default_deny
     action_type: sheets_append_row
@@ -231,7 +225,7 @@ rules:
     decision: DENIED
     priority: 1
     active: true
-    description: "Score <80 or missing required fields: deny sheet write"
+    description: "Missing required fields: deny sheet write"
 
   # ── schedule_followup — placeholder for v1; allow all today ──
   - rule_id: outreach_followup_default

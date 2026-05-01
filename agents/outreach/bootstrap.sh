@@ -67,17 +67,20 @@ simulate "intake (dnc)" \
 simulate "prospect_scored (any)" \
   '{"action_type":"prospect_scored"}'
 
-simulate "qualified (90, role, ok)" \
-  '{"action_type":"prospect_qualified","context":{"icp_score":90,"inferred_role":"Founding Eng","disqualified":false}}'
+simulate "qualified (90, ok)" \
+  '{"action_type":"prospect_qualified","context":{"icp_score":90,"disqualified":false}}'
 
-simulate "qualified (65, borderline)" \
-  '{"action_type":"prospect_qualified","context":{"icp_score":65,"inferred_role":"Eng","disqualified":false}}'
+simulate "qualified (40, no role, ok)" \
+  '{"action_type":"prospect_qualified","context":{"icp_score":40,"inferred_role":null,"disqualified":false}}'
 
-simulate "qualified (30)" \
-  '{"action_type":"prospect_qualified","context":{"icp_score":30,"inferred_role":null,"disqualified":false}}'
+simulate "qualified (1, ok)" \
+  '{"action_type":"prospect_qualified","context":{"icp_score":1,"disqualified":false}}'
+
+simulate "qualified (0)" \
+  '{"action_type":"prospect_qualified","context":{"icp_score":0,"disqualified":false}}'
 
 simulate "qualified (90 but disqualified)" \
-  '{"action_type":"prospect_qualified","context":{"icp_score":90,"inferred_role":"CTO","disqualified":true}}'
+  '{"action_type":"prospect_qualified","context":{"icp_score":90,"disqualified":true}}'
 
 simulate "draft (with required fields)" \
   '{"action_type":"outreach_draft_message","parameters":{"message_body":"hi","signal_url":"https://x","channel":"linkedin"}}'
@@ -88,11 +91,11 @@ simulate "draft (missing fields)" \
 simulate "connreq (score 95, full fields)" \
   '{"action_type":"linkedin_send_connection_request","context":{"icp_score":95},"parameters":{"recipient_profile":"u","connection_note":"hi","recipient_name":"Alice"}}'
 
-simulate "connreq (score 85, full fields)" \
-  '{"action_type":"linkedin_send_connection_request","context":{"icp_score":85},"parameters":{"recipient_profile":"u","connection_note":"hi","recipient_name":"Alice"}}'
+simulate "connreq (score 30, full fields)" \
+  '{"action_type":"linkedin_send_connection_request","context":{"icp_score":30},"parameters":{"recipient_profile":"u","connection_note":"hi","recipient_name":"Alice"}}'
 
-simulate "connreq (score 70, full fields)" \
-  '{"action_type":"linkedin_send_connection_request","context":{"icp_score":70},"parameters":{"recipient_profile":"u","connection_note":"hi","recipient_name":"Alice"}}'
+simulate "connreq (score 1, full fields)" \
+  '{"action_type":"linkedin_send_connection_request","context":{"icp_score":1},"parameters":{"recipient_profile":"u","connection_note":"hi","recipient_name":"Alice"}}'
 
 simulate "connreq (missing fields)" \
   '{"action_type":"linkedin_send_connection_request","context":{"icp_score":95},"parameters":{}}'
@@ -103,14 +106,14 @@ simulate "send-followup (score 95, full)" \
 simulate "send-followup (score 85, full)" \
   '{"action_type":"linkedin_send_message","context":{"icp_score":85},"parameters":{"recipient_profile":"u","message_body":"hi","recipient_name":"Alice"}}'
 
-simulate "sheets (score 85, full)" \
-  '{"action_type":"sheets_append_row","context":{"icp_score":85},"parameters":{"prospect_name":"x","linkedin_url":"y","icp_score":85}}'
+simulate "sheets (full fields)" \
+  '{"action_type":"sheets_append_row","parameters":{"prospect_name":"x","linkedin_url":"y","icp_score":85}}'
 
-simulate "sheets (score 70, full)" \
-  '{"action_type":"sheets_append_row","context":{"icp_score":70},"parameters":{"prospect_name":"x","linkedin_url":"y","icp_score":70}}'
+simulate "sheets (low score, full fields)" \
+  '{"action_type":"sheets_append_row","parameters":{"prospect_name":"x","linkedin_url":"y","icp_score":30}}'
 
 simulate "sheets (missing fields)" \
-  '{"action_type":"sheets_append_row","context":{"icp_score":85},"parameters":{}}'
+  '{"action_type":"sheets_append_row","parameters":{}}'
 
 simulate "intake (T2 competitor)" \
   '{"action_type":"prospect_intake","context":{"tier":2,"company_domain":"sentrial.com","domain_verified":true,"is_aggregator_domain":false,"company_batch":"Winter 2026","is_competitor":true,"dnc":false}}'
@@ -131,14 +134,19 @@ echo "  qualified (30)                                            -> DENIED"
 echo "  qualified (90 but disqualified)                           -> DENIED"
 echo "  draft (with required fields)                              -> APPROVED"
 echo "  draft (missing fields)                                    -> DENIED"
-echo "  connreq (score 95, full fields)                           -> ESCALATED (manual-send mode)"
-echo "  connreq (score 85, full fields)                           -> ESCALATED (manual-send mode)"
-echo "  connreq (score 70, full fields)                           -> DENIED"
+echo "  qualified (90, ok)                                        -> ESCALATED"
+echo "  qualified (40, no role, ok)                               -> ESCALATED  (no score gate)"
+echo "  qualified (1, ok)                                         -> ESCALATED"
+echo "  qualified (0)                                             -> DENIED"
+echo "  qualified (90 but disqualified)                           -> DENIED"
+echo "  connreq (score 95, full fields)                           -> ESCALATED"
+echo "  connreq (score 30, full fields)                           -> ESCALATED  (no score gate)"
+echo "  connreq (score 1, full fields)                            -> ESCALATED  (no score gate)"
 echo "  connreq (missing fields)                                  -> DENIED"
 echo "  send-followup (score 95, full)                            -> APPROVED"
 echo "  send-followup (score 85, full)                            -> ESCALATED"
-echo "  sheets (score 85, full)                                   -> APPROVED"
-echo "  sheets (score 70, full)                                   -> DENIED"
+echo "  sheets (full fields)                                      -> APPROVED"
+echo "  sheets (low score, full fields)                           -> APPROVED  (no score gate)"
 echo "  sheets (missing fields)                                   -> DENIED"
 echo "  intake (T2 competitor)                                    -> DENIED"
 echo ""
