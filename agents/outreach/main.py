@@ -180,9 +180,12 @@ def main() -> int:
             qualify_by_key[_ckey(s.candidate)] = (q.decision, q.statis_action_id or "")
             if q.statis_action_id:
                 receipts_seen.append(q.statis_action_id)
-            if q.decision in ("APPROVED", "APPROVED_PENDING"):
+            # In manual-review mode, ESCALATED at qualify means "operator decides"
+            # — but the operator needs a DRAFT to make the call. So advance to
+            # draft stage for ESCALATED too. Only DENIED stops the pipeline.
+            if q.decision != "DENIED":
                 qualified.append(s)
-        print(f"  qualified: {len(qualified)}/{len(scored)}")
+        print(f"  qualified (advanced to draft): {len(qualified)}/{len(scored)}")
 
         print(f"\n== Stage 5: draft ==")
         drafts: list = []
