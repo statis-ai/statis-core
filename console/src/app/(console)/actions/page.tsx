@@ -13,6 +13,7 @@ import {
   CircleX,
   Loader2,
 } from "lucide-react";
+import Link from "next/link";
 import { fetchAllActions, type ActionContract } from "@/lib/api";
 import { PageHeader } from "@/components/observe/PageHeader";
 import { LiveBadge } from "@/components/observe/LiveBadge";
@@ -578,6 +579,16 @@ export default function ActionsPage() {
                             Denied by policy
                           </div>
                         )}
+                        <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
+                          <Link
+                            href={`/actions/${row.action_id}`}
+                            className="inline-flex items-center gap-1 text-[11px] font-mono transition-colors"
+                            style={{ color: "var(--accent)" }}
+                          >
+                            Open detail page
+                            <ArrowUpRight size={11} />
+                          </Link>
+                        </div>
                       </div>
                     )}
                   </div>

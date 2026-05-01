@@ -138,6 +138,9 @@ export interface ReceiptDetail {
   executed_at: string | null;
   execution_result: Record<string, unknown> | null;
   hash: string;
+  signature: string | null;
+  signature_alg: string | null;
+  public_key_id: string | null;
   conditions_evaluated: Record<string, ConditionResult> | null;
   entity_state_snapshot: Record<string, unknown> | null;
   created_at: string;
@@ -220,6 +223,9 @@ export interface ReceiptVerifyResult {
   hash_valid: boolean;
   stored_hash: string;
   computed_hash: string;
+  signature_valid: boolean | null;
+  signature_alg: string | null;
+  public_key_id: string | null;
 }
 
 export interface ThreatLog {
