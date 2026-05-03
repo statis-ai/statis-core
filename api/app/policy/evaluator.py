@@ -452,14 +452,18 @@ class PolicyEvaluator:
             # action.parameters.recipient_email must equal the customer's email_of_record.
             # Primary source: entity_state loaded from DB by the route handler.
             # Fallback: entity snapshot in action.context["entity"] (set via SDK entity= callback).
+            if action is None:
+                return False
             params = (
                 action.parameters if hasattr(action, "parameters") else action.get("parameters", {})
-            )
+            ) or {}
             recipient = str(params.get("recipient_email", "")).strip().lower()
 
             email_of_record = entity_state.get("email_of_record")
             if not email_of_record:
-                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+                ctx = (
+                    action.context if hasattr(action, "context") else action.get("context", {})
+                ) or {}
                 entity_snap = ctx.get("entity") or {}
                 email_of_record = entity_snap.get("email_of_record", "")
 
