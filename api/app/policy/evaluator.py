@@ -448,5 +448,24 @@ class PolicyEvaluator:
                 )
             return action_hash is not None and str(action_hash) == str(value)
 
+        if key == "recipient_matches_customer_of_record":
+            # action.parameters.recipient_email must equal the customer's email_of_record.
+            # Primary source: entity_state loaded from DB by the route handler.
+            # Fallback: entity snapshot in action.context["entity"] (set via SDK entity= callback).
+            params = (
+                action.parameters if hasattr(action, "parameters") else action.get("parameters", {})
+            )
+            recipient = str(params.get("recipient_email", "")).strip().lower()
+
+            email_of_record = entity_state.get("email_of_record")
+            if not email_of_record:
+                ctx = action.context if hasattr(action, "context") else action.get("context", {})
+                entity_snap = ctx.get("entity") or {}
+                email_of_record = entity_snap.get("email_of_record", "")
+
+            email_of_record = str(email_of_record).strip().lower()
+            match = bool(recipient) and bool(email_of_record) and recipient == email_of_record
+            return match == bool(value)
+
         # Unknown condition key — fail closed (safe default).
         return False

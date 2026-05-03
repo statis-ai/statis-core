@@ -39,6 +39,11 @@ _DEFAULT_SENSITIVE_KEYS: frozenset[str] = frozenset(
 # email is only masked when found inside these parent key contexts
 _EMAIL_CONTEXT_KEYS: frozenset[str] = frozenset({"pii_fields", "sensitive_data"})
 
+# Parameter keys whose values must survive masking for policy evaluation.
+# These fields are read by condition handlers (e.g. recipient_matches_customer_of_record)
+# and must not be pattern-masked, even when their values look like email addresses.
+_POLICY_EXEMPT_KEYS: frozenset[str] = frozenset({"recipient_email"})
+
 # ---------------------------------------------------------------------------
 # Value-level pattern detection
 # ---------------------------------------------------------------------------
@@ -102,6 +107,9 @@ class PIIMasker:
 
             if should_mask:
                 result[key] = self._mask_scalar(value)
+            elif lower_key in _POLICY_EXEMPT_KEYS:
+                # Keep value as-is; needed by policy condition handlers.
+                result[key] = value
             else:
                 result[key] = self._mask_value(value, sensitive, parent_key=key)
 
