@@ -338,7 +338,7 @@ class StatisClient:
             receipt_id=data["receipt_id"],
             action_id=data["action_id"],
             decision=data["decision"],
-            rule_id=data.get("rule_id"),
+            rule_id=data.get("rule_id") or (data.get("rule_ids_evaluated") or [None])[0],
             rule_version=data.get("rule_version"),
             approved_by=data["approved_by"],
             conditions_evaluated=data.get("conditions_evaluated"),

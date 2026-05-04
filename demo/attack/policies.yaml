@@ -1,0 +1,11 @@
+rules:
+  - rule_id: refund_to_customer_of_record
+    rule_version: "1"
+    action_type: issue_refund
+    decision: APPROVED
+    priority: 100
+    conditions:
+      recipient_matches_customer_of_record: true
+    description: >
+      Approve refunds only when the recipient email matches the customer's
+      email of record. Falls through to DENIED (fail-closed default) on mismatch.

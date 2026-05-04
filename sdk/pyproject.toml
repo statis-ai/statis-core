@@ -4,10 +4,25 @@ build-backend = "hatchling.build"
 
 [project]
 name = "statis-ai"
-version = "0.4.1"
-description = "Python SDK for Statis — agent runtime trust layer (AARM-aligned)"
+version = "0.4.2"
+description = "Python SDK for Statis — the trust layer for production AI agents (policy-gated tool calls + signed receipts)"
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.9"
 dependencies = ["httpx>=0.24.0", "pyyaml>=6.0", "statis-kit>=0.1.0"]
+keywords = ["ai", "agents", "statis", "policy", "audit", "receipts", "tool-use", "llm", "governance"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: Security",
+]
 
 [project.optional-dependencies]
 # AARM R5 receipt verification — opt-in to keep the base install slim.
@@ -21,6 +36,8 @@ statis = "statis.cli:main"
 [project.urls]
 Homepage = "https://statis.dev"
 Repository = "https://github.com/statis-ai/statis-core"
+Documentation = "https://statis.dev/docs"
+Issues = "https://github.com/statis-ai/statis-core/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/statis"]

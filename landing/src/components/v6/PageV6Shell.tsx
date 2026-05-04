@@ -15,7 +15,7 @@ export function TopbarV6({ currentRoute }: { currentRoute?: string }) {
           <StatisMark size={22} accent="#fb923c" bar="#fafafa" />
         </span>
         Statis
-        <span className="pv6-brand-tag">v0.2 · beta</span>
+        <span className="pv6-brand-tag">v0.4 · beta</span>
       </a>
 
       <nav className="pv6-nav" aria-label="Primary">
