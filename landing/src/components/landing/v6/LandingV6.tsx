@@ -235,7 +235,7 @@ export default function LandingV6() {
             <StatisMark size={22} accent="#fb923c" bar="#111111" />
           </span>
           Statis
-          <span className="brand-tag">v0.2 · beta</span>
+          <span className="brand-tag">v0.4 · beta</span>
         </div>
         <nav className="nav" aria-label="Primary">
           <a href="#demo">Demo</a>
