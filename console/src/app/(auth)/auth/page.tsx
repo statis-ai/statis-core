@@ -224,7 +224,7 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#0a0a0a] relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle, #1c1c1c 1px, transparent 1px)", backgroundSize: "10px 10px" }}>
+    <div data-theme="dark" className="min-h-screen flex bg-[#0a0a0a] relative overflow-hidden" style={{ backgroundImage: "radial-gradient(circle, #1c1c1c 1px, transparent 1px)", backgroundSize: "10px 10px" }}>
       {/* Setup animation overlay */}
       <AnimatePresence>
         {setupVisible && (
