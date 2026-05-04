@@ -70,8 +70,15 @@ export default function ReceiptsPage() {
   async function load(showSpinner = false) {
     if (showSpinner) setRefreshing(true);
     try {
-      const data = await fetchAllActions({ status: "COMPLETED", limit: 5000 });
-      setActions(data);
+      const [completed, denied] = await Promise.all([
+        fetchAllActions({ status: "COMPLETED", limit: 5000 }),
+        fetchAllActions({ status: "DENIED", limit: 5000 }),
+      ]);
+      const merged = [...completed, ...denied].sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+      );
+      setActions(merged);
       setError(null);
       setLastRefreshed(new Date());
     } catch (err: unknown) {
@@ -165,7 +172,7 @@ export default function ReceiptsPage() {
             <span>
               {loading
                 ? "Loading receipts…"
-                : `${stats.total.toLocaleString()} completed actions`}
+                : `${stats.total.toLocaleString()} actions with receipts`}
             </span>
             {lastRefreshed && (
               <>
@@ -228,7 +235,7 @@ export default function ReceiptsPage() {
           <StatTile
             label="Total receipts"
             value={stats.total.toLocaleString()}
-            hint="Completed actions, all time"
+            hint="Completed + denied actions, all time"
             icon={<Receipt size={13} />}
           />
           <StatTile
@@ -265,7 +272,7 @@ export default function ReceiptsPage() {
         footer={
           loading
             ? "Loading…"
-            : `Showing ${stats.total.toLocaleString()} receipts from COMPLETED actions`
+            : `Showing ${stats.total.toLocaleString()} receipts from COMPLETED + DENIED actions`
         }
       >
         {loading ? (
